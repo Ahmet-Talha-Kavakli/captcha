@@ -14,13 +14,21 @@
  * KURAL: framer-motion opacity:0 giriş YOK — sadece y-kayma. Yatay taşma yok.
  */
 
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Cpu, ArrowRight, ArrowUpRight, ArrowDownRight, Minus, Ban, ShieldQuestion, Check, GraduationCap, Search, MousePointerClick } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Cpu, ArrowRight, ArrowUpRight, ArrowDownRight, Minus, Ban, ShieldQuestion, Check, GraduationCap, Search, MousePointerClick, ChevronDown, ShieldCheck, Loader2 } from "lucide-react";
 import { Panel, Badge } from "@/components/panel/kit";
 import { MiniSpark } from "@/components/panel/grafikler";
 import type { AiBotRadar, AiAjan } from "@/lib/specter/ai-bot-radar";
+import { AI_AJANLAR } from "@/lib/specter/ai-agents";
 import { cn } from "@/lib/cn";
+
+/** Radar ajan adı (ör. "GPTBot") → AI_AJANLAR id'si (ör. "gptbot") — politika API'si için. */
+function ajanId(ad: string): string | null {
+  const a = AI_AJANLAR.find((x) => x.urun.toLowerCase() === ad.toLowerCase());
+  return a?.id ?? null;
+}
 
 /* AI ajan adı → kategori + marka rengi. Kategori: eğitim/arama/kullanıcı-ajanı. */
 const AJAN_META: Record<string, { kategori: "egitim" | "arama" | "kullanici"; renk: string }> = {
@@ -58,6 +66,154 @@ function politika(a: AiAjan): { ad: string; ton: "yesil" | "sari" | "kirmizi"; i
   if (meydan > a.izinVerilen)
     return { ad: "Doğrula", ton: "sari", ikon: <ShieldQuestion className="size-3" /> };
   return { ad: "İzin ver", ton: "yesil", ikon: <Check className="size-3" /> };
+}
+
+/** Tek AI ajan kartı — tıklanınca açılır, gerçek politika (izin/doğrula/engelle)
+ *  değiştirilebilir (POST /api/ai-agents). Ürünün ana vaadi: AI'yı yönet. */
+function AjanKart({ a, gecikme }: { a: AiAjan; gecikme: number }) {
+  const meta = ajanMeta(a.ad);
+  const kat = KATEGORI[meta.kategori];
+  const pol = politika(a);
+  const bas = a.ad.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase() || "AI";
+  const id = ajanId(a.ad);
+  const resmi = id ? AI_AJANLAR.find((x) => x.id === id) : null;
+
+  const [acik, setAcik] = useState(false);
+  const [politikaSecim, setPolitikaSecim] = useState<string | null>(null);
+  const [kaydeden, setKaydeden] = useState<string | null>(null);
+
+  const politikaDegistir = async (yeni: string) => {
+    if (!id || kaydeden) return;
+    setKaydeden(yeni);
+    try {
+      const r = await fetch("/api/ai-agents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId: id, policy: yeni }),
+      });
+      if (r.ok) setPolitikaSecim(yeni);
+    } catch { /* sessiz */ } finally {
+      setKaydeden(null);
+    }
+  };
+
+  const POLITIKALAR = [
+    { key: "izin", ad: "İzin ver", ikon: Check, ton: "text-green-700 ring-green-300 data-[sec=true]:bg-ok-soft" },
+    { key: "dogrula", ad: "Doğrula", ikon: ShieldQuestion, ton: "text-amber-700 ring-amber-300 data-[sec=true]:bg-amber-50" },
+    { key: "engelle", ad: "Engelle", ikon: Ban, ton: "text-red-700 ring-red-300 data-[sec=true]:bg-danger-soft" },
+  ];
+  // Aktif politika: kullanıcı seçtiyse o, yoksa karardan türetilen öneri.
+  const aktifPol = politikaSecim ?? (pol.ad === "İzin ver" ? "izin" : pol.ad === "Doğrula" ? "dogrula" : "engelle");
+
+  return (
+    <motion.div
+      initial={{ y: 10 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.4, delay: gecikme, ease: [0.16, 1, 0.3, 1] }}
+      className={cn("rounded-2xl border bg-surface p-3.5", acik ? "border-slate-300 ring-1 ring-inset ring-slate-200" : "border-line")}
+    >
+      <button
+        type="button"
+        onClick={() => setAcik((v) => !v)}
+        aria-expanded={acik}
+        aria-label={`${a.ad} ajan detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full items-center gap-2.5 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl text-[12px] font-bold text-white" style={{ background: meta.renk }}>
+          {bas}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13.5px] font-semibold text-slate-ink">{a.ad}</p>
+          <p className="truncate text-[11px] text-slate-faint">{kat.ad}</p>
+        </div>
+        <Badge ton={pol.ton === "yesil" ? "yesil" : pol.ton === "sari" ? "sari" : "kirmizi"}>
+          {pol.ikon} {pol.ad}
+        </Badge>
+        <ChevronDown className={cn("size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
+      </button>
+      <div className="mt-2.5 flex items-end justify-between gap-3">
+        <div>
+          <p className="num text-[20px] font-bold leading-none text-slate-ink">{a.olay.toLocaleString("tr-TR")}</p>
+          <p className="mt-0.5 text-[10.5px] text-slate-muted">24s istek · {a.engellenen} engelli</p>
+        </div>
+        <div className="w-24 shrink-0">
+          <MiniSpark tohum={a.ad} renk={meta.renk} yukseklik={30} />
+        </div>
+      </div>
+
+      {/* Drill-down: istihbarat + GERÇEK politika değiştir */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 space-y-2.5 border-t border-line pt-3 text-[12px]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-faint">Amaç</span>
+                <span className="font-medium text-slate-ink">{kat.ad}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-faint">İzin verilen / engellenen</span>
+                <span className="num font-medium text-slate-ink">{a.izinVerilen} / {a.engellenen}</span>
+              </div>
+              {resmi && (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-faint">Doğrulama yöntemi</span>
+                    <span className="font-medium text-slate-ink">{resmi.dogrulama === "ip_aralik" ? "IP aralığı" : resmi.dogrulama === "reverse_dns" ? "Ters-DNS" : "Yok"}</span>
+                  </div>
+                  <p className="text-[11.5px] leading-relaxed text-slate-muted">{resmi.aciklama}</p>
+                </>
+              )}
+            </div>
+
+            {/* GERÇEK AKSİYON: politikayı değiştir (izin/doğrula/engelle) */}
+            {id ? (
+              <div className="mt-3">
+                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-faint">Bu ajana politika</p>
+                <div className="flex items-center gap-1.5">
+                  {POLITIKALAR.map((p) => {
+                    const Ikon = p.ikon;
+                    const sec = aktifPol === p.key;
+                    return (
+                      <button
+                        key={p.key}
+                        type="button"
+                        data-sec={sec}
+                        onClick={() => politikaDegistir(p.key)}
+                        disabled={!!kaydeden}
+                        aria-pressed={sec}
+                        className={cn(
+                          "inline-flex flex-1 items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11.5px] font-semibold ring-1 ring-inset transition focus:outline-none focus-visible:ring-2",
+                          p.ton,
+                          sec ? "" : "opacity-55 hover:opacity-100",
+                          kaydeden && "cursor-wait",
+                        )}
+                      >
+                        {kaydeden === p.key ? <Loader2 className="size-3 animate-spin" /> : <Ikon className="size-3" />}
+                        {p.ad}
+                      </button>
+                    );
+                  })}
+                </div>
+                {politikaSecim && (
+                  <p className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-green-700">
+                    <ShieldCheck className="size-3" /> Politika kaydedildi — anında uygulanır.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="mt-3 text-[11px] text-slate-faint">Bu ajan için doğrulanabilir kimlik/politika yok (tanımsız imza).</p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 }
 
 export function AiAjanNabzi({ aiRadar }: { aiRadar: AiBotRadar }) {
@@ -148,43 +304,9 @@ export function AiAjanNabzi({ aiRadar }: { aiRadar: AiBotRadar }) {
           </div>
         ) : (
           <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {ajanlar.map((a, i) => {
-              const meta = ajanMeta(a.ad);
-              const kat = KATEGORI[meta.kategori];
-              const pol = politika(a);
-              const bas = a.ad.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase() || "AI";
-              return (
-                <motion.div
-                  key={a.ad}
-                  initial={{ y: 10 }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                  className="rounded-2xl border border-line bg-surface p-3.5"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl text-[12px] font-bold text-white" style={{ background: meta.renk }}>
-                      {bas}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13.5px] font-semibold text-slate-ink">{a.ad}</p>
-                      <p className="truncate text-[11px] text-slate-faint">{kat.ad}</p>
-                    </div>
-                    <Badge ton={pol.ton === "yesil" ? "yesil" : pol.ton === "sari" ? "sari" : "kirmizi"}>
-                      {pol.ikon} {pol.ad}
-                    </Badge>
-                  </div>
-                  <div className="mt-2.5 flex items-end justify-between gap-3">
-                    <div>
-                      <p className="num text-[20px] font-bold leading-none text-slate-ink">{a.olay.toLocaleString("tr-TR")}</p>
-                      <p className="mt-0.5 text-[10.5px] text-slate-muted">24s istek · {a.engellenen} engelli</p>
-                    </div>
-                    <div className="w-24 shrink-0">
-                      <MiniSpark tohum={a.ad} renk={meta.renk} yukseklik={30} />
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {ajanlar.map((a, i) => (
+              <AjanKart key={a.ad} a={a} gecikme={i * 0.04} />
+            ))}
           </div>
         )}
       </div>
