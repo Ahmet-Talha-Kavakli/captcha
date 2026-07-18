@@ -145,6 +145,33 @@ async function main() {
   })).json();
   check("2FA açık: doğru TOTP → giriş başarılı", loginDogru.ok === true);
 
+  // ŞİFRE DEĞİŞTİRME — eski şifre doğrulanmalı, hash gerçekten güncellenmeli.
+  const pwEmail = `pw${Date.now()}@x.dev`;
+  const pwJar = await kayit(pwEmail); // kayit "test123" ile açar
+  const pwYanlis = await fetch(`${BASE}/api/account/password`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: pwJar },
+    body: JSON.stringify({ oldPassword: "yanlis999", newPassword: "yeniSifre456" }),
+  });
+  check("Şifre değiştir: yanlış eski şifre → 400", pwYanlis.status === 400);
+  const pwDogru = await fetch(`${BASE}/api/account/password`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: pwJar },
+    body: JSON.stringify({ oldPassword: "test123", newPassword: "yeniSifre456" }),
+  });
+  check("Şifre değiştir: doğru eski şifre → 200", pwDogru.status === 200);
+  const eskiGiris = await fetch(`${BASE}/api/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: pwEmail, password: "test123" }),
+  });
+  check("Şifre değişince eski şifre artık geçersiz → 401 (hash güncellendi)", eskiGiris.status === 401);
+
+  // KAYIT güvenliği — mükerrer email + zayıf şifre reddedilmeli.
+  const dupEmail = `dup${Date.now()}@x.dev`;
+  await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: dupEmail, name: "U", password: "gucluSifre123" }) });
+  const dup = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: dupEmail, name: "X", password: "baskaSifre999" }) });
+  check("Mükerrer email kaydı → reddedilir (409)", dup.status === 409);
+  const zayif = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: `z${Date.now()}@x.dev`, name: "U", password: "123" }) });
+  check("Zayıf şifre kaydı → reddedilir (400)", zayif.status === 400);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
