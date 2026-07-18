@@ -20,6 +20,7 @@ import { powZorluk, TABAN_ZORLUK_BIT } from "@/lib/specter/proof-of-work";
 import { kotaDurumu } from "@/lib/specter/plans";
 import { extractMeta } from "@/lib/specter/request-meta";
 import { IpRep } from "@/lib/db/db";
+import { tehditBeslemeEslestir } from "@/lib/specter/threat-feed";
 
 const CHALLENGE_TTL_MS = 2 * 60 * 1000;
 
@@ -122,8 +123,16 @@ export async function POST(req: Request) {
 
   // İşlem-Kanıtı (Proof-of-Work) adaptif zorluk: kötü ün IP → daha çok CPU
   // maliyeti (yüksek-hacim bot saldırısını ekonomik olarak caydırır), temiz
-  // IP → taban (insana ~görünmez). botOlasilik = IP tehdit skoru.
-  const botOlasilik = ipItibar ? Math.min(1, ipItibar.threatScore / 100) : 0;
+  // IP → taban (insana ~görünmez). botOlasilik iki kaynaktan gelir:
+  //   1) yerel IP itibarı (IpRep threatScore) — gözlemlenen davranış geçmişi;
+  //   2) global tehdit beslemesi (Tor/botnet/bulletproof/datacenter CIDR) —
+  //      bilinen kötü altyapı. Passive'de zaten kullanılan bu istihbarat artık
+  //      challenge PoW maliyetine de yansır: bilinen bir Tor/botnet IP'si
+  //      challenge alırken CPU öder (daha önce bedavaya alıyordu — boşluktu).
+  const itibarOlasilik = ipItibar ? Math.min(1, ipItibar.threatScore / 100) : 0;
+  const besleme = tehditBeslemeEslestir(meta.ip, meta.asn);
+  const beslemeOlasilik = besleme.eslesti ? besleme.maxGuven : 0;
+  const botOlasilik = Math.max(itibarOlasilik, beslemeOlasilik);
   const pow = powZorluk(botOlasilik);
   const powBit = pow.hedefBit;
 

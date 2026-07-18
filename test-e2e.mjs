@@ -249,6 +249,23 @@ async function main() {
   check("Meşru kullanıcı (farklı IP) saldırıya rağmen hizmet alır (DoS izolasyonu)",
     mesruKullanici.status === 200);
 
+  // 17) PoW TEHDİT-BESLEMESİ — bilinen kötü altyapı (Tor/botnet) challenge
+  // alırken CPU maliyeti (proof-of-work) ödemeli; temiz IP ödememeli. Bu, yüksek
+  // hacimli bot saldırısını ekonomik olarak caydırır. (Önce yalnızca yerel IP
+  // itibarı kullanılıyordu; global tehdit beslemesi PoW'a bağlı DEĞİLDİ.)
+  const temizPow = await (await fetch(`${BASE}/api/v1/challenge`, {
+    method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "8.8.4.4" },
+    body: JSON.stringify({ siteKey: DEMO }),
+  })).json();
+  check("Temiz IP → PoW yok (insana görünmez, maliyet yok)", !temizPow.pow);
+
+  const torPow = await (await fetch(`${BASE}/api/v1/challenge`, {
+    method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "185.220.101.9" },
+    body: JSON.stringify({ siteKey: DEMO }),
+  })).json();
+  check("Tor IP → PoW dayatılır (CPU maliyeti, bot ekonomik caydırma)",
+    !!torPow.pow && torPow.pow.hedefBit > 0);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
