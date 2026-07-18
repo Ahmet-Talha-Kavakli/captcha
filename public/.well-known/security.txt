@@ -1,0 +1,8 @@
+# Veylify — Güvenlik Açığı Bildirimi (Responsible Disclosure)
+# https://veylify.com
+
+Contact: mailto:destek@veylify.com
+Expires: 2027-07-18T00:00:00.000Z
+Preferred-Languages: tr, en
+Canonical: https://veylify.com/.well-known/security.txt
+Policy: https://veylify.com/guvenlik

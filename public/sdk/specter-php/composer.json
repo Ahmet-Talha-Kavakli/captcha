@@ -1,0 +1,25 @@
+{
+  "name": "veylify/veylify-php",
+  "description": "Official Veylify SDK for PHP — server-side siteverify and webhook signature verification for ghost-font CAPTCHA / AI-bot protection.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": ["veylify", "captcha", "bot-protection", "ai-bot", "webhook", "siteverify", "ghost-font"],
+  "homepage": "https://veylify.com/docs/sdk/php",
+  "require": {
+    "php": ">=7.4",
+    "ext-json": "*"
+  },
+  "suggest": {
+    "ext-curl": "For faster HTTP requests (falls back to file_get_contents if absent)."
+  },
+  "autoload": {
+    "psr-4": {
+      "Veylify\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Veylify"
+    }
+  ]
+}

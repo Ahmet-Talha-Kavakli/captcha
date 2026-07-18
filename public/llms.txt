@@ -1,0 +1,37 @@
+# Veylify
+
+> Veylify, web sitelerini yapay zeka (AI) botlarından koruyan bir insan doğrulama / CAPTCHA platformudur. Ghost-font teknolojisi (temporal dithering) ile insanın gördüğü, makinenin göremediği görünmez bir doğrulama katmanı sunar. Slogan: "Sadece insanların okuyabildiği görünmez katman."
+
+Veylify Türkiye merkezli, KVKK/GDPR uyumlu ve Türkçe destekli bir güvenlik altyapısıdır. Modern AI botları klasik CAPTCHA'ları (reCAPTCHA, hCaptcha, Turnstile) kolayca geçebildiği için Veylify, doğrulama sırrını tek bir karede değil hareketin kendisinde saklar: metin, kareler arası titreşen nokta gürültüsüne gömülür. Tek kareye bakan OCR/vision modeli yalnızca rastgele gürültü görürken, insan görme sistemi kareler arası tutarlı titreşimi çözerek harfleri okur.
+
+## Ne işe yarar
+
+- Ghost-font CAPTCHA: OCR ve görüntü modellerine karşı %100 kör edici görsel challenge (temporal dithering).
+- Davranışsal analiz / biyometri: fare, klavye ve dokunma dinamiklerinden insan-bot ayrımı.
+- Kural motoru: IP, coğrafya, TLS parmak izi ve hız-limiti tabanlı özelleştirilebilir kurallar.
+- Görünmez mod: güvenilir kullanıcılar hiç challenge görmez; yalnızca şüpheli istekler doğrulamaya düşer (reCAPTCHA v3 / Turnstile mantığının karşılığı).
+- reCAPTCHA uyumlu API: frontend'e bir div + script, backend'de /siteverify çağrısı; ortalama entegrasyon ~10 dakika.
+- HMAC imzalı stateless token: challenge cevabı asla düz metin olarak ağda gezmez; üçüncü taraflara veri gönderilmez.
+
+## Kimler için
+
+- E-ticaret: fiyat/stok kazımayı ve envanter botlarını engeller.
+- İçerik siteleri: AI eğitim-verisi hırsızlığını (içerik kazıma) önler.
+- API / SaaS: kötüye kullanım, kimlik doldurma (credential stuffing) ve otomasyona karşı korur.
+- Login / kayıt sayfaları: hesap ele geçirme ve sahte kayıt saldırılarını azaltır.
+
+## Sayfalar
+
+- [Ana sayfa](https://veylify.com/): ürün özeti, ghost-font gösterimi ve genel bakış.
+- [Özellikler](https://veylify.com/ozellikler): tüm teknoloji katmanları — ghost-font, biyometri, kural motoru, görünmez mod.
+- [Nasıl Çalışır](https://veylify.com/nasil-calisir): teknik akış, 5 katmanlı savunma hunisi, edge mimarisi ve entegrasyon.
+- [Çözümler](https://veylify.com/cozumler): sektör ve senaryo bazlı kullanım (e-ticaret, içerik, API/SaaS, login).
+- [Fiyatlandırma](https://veylify.com/fiyatlandirma): Başlangıç ₺0, Büyüme ₺990/ay, Kurumsal özel; plan karşılaştırma ve SSS.
+- [Demo](https://veylify.com/demo): ghost-font doğrulamanın canlı denemesi.
+- [Durum](https://veylify.com/durum): servis çalışma durumu (status).
+
+## İletişim
+
+- Destek e-postası: destek@veylify.com
+- Web: https://veylify.com
+- Diller: Türkçe, İngilizce

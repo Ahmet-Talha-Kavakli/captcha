@@ -1,0 +1,38 @@
+{
+  "name": "captcha",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS=--max-http-header-size=65536 next dev -H 127.0.0.1 -p 3033",
+    "build": "next build",
+    "start": "NODE_OPTIONS=--max-http-header-size=65536 next start -H 127.0.0.1 -p 3033",
+    "lint": "eslint",
+    "test": "node test-e2e.mjs && node test-security.mjs && node test-edge.mjs",
+    "test:e2e": "node test-e2e.mjs",
+    "test:security": "node test-security.mjs",
+    "test:edge": "node test-edge.mjs",
+    "test:vision": "node test-vision.mjs"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.24.0",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.9.2",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.0.2",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "tesseract.js": "^7.0.0",
+    "typescript": "^5"
+  }
+}

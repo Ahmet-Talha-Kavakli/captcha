@@ -1,0 +1,932 @@
+/**
+ * SSO & SAML Hazırlık Merkezi — yerel çeviri sözlüğü.
+ *
+ * Sadece bu sayfaya özgü kullanıcı-görünür metinleri içerir. Paylaşılan
+ * `src/lib/i18n/panel.ts` sözlüğüne ve DB/kit'e DOKUNMAZ. Protokol adları
+ * (SAML 2.0, OIDC), teknik terimler (Entity ID, Issuer, Client ID/Secret,
+ * ACS, NameID, PEM, x509, SCIM, DNS/TXT, Bearer), URL'ler, entity ID'ler,
+ * jetonlar ve enum/veri değerleri çevrilmez — bunlar veri/spesifikasyon
+ * terimleridir. DNS "Tür/Ad/Değer" SATIR ETİKETLERİ ise çevrilir.
+ *
+ * Anahtar bulunamazsa TR'ye, o da yoksa anahtarın kendisine düşer.
+ */
+import type { Dil } from "@/lib/i18n/panel";
+
+const sozluk: Record<Dil, Record<string, string>> = {
+  tr: {
+    // Sayfa başlığı / breadcrumb
+    "sso.baslik": "SSO & SAML Hazırlık Merkezi",
+
+    // Üst açıklama bandı
+    "sso.tanit.baslik": "Kuruluşunuzun kimlik sağlayıcısını Veylify'a bağlayın.",
+    "sso.tanit.aciklama":
+      "SAML 2.0 veya OIDC ile tek-oturum-açma (SSO) yapılandırın, öznitelikleri eşleyin, SCIM ile otomatik kullanıcı sağlamayı önizleyin ve hazırlığınızı adım adım tamamlayın.",
+
+    // Özet kartları
+    "sso.ozet.hazirlik": "SSO hazırlık skoru",
+    "sso.ozet.protokol": "Seçili protokol",
+    "sso.ozet.aktifUye": "Etkilenecek aktif üye",
+    "sso.ozet.uygulama": "SSO uygulama durumu",
+    "sso.ozet.zorunlu": "Zorunlu",
+    "sso.ozet.istegeBagli": "İsteğe bağlı",
+
+    // Görsel panolar (oturum trendi / sağlayıcı gauge / giriş yöntemi)
+    "sso.pano.baslik": "SSO oturum panosu",
+    "sso.pano.oturumBaslik": "Oturum aktivite trendi (son 14 gün)",
+    "sso.pano.oturumAciklama": "Günlük başarılı kimlik-doğrulama oturumu — kurumsal IdP üzerinden.",
+    "sso.pano.saglayiciBaslik": "Sağlayıcı hazırlık durumu",
+    "sso.pano.saglayiciAlt": "yapılandırma",
+    "sso.pano.yontemBaslik": "Giriş yöntemi dağılımı",
+    "sso.pano.yontemAciklama": "Aktif üyelerin giriş yöntemine göre dağılımı.",
+    "sso.pano.yontemSso": "SSO (kurumsal IdP)",
+    "sso.pano.yontemMfa": "Parola + 2FA",
+    "sso.pano.yontemParola": "Yalnızca parola",
+    "sso.pano.merkezUye": "aktif üye",
+    "sso.kpi.oturum": "Bugünkü SSO oturumu",
+    "sso.kpi.provizyon": "SCIM provizyon durumu",
+    "sso.kpi.provizyonAcik": "Etkin",
+    "sso.kpi.provizyonKapali": "Kapalı",
+
+    // Protokol seçimi
+    "sso.protokol.baslik": "Protokol seçimi",
+    "sso.protokol.aciklama":
+      "Kimlik sağlayıcınızın desteklediği protokolü seçin. Çoğu kurumsal IdP (Okta, Azure AD, Google Workspace, OneLogin) her ikisini de destekler; SAML 2.0 kurumsal dağıtımlarda en yaygın olanıdır.",
+    "sso.protokol.saml.ac": "XML tabanlı iddia; kurumsal IdP'lerde standart.",
+    "sso.protokol.oidc.ad": "OIDC (OpenID Connect)",
+    "sso.protokol.oidc.ac": "OAuth 2.0 üzerine JWT tabanlı modern protokol.",
+
+    // Bağlantı yapılandırması
+    "sso.baglanti.saml": "SAML bağlantı yapılandırması",
+    "sso.baglanti.oidc": "OIDC bağlantı yapılandırması",
+    "sso.baglanti.idpBaslik": "Kimlik Sağlayıcı (IdP) bilgileri",
+    "sso.baglanti.idpEntityId": "IdP Entity ID (Issuer)",
+    "sso.baglanti.idpSsoUrl": "IdP SSO URL (Single Sign-On endpoint)",
+    "sso.baglanti.sertifika": "x509 imzalama sertifikası (PEM)",
+    "sso.baglanti.issuer": "Issuer URL",
+    "sso.baglanti.clientId": "Client ID",
+    "sso.baglanti.clientSecret": "Client Secret",
+    "sso.baglanti.spBaslik": "Veylify Servis Sağlayıcı (SP) — salt-okunur",
+    "sso.baglanti.spDegerler": "SP değerleri",
+    "sso.baglanti.oidcCallback": "OIDC callback",
+    "sso.baglanti.acsKopyala": "ACS URL kopyala",
+    "sso.baglanti.redirectKopyala": "Redirect URI kopyala",
+    "sso.baglanti.entityKopyala": "Entity ID kopyala",
+    "sso.baglanti.scimKopyala": "SCIM URL kopyala",
+
+    // SP değerleri kod bloğu (SAML)
+    "sso.spkod.saml.baslik": "# Veylify Servis Sağlayıcı (SP) — bu değerleri IdP'nize girin",
+    "sso.spkod.saml.acs": "ACS (Assertion Consumer Service) URL:",
+    "sso.spkod.saml.entity": "SP Entity ID (Audience):",
+    "sso.spkod.saml.nameid": "NameID formatı:",
+    // SP değerleri kod bloğu (OIDC)
+    "sso.spkod.oidc.baslik": "# Veylify OIDC istemci geri-çağırma değerleri",
+    "sso.spkod.oidc.redirect": "Redirect URI (Callback):",
+    "sso.spkod.oidc.kapsam": "İzin verilen kapsamlar (scopes):",
+    "sso.spkod.oidc.yanit": "Yanıt türü:",
+
+    // SP Metadata XML
+    "sso.metadata.baslik": "SP Metadata XML",
+    "sso.metadata.indir": ".xml indir",
+    "sso.metadata.aciklama":
+      "Bu metadata dosyasını kimlik sağlayıcınıza yükleyin — ACS URL, Entity ID ve NameID formatı otomatik alınır.",
+
+    // Öznitelik eşleme
+    "sso.eslesme.baslik": "Öznitelik eşleme",
+    "sso.eslesme.aciklama":
+      "IdP'nizin gönderdiği iddiaları (claims) Veylify kullanıcı alanlarına eşleyin. E-posta iddiası zorunludur; kullanıcılar bu alana göre eşlenir.",
+    "sso.eslesme.thSpecter": "Veylify alanı",
+    "sso.eslesme.thClaim": "IdP öznitelik adı (claim)",
+    "sso.eslesme.zorunlu": "zorunlu",
+    "sso.eslesme.phZorunlu": "Zorunlu — IdP iddia URI'si",
+    "sso.eslesme.phIstege": "İsteğe bağlı",
+    "sso.eslesme.varsayilan": "Varsayılanlara döndür",
+    // Hedef alan etiketleri (enum anahtar → etiket)
+    "sso.hedef.email": "E-posta",
+    "sso.hedef.ad": "Ad Soyad",
+    "sso.hedef.rol": "Rol",
+    "sso.hedef.grup": "Grup",
+
+    // SCIM
+    "sso.scim.baslik": "SCIM otomatik sağlama (provisioning)",
+    "sso.scim.aciklama":
+      "SCIM 2.0 ile kullanıcılar IdP'nizde oluşturulduğunda Veylify'da otomatik açılır; devre dışı bırakıldığında erişimleri anında iptal edilir (deprovisioning). Aşağıdaki taban URL ve bearer jetonunu IdP'nizin SCIM ayarlarına girin.",
+    "sso.scim.tabanUrl": "SCIM taban URL (salt-okunur)",
+    "sso.scim.bearer": "Bearer jetonu",
+    "sso.scim.uret": "Üret",
+    "sso.scim.henuz": "— henüz üretilmedi —",
+    "sso.scim.notBaslik": "Jetonu şimdi kopyalayın",
+    "sso.scim.notMetin":
+      "Bu jeton yalnızca bu ekranda tam gösterilir. IdP'nizin SCIM yapılandırmasına ekledikten sonra güvenli bir yerde saklayın.",
+    "sso.scim.jetonBaslik": "SCIM bearer jetonu (tam)",
+    "sso.scim.toastBaslik": "SCIM jetonu üretildi",
+    "sso.scim.toastAciklama": "Jetonu güvenli saklayın; yalnızca bir kez gösterilir.",
+
+    // Alan adı doğrulama
+    "sso.alan.baslik": "Alan adı doğrulama",
+    "sso.alan.aciklama":
+      "SSO'yu bir alan adı için zorunlu kılabilmeniz için o alanın sahipliğini doğrulamanız gerekir. Aşağıdaki TXT kaydını alan adınızın DNS ayarlarına ekleyin, ardından “Doğrula”'ya basın.",
+    "sso.alan.etiket": "Alan adı",
+    "sso.alan.dogrula": "Doğrula",
+    "sso.alan.durum": "Durum:",
+    "sso.alan.dogrulandi": "Doğrulandı",
+    "sso.alan.beklemede": "Beklemede",
+    "sso.alan.bagliAlanlar": "Hesabınıza bağlı alanlar: {liste}",
+    "sso.alan.dnsBaslik": "DNS TXT kaydı",
+    "sso.alan.dnsKayit": "DNS kaydı",
+    // DNS satır etiketleri (Tür/Ad/Değer/TTL etiketleri çevrilir; TXT ve değerler veri)
+    "sso.dns.tur": "Tür:",
+    "sso.dns.ad": "Ad:",
+    "sso.dns.adNot": "(veya kök alan)",
+    "sso.dns.deger": "Değer:",
+    // Toast'lar (alan doğrulama)
+    "sso.alan.toastGirin": "Alan adı girin",
+    "sso.alan.toastGirinAc": "Örn: sirketiniz.com",
+    "sso.alan.toastGecersiz": "Geçersiz alan adı",
+    "sso.alan.toastGecersizAc": "Geçerli bir alan adı girin.",
+    "sso.alan.toastDogrulandi": "Alan doğrulandı",
+    "sso.alan.toastDogrulandiAc": "{alan} SSO için hazır.",
+    "sso.alan.toastBekleniyor": "TXT kaydı bekleniyor",
+    "sso.alan.toastBekleniyorAc":
+      "DNS yayılımı 24 saati bulabilir; kayıt eklendikten sonra tekrar deneyin.",
+
+    // Hazırlık kontrol listesi
+    "sso.hazirlik.baslik": "Hazırlık kontrol listesi",
+    "sso.hazirlik.genel": "Genel hazırlık",
+    "sso.hazirlik.adim": "{tamam} / {toplam} adım tamamlandı",
+    // Kontrol maddeleri (ad + ipucu)
+    "sso.kontrol.protokol.ad": "Protokol seçildi",
+    "sso.kontrol.idp.ad": "IdP bağlantı bilgileri girildi",
+    "sso.kontrol.idp.ipucuSaml": "Entity ID + SSO URL",
+    "sso.kontrol.idp.ipucuOidc": "Issuer + Client ID/Secret",
+    "sso.kontrol.sertifika.adSaml": "İmzalama sertifikası eklendi",
+    "sso.kontrol.sertifika.adOidc": "Client secret ayarlandı",
+    "sso.kontrol.sertifika.ipucuSaml": "x509 (PEM)",
+    "sso.kontrol.sertifika.ipucuOidc": "OIDC gizli anahtarı",
+    "sso.kontrol.eslesme.ad": "Öznitelik eşlemesi tanımlandı",
+    "sso.kontrol.eslesme.ipucu": "E-posta iddiası zorunlu",
+    "sso.kontrol.alan.ad": "Alan adı doğrulandı",
+    "sso.kontrol.alan.ipucu": "TXT kaydı",
+    "sso.kontrol.scim.ad": "SCIM sağlama yapılandırıldı",
+    "sso.kontrol.scim.ipucu": "Bearer jetonu",
+
+    // Uygulama / SSO'yu zorunlu kıl
+    "sso.uygulama.baslik": "Uygulama",
+    "sso.zorunlu.baslik": "SSO'yu zorunlu kıl",
+    "sso.zorunlu.aciklama":
+      "Etkinleştirildiğinde, doğrulanmış alandaki tüm aktif üyeler yalnızca SSO ile giriş yapabilir; parola ile giriş kapatılır. Yalnızca hazırlık %100 olduğunda açılabilir.",
+    "sso.zorunlu.notBaslik": "SSO zorunlu — dikkat",
+    "sso.zorunlu.notMetin":
+      "{sayi} aktif üye artık yalnızca kurumsal kimlik sağlayıcınız üzerinden giriş yapabilir. IdP erişimi kesilirse ekibiniz panele giremez; kurtarma için Veylify destek ekibiyle iletişime geçin.",
+    "sso.zorunlu.uyari": "SSO'yu zorunlu kılabilmek için önce yukarıdaki kontrol listesini %100 tamamlayın (şu an %{yuzde}).",
+    // Toast'lar (zorunluluk)
+    "sso.zorunlu.toastHazirDegil": "Hazırlık %100 değil",
+    "sso.zorunlu.toastHazirDegilAc": "SSO'yu zorunlu kılmadan önce tüm kontrol maddelerini tamamlayın.",
+    "sso.zorunlu.toastAcildi": "SSO zorunlu kılındı",
+    "sso.zorunlu.toastKapandi": "SSO zorunluluğu kaldırıldı",
+    "sso.zorunlu.toastAcildiAc": "{sayi} aktif üye artık yalnızca SSO ile giriş yapabilir.",
+    "sso.zorunlu.toastKapandiAc": "Üyeler parola ile de giriş yapabilir.",
+
+    // Etkilenecek üyeler
+    "sso.uyeler.baslik": "Etkilenecek üyeler ({sayi})",
+    "sso.uyeler.aciklama":
+      "SSO zorunlu kılındığında aşağıdaki aktif üyeler kurumsal IdP üzerinden giriş yapar. Bekleyen davetler, davet kabul edildiğinde SSO akışına yönlendirilir.",
+    "sso.uyeler.bos": "Ekipte üye bulunmuyor.",
+    "sso.uyeler.thUye": "Üye",
+    "sso.uyeler.thRol": "Rol",
+    "sso.uyeler.thDurum": "Durum",
+    "sso.uyeler.th2fa": "2FA",
+    // Üye durumu (enum → etiket)
+    "sso.uyeDurum.active": "Aktif",
+    "sso.uyeDurum.invited": "Davetli",
+    "sso.uyeDurum.suspended": "Askıda",
+    "sso.uyeler.2faAcik": "Açık",
+
+    // Dürüstlük notu + sıfırla
+    "sso.not.metin":
+      "Bu ekran bir kurumsal kimlik-doğrulama yapılandırma ve önizleme yüzeyidir. Girdiğiniz değerler yalnızca tarayıcınızda saklanır. Gerçek IdP el-sıkışması (metadata değişimi, sertifika doğrulama, canlı SCIM köprüsü) onboarding sırasında {plan}Veylify ekibiyle tamamlanır.",
+    "sso.not.planEk": "kurumsal plana geçişle birlikte ",
+    "sso.not.saklaniyor": "Yapılandırma tarayıcıda (localStorage) tutuluyor.",
+    "sso.not.sifirla": "Yapılandırmayı sıfırla",
+    "sso.toast.sifirlandi": "Yapılandırma sıfırlandı",
+
+    // Diğer toast'lar
+    "sso.toast.metadataIndi": "SP metadata indirildi",
+    "sso.toast.kopyalandi": "{etiket} kopyalandı",
+  },
+
+  en: {
+    "sso.baslik": "SSO & SAML Readiness Center",
+
+    "sso.tanit.baslik": "Connect your organization's identity provider to Veylify.",
+    "sso.tanit.aciklama":
+      "Configure single sign-on (SSO) with SAML 2.0 or OIDC, map attributes, preview automatic user provisioning via SCIM, and complete your readiness step by step.",
+
+    "sso.ozet.hazirlik": "SSO readiness score",
+    "sso.ozet.protokol": "Selected protocol",
+    "sso.ozet.aktifUye": "Active members affected",
+    "sso.ozet.uygulama": "SSO enforcement status",
+    "sso.ozet.zorunlu": "Enforced",
+    "sso.ozet.istegeBagli": "Optional",
+
+    "sso.pano.baslik": "SSO session dashboard",
+    "sso.pano.oturumBaslik": "Session activity trend (last 14 days)",
+    "sso.pano.oturumAciklama": "Daily successful authentication sessions — via the enterprise IdP.",
+    "sso.pano.saglayiciBaslik": "Provider readiness status",
+    "sso.pano.saglayiciAlt": "configuration",
+    "sso.pano.yontemBaslik": "Sign-in method distribution",
+    "sso.pano.yontemAciklama": "Distribution of active members by sign-in method.",
+    "sso.pano.yontemSso": "SSO (enterprise IdP)",
+    "sso.pano.yontemMfa": "Password + 2FA",
+    "sso.pano.yontemParola": "Password only",
+    "sso.pano.merkezUye": "active members",
+    "sso.kpi.oturum": "SSO sessions today",
+    "sso.kpi.provizyon": "SCIM provisioning status",
+    "sso.kpi.provizyonAcik": "Active",
+    "sso.kpi.provizyonKapali": "Off",
+
+    "sso.protokol.baslik": "Protocol selection",
+    "sso.protokol.aciklama":
+      "Choose the protocol your identity provider supports. Most enterprise IdPs (Okta, Azure AD, Google Workspace, OneLogin) support both; SAML 2.0 is the most common in enterprise deployments.",
+    "sso.protokol.saml.ac": "XML-based assertions; the standard for enterprise IdPs.",
+    "sso.protokol.oidc.ad": "OIDC (OpenID Connect)",
+    "sso.protokol.oidc.ac": "Modern JWT-based protocol built on OAuth 2.0.",
+
+    "sso.baglanti.saml": "SAML connection configuration",
+    "sso.baglanti.oidc": "OIDC connection configuration",
+    "sso.baglanti.idpBaslik": "Identity Provider (IdP) details",
+    "sso.baglanti.idpEntityId": "IdP Entity ID (Issuer)",
+    "sso.baglanti.idpSsoUrl": "IdP SSO URL (Single Sign-On endpoint)",
+    "sso.baglanti.sertifika": "x509 signing certificate (PEM)",
+    "sso.baglanti.issuer": "Issuer URL",
+    "sso.baglanti.clientId": "Client ID",
+    "sso.baglanti.clientSecret": "Client Secret",
+    "sso.baglanti.spBaslik": "Veylify Service Provider (SP) — read-only",
+    "sso.baglanti.spDegerler": "SP values",
+    "sso.baglanti.oidcCallback": "OIDC callback",
+    "sso.baglanti.acsKopyala": "Copy ACS URL",
+    "sso.baglanti.redirectKopyala": "Copy Redirect URI",
+    "sso.baglanti.entityKopyala": "Copy Entity ID",
+    "sso.baglanti.scimKopyala": "Copy SCIM URL",
+
+    "sso.spkod.saml.baslik": "# Veylify Service Provider (SP) — enter these values in your IdP",
+    "sso.spkod.saml.acs": "ACS (Assertion Consumer Service) URL:",
+    "sso.spkod.saml.entity": "SP Entity ID (Audience):",
+    "sso.spkod.saml.nameid": "NameID format:",
+    "sso.spkod.oidc.baslik": "# Veylify OIDC client callback values",
+    "sso.spkod.oidc.redirect": "Redirect URI (Callback):",
+    "sso.spkod.oidc.kapsam": "Allowed scopes:",
+    "sso.spkod.oidc.yanit": "Response type:",
+
+    "sso.metadata.baslik": "SP Metadata XML",
+    "sso.metadata.indir": "Download .xml",
+    "sso.metadata.aciklama":
+      "Upload this metadata file to your identity provider — the ACS URL, Entity ID and NameID format are picked up automatically.",
+
+    "sso.eslesme.baslik": "Attribute mapping",
+    "sso.eslesme.aciklama":
+      "Map the claims your IdP sends to Veylify user fields. The email claim is required; users are matched by this field.",
+    "sso.eslesme.thSpecter": "Veylify field",
+    "sso.eslesme.thClaim": "IdP attribute name (claim)",
+    "sso.eslesme.zorunlu": "required",
+    "sso.eslesme.phZorunlu": "Required — IdP claim URI",
+    "sso.eslesme.phIstege": "Optional",
+    "sso.eslesme.varsayilan": "Reset to defaults",
+    "sso.hedef.email": "Email",
+    "sso.hedef.ad": "Full name",
+    "sso.hedef.rol": "Role",
+    "sso.hedef.grup": "Group",
+
+    "sso.scim.baslik": "SCIM automatic provisioning",
+    "sso.scim.aciklama":
+      "With SCIM 2.0, users are created automatically in Veylify when provisioned in your IdP; when disabled, their access is revoked instantly (deprovisioning). Enter the base URL and bearer token below into your IdP's SCIM settings.",
+    "sso.scim.tabanUrl": "SCIM base URL (read-only)",
+    "sso.scim.bearer": "Bearer token",
+    "sso.scim.uret": "Generate",
+    "sso.scim.henuz": "— not generated yet —",
+    "sso.scim.notBaslik": "Copy the token now",
+    "sso.scim.notMetin":
+      "This token is shown in full only on this screen. Store it in a safe place after adding it to your IdP's SCIM configuration.",
+    "sso.scim.jetonBaslik": "SCIM bearer token (full)",
+    "sso.scim.toastBaslik": "SCIM token generated",
+    "sso.scim.toastAciklama": "Store the token securely; it is shown only once.",
+
+    "sso.alan.baslik": "Domain verification",
+    "sso.alan.aciklama":
+      "Before you can enforce SSO for a domain, you must verify ownership of that domain. Add the TXT record below to your domain's DNS settings, then click “Verify”.",
+    "sso.alan.etiket": "Domain",
+    "sso.alan.dogrula": "Verify",
+    "sso.alan.durum": "Status:",
+    "sso.alan.dogrulandi": "Verified",
+    "sso.alan.beklemede": "Pending",
+    "sso.alan.bagliAlanlar": "Domains linked to your account: {liste}",
+    "sso.alan.dnsBaslik": "DNS TXT record",
+    "sso.alan.dnsKayit": "DNS record",
+    "sso.dns.tur": "Type:",
+    "sso.dns.ad": "Host:",
+    "sso.dns.adNot": "(or root domain)",
+    "sso.dns.deger": "Value:",
+    "sso.alan.toastGirin": "Enter a domain",
+    "sso.alan.toastGirinAc": "e.g. yourcompany.com",
+    "sso.alan.toastGecersiz": "Invalid domain",
+    "sso.alan.toastGecersizAc": "Enter a valid domain name.",
+    "sso.alan.toastDogrulandi": "Domain verified",
+    "sso.alan.toastDogrulandiAc": "{alan} is ready for SSO.",
+    "sso.alan.toastBekleniyor": "Waiting for TXT record",
+    "sso.alan.toastBekleniyorAc":
+      "DNS propagation can take up to 24 hours; try again once the record is added.",
+
+    "sso.hazirlik.baslik": "Readiness checklist",
+    "sso.hazirlik.genel": "Overall readiness",
+    "sso.hazirlik.adim": "{tamam} / {toplam} steps completed",
+    "sso.kontrol.protokol.ad": "Protocol selected",
+    "sso.kontrol.idp.ad": "IdP connection details entered",
+    "sso.kontrol.idp.ipucuSaml": "Entity ID + SSO URL",
+    "sso.kontrol.idp.ipucuOidc": "Issuer + Client ID/Secret",
+    "sso.kontrol.sertifika.adSaml": "Signing certificate added",
+    "sso.kontrol.sertifika.adOidc": "Client secret set",
+    "sso.kontrol.sertifika.ipucuSaml": "x509 (PEM)",
+    "sso.kontrol.sertifika.ipucuOidc": "OIDC secret",
+    "sso.kontrol.eslesme.ad": "Attribute mapping defined",
+    "sso.kontrol.eslesme.ipucu": "Email claim required",
+    "sso.kontrol.alan.ad": "Domain verified",
+    "sso.kontrol.alan.ipucu": "TXT record",
+    "sso.kontrol.scim.ad": "SCIM provisioning configured",
+    "sso.kontrol.scim.ipucu": "Bearer token",
+
+    "sso.uygulama.baslik": "Enforcement",
+    "sso.zorunlu.baslik": "Enforce SSO",
+    "sso.zorunlu.aciklama":
+      "When enabled, all active members on the verified domain can sign in only via SSO; password login is disabled. Can be turned on only when readiness is 100%.",
+    "sso.zorunlu.notBaslik": "SSO enforced — caution",
+    "sso.zorunlu.notMetin":
+      "{sayi} active members can now sign in only through your enterprise identity provider. If IdP access is lost, your team cannot access the panel; contact Veylify support for recovery.",
+    "sso.zorunlu.uyari": "To enforce SSO, first complete the checklist above to 100% (currently {yuzde}%).",
+    "sso.zorunlu.toastHazirDegil": "Readiness is not 100%",
+    "sso.zorunlu.toastHazirDegilAc": "Complete all checklist items before enforcing SSO.",
+    "sso.zorunlu.toastAcildi": "SSO enforced",
+    "sso.zorunlu.toastKapandi": "SSO enforcement removed",
+    "sso.zorunlu.toastAcildiAc": "{sayi} active members can now sign in only via SSO.",
+    "sso.zorunlu.toastKapandiAc": "Members can also sign in with a password.",
+
+    "sso.uyeler.baslik": "Affected members ({sayi})",
+    "sso.uyeler.aciklama":
+      "When SSO is enforced, the active members below sign in through your enterprise IdP. Pending invites are routed to the SSO flow once the invite is accepted.",
+    "sso.uyeler.bos": "No members in the team.",
+    "sso.uyeler.thUye": "Member",
+    "sso.uyeler.thRol": "Role",
+    "sso.uyeler.thDurum": "Status",
+    "sso.uyeler.th2fa": "2FA",
+    "sso.uyeDurum.active": "Active",
+    "sso.uyeDurum.invited": "Invited",
+    "sso.uyeDurum.suspended": "Suspended",
+    "sso.uyeler.2faAcik": "On",
+
+    "sso.not.metin":
+      "This screen is an enterprise authentication configuration and preview surface. The values you enter are stored only in your browser. The real IdP handshake (metadata exchange, certificate verification, live SCIM bridge) is completed with the Veylify team during onboarding{plan}.",
+    "sso.not.planEk": " upon upgrading to an enterprise plan",
+    "sso.not.saklaniyor": "Configuration is kept in the browser (localStorage).",
+    "sso.not.sifirla": "Reset configuration",
+    "sso.toast.sifirlandi": "Configuration reset",
+
+    "sso.toast.metadataIndi": "SP metadata downloaded",
+    "sso.toast.kopyalandi": "{etiket} copied",
+  },
+
+  de: {
+    "sso.baslik": "SSO- & SAML-Bereitschaftszentrum",
+
+    "sso.tanit.baslik": "Verbinde den Identitätsanbieter deiner Organisation mit Veylify.",
+    "sso.tanit.aciklama":
+      "Richte Single Sign-On (SSO) mit SAML 2.0 oder OIDC ein, ordne Attribute zu, sieh dir die automatische Benutzerbereitstellung per SCIM in der Vorschau an und schließe deine Bereitschaft Schritt für Schritt ab.",
+
+    "sso.ozet.hazirlik": "SSO-Bereitschaftswert",
+    "sso.ozet.protokol": "Ausgewähltes Protokoll",
+    "sso.ozet.aktifUye": "Betroffene aktive Mitglieder",
+    "sso.ozet.uygulama": "SSO-Durchsetzungsstatus",
+    "sso.ozet.zorunlu": "Erzwungen",
+    "sso.ozet.istegeBagli": "Optional",
+
+    "sso.pano.baslik": "SSO-Sitzungs-Dashboard",
+    "sso.pano.oturumBaslik": "Sitzungsaktivitätstrend (letzte 14 Tage)",
+    "sso.pano.oturumAciklama": "Tägliche erfolgreiche Authentifizierungssitzungen — über den Unternehmens-IdP.",
+    "sso.pano.saglayiciBaslik": "Anbieter-Bereitschaftsstatus",
+    "sso.pano.saglayiciAlt": "Konfiguration",
+    "sso.pano.yontemBaslik": "Verteilung der Anmeldemethoden",
+    "sso.pano.yontemAciklama": "Verteilung aktiver Mitglieder nach Anmeldemethode.",
+    "sso.pano.yontemSso": "SSO (Unternehmens-IdP)",
+    "sso.pano.yontemMfa": "Passwort + 2FA",
+    "sso.pano.yontemParola": "Nur Passwort",
+    "sso.pano.merkezUye": "aktive Mitglieder",
+    "sso.kpi.oturum": "SSO-Sitzungen heute",
+    "sso.kpi.provizyon": "SCIM-Provisionierungsstatus",
+    "sso.kpi.provizyonAcik": "Aktiv",
+    "sso.kpi.provizyonKapali": "Aus",
+
+    "sso.protokol.baslik": "Protokollauswahl",
+    "sso.protokol.aciklama":
+      "Wähle das von deinem Identitätsanbieter unterstützte Protokoll. Die meisten Unternehmens-IdPs (Okta, Azure AD, Google Workspace, OneLogin) unterstützen beide; SAML 2.0 ist in Unternehmensbereitstellungen am gebräuchlichsten.",
+    "sso.protokol.saml.ac": "XML-basierte Assertions; Standard bei Unternehmens-IdPs.",
+    "sso.protokol.oidc.ad": "OIDC (OpenID Connect)",
+    "sso.protokol.oidc.ac": "Modernes JWT-basiertes Protokoll auf OAuth 2.0.",
+
+    "sso.baglanti.saml": "SAML-Verbindungskonfiguration",
+    "sso.baglanti.oidc": "OIDC-Verbindungskonfiguration",
+    "sso.baglanti.idpBaslik": "Identitätsanbieter- (IdP-)Daten",
+    "sso.baglanti.idpEntityId": "IdP Entity ID (Issuer)",
+    "sso.baglanti.idpSsoUrl": "IdP-SSO-URL (Single-Sign-On-Endpunkt)",
+    "sso.baglanti.sertifika": "x509-Signaturzertifikat (PEM)",
+    "sso.baglanti.issuer": "Issuer-URL",
+    "sso.baglanti.clientId": "Client ID",
+    "sso.baglanti.clientSecret": "Client Secret",
+    "sso.baglanti.spBaslik": "Veylify Service Provider (SP) — schreibgeschützt",
+    "sso.baglanti.spDegerler": "SP-Werte",
+    "sso.baglanti.oidcCallback": "OIDC-Callback",
+    "sso.baglanti.acsKopyala": "ACS-URL kopieren",
+    "sso.baglanti.redirectKopyala": "Redirect-URI kopieren",
+    "sso.baglanti.entityKopyala": "Entity ID kopieren",
+    "sso.baglanti.scimKopyala": "SCIM-URL kopieren",
+
+    "sso.spkod.saml.baslik": "# Veylify Service Provider (SP) — trage diese Werte in deinen IdP ein",
+    "sso.spkod.saml.acs": "ACS- (Assertion Consumer Service-)URL:",
+    "sso.spkod.saml.entity": "SP Entity ID (Audience):",
+    "sso.spkod.saml.nameid": "NameID-Format:",
+    "sso.spkod.oidc.baslik": "# Veylify-OIDC-Client-Callback-Werte",
+    "sso.spkod.oidc.redirect": "Redirect-URI (Callback):",
+    "sso.spkod.oidc.kapsam": "Zulässige Scopes:",
+    "sso.spkod.oidc.yanit": "Antworttyp:",
+
+    "sso.metadata.baslik": "SP-Metadaten-XML",
+    "sso.metadata.indir": ".xml herunterladen",
+    "sso.metadata.aciklama":
+      "Lade diese Metadatendatei in deinen Identitätsanbieter hoch — ACS-URL, Entity ID und NameID-Format werden automatisch übernommen.",
+
+    "sso.eslesme.baslik": "Attributzuordnung",
+    "sso.eslesme.aciklama":
+      "Ordne die von deinem IdP gesendeten Claims den Veylify-Benutzerfeldern zu. Der E-Mail-Claim ist erforderlich; Benutzer werden über dieses Feld zugeordnet.",
+    "sso.eslesme.thSpecter": "Veylify-Feld",
+    "sso.eslesme.thClaim": "IdP-Attributname (Claim)",
+    "sso.eslesme.zorunlu": "erforderlich",
+    "sso.eslesme.phZorunlu": "Erforderlich — IdP-Claim-URI",
+    "sso.eslesme.phIstege": "Optional",
+    "sso.eslesme.varsayilan": "Auf Standard zurücksetzen",
+    "sso.hedef.email": "E-Mail",
+    "sso.hedef.ad": "Vollständiger Name",
+    "sso.hedef.rol": "Rolle",
+    "sso.hedef.grup": "Gruppe",
+
+    "sso.scim.baslik": "SCIM-Auto-Provisionierung",
+    "sso.scim.aciklama":
+      "Mit SCIM 2.0 werden Benutzer automatisch in Veylify angelegt, wenn sie in deinem IdP bereitgestellt werden; bei Deaktivierung wird ihr Zugriff sofort entzogen (Deprovisionierung). Trage die Basis-URL und das Bearer-Token unten in die SCIM-Einstellungen deines IdP ein.",
+    "sso.scim.tabanUrl": "SCIM-Basis-URL (schreibgeschützt)",
+    "sso.scim.bearer": "Bearer-Token",
+    "sso.scim.uret": "Erzeugen",
+    "sso.scim.henuz": "— noch nicht erzeugt —",
+    "sso.scim.notBaslik": "Token jetzt kopieren",
+    "sso.scim.notMetin":
+      "Dieses Token wird nur auf diesem Bildschirm vollständig angezeigt. Bewahre es an einem sicheren Ort auf, nachdem du es zur SCIM-Konfiguration deines IdP hinzugefügt hast.",
+    "sso.scim.jetonBaslik": "SCIM-Bearer-Token (vollständig)",
+    "sso.scim.toastBaslik": "SCIM-Token erzeugt",
+    "sso.scim.toastAciklama": "Bewahre das Token sicher auf; es wird nur einmal angezeigt.",
+
+    "sso.alan.baslik": "Domain-Verifizierung",
+    "sso.alan.aciklama":
+      "Bevor du SSO für eine Domain erzwingen kannst, musst du den Besitz dieser Domain nachweisen. Füge den untenstehenden TXT-Eintrag zu den DNS-Einstellungen deiner Domain hinzu und klicke dann auf „Verifizieren“.",
+    "sso.alan.etiket": "Domain",
+    "sso.alan.dogrula": "Verifizieren",
+    "sso.alan.durum": "Status:",
+    "sso.alan.dogrulandi": "Verifiziert",
+    "sso.alan.beklemede": "Ausstehend",
+    "sso.alan.bagliAlanlar": "Mit deinem Konto verknüpfte Domains: {liste}",
+    "sso.alan.dnsBaslik": "DNS-TXT-Eintrag",
+    "sso.alan.dnsKayit": "DNS-Eintrag",
+    "sso.dns.tur": "Typ:",
+    "sso.dns.ad": "Host:",
+    "sso.dns.adNot": "(oder Root-Domain)",
+    "sso.dns.deger": "Wert:",
+    "sso.alan.toastGirin": "Domain eingeben",
+    "sso.alan.toastGirinAc": "z. B. ihrefirma.com",
+    "sso.alan.toastGecersiz": "Ungültige Domain",
+    "sso.alan.toastGecersizAc": "Gib einen gültigen Domainnamen ein.",
+    "sso.alan.toastDogrulandi": "Domain verifiziert",
+    "sso.alan.toastDogrulandiAc": "{alan} ist bereit für SSO.",
+    "sso.alan.toastBekleniyor": "Warte auf TXT-Eintrag",
+    "sso.alan.toastBekleniyorAc":
+      "Die DNS-Propagierung kann bis zu 24 Stunden dauern; versuche es erneut, sobald der Eintrag hinzugefügt ist.",
+
+    "sso.hazirlik.baslik": "Bereitschafts-Checkliste",
+    "sso.hazirlik.genel": "Gesamtbereitschaft",
+    "sso.hazirlik.adim": "{tamam} / {toplam} Schritte abgeschlossen",
+    "sso.kontrol.protokol.ad": "Protokoll ausgewählt",
+    "sso.kontrol.idp.ad": "IdP-Verbindungsdaten eingegeben",
+    "sso.kontrol.idp.ipucuSaml": "Entity ID + SSO-URL",
+    "sso.kontrol.idp.ipucuOidc": "Issuer + Client ID/Secret",
+    "sso.kontrol.sertifika.adSaml": "Signaturzertifikat hinzugefügt",
+    "sso.kontrol.sertifika.adOidc": "Client Secret gesetzt",
+    "sso.kontrol.sertifika.ipucuSaml": "x509 (PEM)",
+    "sso.kontrol.sertifika.ipucuOidc": "OIDC-Secret",
+    "sso.kontrol.eslesme.ad": "Attributzuordnung definiert",
+    "sso.kontrol.eslesme.ipucu": "E-Mail-Claim erforderlich",
+    "sso.kontrol.alan.ad": "Domain verifiziert",
+    "sso.kontrol.alan.ipucu": "TXT-Eintrag",
+    "sso.kontrol.scim.ad": "SCIM-Provisionierung konfiguriert",
+    "sso.kontrol.scim.ipucu": "Bearer-Token",
+
+    "sso.uygulama.baslik": "Durchsetzung",
+    "sso.zorunlu.baslik": "SSO erzwingen",
+    "sso.zorunlu.aciklama":
+      "Wenn aktiviert, können sich alle aktiven Mitglieder der verifizierten Domain nur per SSO anmelden; die Passwortanmeldung wird deaktiviert. Kann nur bei 100 % Bereitschaft aktiviert werden.",
+    "sso.zorunlu.notBaslik": "SSO erzwungen — Achtung",
+    "sso.zorunlu.notMetin":
+      "{sayi} aktive Mitglieder können sich nur noch über deinen Unternehmens-Identitätsanbieter anmelden. Bei Verlust des IdP-Zugangs kann dein Team nicht auf das Panel zugreifen; wende dich zur Wiederherstellung an das Veylify-Support-Team.",
+    "sso.zorunlu.uyari": "Um SSO zu erzwingen, schließe zuerst die obige Checkliste zu 100 % ab (derzeit {yuzde} %).",
+    "sso.zorunlu.toastHazirDegil": "Bereitschaft ist nicht 100 %",
+    "sso.zorunlu.toastHazirDegilAc": "Schließe alle Checklistenpunkte ab, bevor du SSO erzwingst.",
+    "sso.zorunlu.toastAcildi": "SSO erzwungen",
+    "sso.zorunlu.toastKapandi": "SSO-Erzwingung aufgehoben",
+    "sso.zorunlu.toastAcildiAc": "{sayi} aktive Mitglieder können sich nur noch per SSO anmelden.",
+    "sso.zorunlu.toastKapandiAc": "Mitglieder können sich auch mit einem Passwort anmelden.",
+
+    "sso.uyeler.baslik": "Betroffene Mitglieder ({sayi})",
+    "sso.uyeler.aciklama":
+      "Wenn SSO erzwungen wird, melden sich die untenstehenden aktiven Mitglieder über deinen Unternehmens-IdP an. Ausstehende Einladungen werden nach Annahme in den SSO-Ablauf geleitet.",
+    "sso.uyeler.bos": "Keine Mitglieder im Team.",
+    "sso.uyeler.thUye": "Mitglied",
+    "sso.uyeler.thRol": "Rolle",
+    "sso.uyeler.thDurum": "Status",
+    "sso.uyeler.th2fa": "2FA",
+    "sso.uyeDurum.active": "Aktiv",
+    "sso.uyeDurum.invited": "Eingeladen",
+    "sso.uyeDurum.suspended": "Gesperrt",
+    "sso.uyeler.2faAcik": "An",
+
+    "sso.not.metin":
+      "Dieser Bildschirm ist eine Oberfläche zur Konfiguration und Vorschau der Unternehmensauthentifizierung. Die von dir eingegebenen Werte werden nur in deinem Browser gespeichert. Der eigentliche IdP-Handshake (Metadatenaustausch, Zertifikatsprüfung, Live-SCIM-Brücke) wird beim Onboarding mit dem Veylify-Team abgeschlossen{plan}.",
+    "sso.not.planEk": " durch den Wechsel zu einem Enterprise-Plan",
+    "sso.not.saklaniyor": "Die Konfiguration wird im Browser (localStorage) gespeichert.",
+    "sso.not.sifirla": "Konfiguration zurücksetzen",
+    "sso.toast.sifirlandi": "Konfiguration zurückgesetzt",
+
+    "sso.toast.metadataIndi": "SP-Metadaten heruntergeladen",
+    "sso.toast.kopyalandi": "{etiket} kopiert",
+  },
+
+  fr: {
+    "sso.baslik": "Centre de préparation SSO et SAML",
+
+    "sso.tanit.baslik": "Connectez le fournisseur d'identité de votre organisation à Veylify.",
+    "sso.tanit.aciklama":
+      "Configurez l'authentification unique (SSO) avec SAML 2.0 ou OIDC, mappez les attributs, prévisualisez le provisionnement automatique des utilisateurs via SCIM et finalisez votre préparation étape par étape.",
+
+    "sso.ozet.hazirlik": "Score de préparation SSO",
+    "sso.ozet.protokol": "Protocole sélectionné",
+    "sso.ozet.aktifUye": "Membres actifs concernés",
+    "sso.ozet.uygulama": "État d'application du SSO",
+    "sso.ozet.zorunlu": "Obligatoire",
+    "sso.ozet.istegeBagli": "Facultatif",
+
+    "sso.pano.baslik": "Tableau de bord des sessions SSO",
+    "sso.pano.oturumBaslik": "Tendance d'activité des sessions (14 derniers jours)",
+    "sso.pano.oturumAciklama": "Sessions d'authentification réussies quotidiennes — via l'IdP d'entreprise.",
+    "sso.pano.saglayiciBaslik": "État de préparation du fournisseur",
+    "sso.pano.saglayiciAlt": "configuration",
+    "sso.pano.yontemBaslik": "Répartition des méthodes de connexion",
+    "sso.pano.yontemAciklama": "Répartition des membres actifs par méthode de connexion.",
+    "sso.pano.yontemSso": "SSO (IdP d'entreprise)",
+    "sso.pano.yontemMfa": "Mot de passe + 2FA",
+    "sso.pano.yontemParola": "Mot de passe uniquement",
+    "sso.pano.merkezUye": "membres actifs",
+    "sso.kpi.oturum": "Sessions SSO aujourd'hui",
+    "sso.kpi.provizyon": "État du provisionnement SCIM",
+    "sso.kpi.provizyonAcik": "Actif",
+    "sso.kpi.provizyonKapali": "Désactivé",
+
+    "sso.protokol.baslik": "Sélection du protocole",
+    "sso.protokol.aciklama":
+      "Choisissez le protocole pris en charge par votre fournisseur d'identité. La plupart des IdP d'entreprise (Okta, Azure AD, Google Workspace, OneLogin) prennent en charge les deux ; SAML 2.0 est le plus répandu dans les déploiements d'entreprise.",
+    "sso.protokol.saml.ac": "Assertions au format XML ; la norme pour les IdP d'entreprise.",
+    "sso.protokol.oidc.ad": "OIDC (OpenID Connect)",
+    "sso.protokol.oidc.ac": "Protocole moderne basé sur JWT et bâti sur OAuth 2.0.",
+
+    "sso.baglanti.saml": "Configuration de connexion SAML",
+    "sso.baglanti.oidc": "Configuration de connexion OIDC",
+    "sso.baglanti.idpBaslik": "Informations du fournisseur d'identité (IdP)",
+    "sso.baglanti.idpEntityId": "IdP Entity ID (Issuer)",
+    "sso.baglanti.idpSsoUrl": "URL SSO de l'IdP (point de terminaison Single Sign-On)",
+    "sso.baglanti.sertifika": "Certificat de signature x509 (PEM)",
+    "sso.baglanti.issuer": "URL Issuer",
+    "sso.baglanti.clientId": "Client ID",
+    "sso.baglanti.clientSecret": "Client Secret",
+    "sso.baglanti.spBaslik": "Fournisseur de services (SP) Veylify — lecture seule",
+    "sso.baglanti.spDegerler": "Valeurs SP",
+    "sso.baglanti.oidcCallback": "Callback OIDC",
+    "sso.baglanti.acsKopyala": "Copier l'URL ACS",
+    "sso.baglanti.redirectKopyala": "Copier le Redirect URI",
+    "sso.baglanti.entityKopyala": "Copier l'Entity ID",
+    "sso.baglanti.scimKopyala": "Copier l'URL SCIM",
+
+    "sso.spkod.saml.baslik": "# Fournisseur de services (SP) Veylify — saisissez ces valeurs dans votre IdP",
+    "sso.spkod.saml.acs": "URL ACS (Assertion Consumer Service) :",
+    "sso.spkod.saml.entity": "SP Entity ID (Audience) :",
+    "sso.spkod.saml.nameid": "Format NameID :",
+    "sso.spkod.oidc.baslik": "# Valeurs de callback du client OIDC Veylify",
+    "sso.spkod.oidc.redirect": "Redirect URI (Callback) :",
+    "sso.spkod.oidc.kapsam": "Scopes autorisés :",
+    "sso.spkod.oidc.yanit": "Type de réponse :",
+
+    "sso.metadata.baslik": "XML de métadonnées SP",
+    "sso.metadata.indir": "Télécharger le .xml",
+    "sso.metadata.aciklama":
+      "Téléversez ce fichier de métadonnées dans votre fournisseur d'identité — l'URL ACS, l'Entity ID et le format NameID sont récupérés automatiquement.",
+
+    "sso.eslesme.baslik": "Mappage des attributs",
+    "sso.eslesme.aciklama":
+      "Mappez les claims envoyés par votre IdP aux champs utilisateur Veylify. Le claim e-mail est obligatoire ; les utilisateurs sont mis en correspondance via ce champ.",
+    "sso.eslesme.thSpecter": "Champ Veylify",
+    "sso.eslesme.thClaim": "Nom d'attribut IdP (claim)",
+    "sso.eslesme.zorunlu": "obligatoire",
+    "sso.eslesme.phZorunlu": "Obligatoire — URI de claim IdP",
+    "sso.eslesme.phIstege": "Facultatif",
+    "sso.eslesme.varsayilan": "Rétablir les valeurs par défaut",
+    "sso.hedef.email": "E-mail",
+    "sso.hedef.ad": "Nom complet",
+    "sso.hedef.rol": "Rôle",
+    "sso.hedef.grup": "Groupe",
+
+    "sso.scim.baslik": "Provisionnement automatique SCIM",
+    "sso.scim.aciklama":
+      "Avec SCIM 2.0, les utilisateurs sont créés automatiquement dans Veylify lorsqu'ils sont provisionnés dans votre IdP ; lorsqu'il est désactivé, leur accès est révoqué instantanément (déprovisionnement). Saisissez l'URL de base et le jeton bearer ci-dessous dans les paramètres SCIM de votre IdP.",
+    "sso.scim.tabanUrl": "URL de base SCIM (lecture seule)",
+    "sso.scim.bearer": "Jeton bearer",
+    "sso.scim.uret": "Générer",
+    "sso.scim.henuz": "— pas encore généré —",
+    "sso.scim.notBaslik": "Copiez le jeton maintenant",
+    "sso.scim.notMetin":
+      "Ce jeton n'est affiché en entier que sur cet écran. Conservez-le en lieu sûr après l'avoir ajouté à la configuration SCIM de votre IdP.",
+    "sso.scim.jetonBaslik": "Jeton bearer SCIM (complet)",
+    "sso.scim.toastBaslik": "Jeton SCIM généré",
+    "sso.scim.toastAciklama": "Conservez le jeton en sécurité ; il n'est affiché qu'une seule fois.",
+
+    "sso.alan.baslik": "Vérification du domaine",
+    "sso.alan.aciklama":
+      "Avant de pouvoir imposer le SSO pour un domaine, vous devez prouver la propriété de ce domaine. Ajoutez l'enregistrement TXT ci-dessous aux paramètres DNS de votre domaine, puis cliquez sur “Vérifier”.",
+    "sso.alan.etiket": "Domaine",
+    "sso.alan.dogrula": "Vérifier",
+    "sso.alan.durum": "État :",
+    "sso.alan.dogrulandi": "Vérifié",
+    "sso.alan.beklemede": "En attente",
+    "sso.alan.bagliAlanlar": "Domaines liés à votre compte : {liste}",
+    "sso.alan.dnsBaslik": "Enregistrement DNS TXT",
+    "sso.alan.dnsKayit": "Enregistrement DNS",
+    "sso.dns.tur": "Type :",
+    "sso.dns.ad": "Hôte :",
+    "sso.dns.adNot": "(ou domaine racine)",
+    "sso.dns.deger": "Valeur :",
+    "sso.alan.toastGirin": "Saisissez un domaine",
+    "sso.alan.toastGirinAc": "p. ex. votreentreprise.com",
+    "sso.alan.toastGecersiz": "Domaine invalide",
+    "sso.alan.toastGecersizAc": "Saisissez un nom de domaine valide.",
+    "sso.alan.toastDogrulandi": "Domaine vérifié",
+    "sso.alan.toastDogrulandiAc": "{alan} est prêt pour le SSO.",
+    "sso.alan.toastBekleniyor": "En attente de l'enregistrement TXT",
+    "sso.alan.toastBekleniyorAc":
+      "La propagation DNS peut prendre jusqu'à 24 heures ; réessayez une fois l'enregistrement ajouté.",
+
+    "sso.hazirlik.baslik": "Liste de préparation",
+    "sso.hazirlik.genel": "Préparation globale",
+    "sso.hazirlik.adim": "{tamam} / {toplam} étapes terminées",
+    "sso.kontrol.protokol.ad": "Protocole sélectionné",
+    "sso.kontrol.idp.ad": "Informations de connexion IdP saisies",
+    "sso.kontrol.idp.ipucuSaml": "Entity ID + URL SSO",
+    "sso.kontrol.idp.ipucuOidc": "Issuer + Client ID/Secret",
+    "sso.kontrol.sertifika.adSaml": "Certificat de signature ajouté",
+    "sso.kontrol.sertifika.adOidc": "Client secret défini",
+    "sso.kontrol.sertifika.ipucuSaml": "x509 (PEM)",
+    "sso.kontrol.sertifika.ipucuOidc": "Secret OIDC",
+    "sso.kontrol.eslesme.ad": "Mappage des attributs défini",
+    "sso.kontrol.eslesme.ipucu": "Claim e-mail obligatoire",
+    "sso.kontrol.alan.ad": "Domaine vérifié",
+    "sso.kontrol.alan.ipucu": "Enregistrement TXT",
+    "sso.kontrol.scim.ad": "Provisionnement SCIM configuré",
+    "sso.kontrol.scim.ipucu": "Jeton bearer",
+
+    "sso.uygulama.baslik": "Application",
+    "sso.zorunlu.baslik": "Imposer le SSO",
+    "sso.zorunlu.aciklama":
+      "Une fois activé, tous les membres actifs du domaine vérifié ne peuvent se connecter que via SSO ; la connexion par mot de passe est désactivée. Ne peut être activé que lorsque la préparation atteint 100 %.",
+    "sso.zorunlu.notBaslik": "SSO imposé — attention",
+    "sso.zorunlu.notMetin":
+      "{sayi} membres actifs ne peuvent désormais se connecter que via votre fournisseur d'identité d'entreprise. En cas de perte d'accès à l'IdP, votre équipe ne peut plus accéder au panneau ; contactez l'équipe de support Veylify pour la récupération.",
+    "sso.zorunlu.uyari": "Pour imposer le SSO, complétez d'abord la liste ci-dessus à 100 % (actuellement {yuzde} %).",
+    "sso.zorunlu.toastHazirDegil": "La préparation n'est pas à 100 %",
+    "sso.zorunlu.toastHazirDegilAc": "Complétez tous les éléments de la liste avant d'imposer le SSO.",
+    "sso.zorunlu.toastAcildi": "SSO imposé",
+    "sso.zorunlu.toastKapandi": "Application du SSO retirée",
+    "sso.zorunlu.toastAcildiAc": "{sayi} membres actifs ne peuvent désormais se connecter que via SSO.",
+    "sso.zorunlu.toastKapandiAc": "Les membres peuvent aussi se connecter avec un mot de passe.",
+
+    "sso.uyeler.baslik": "Membres concernés ({sayi})",
+    "sso.uyeler.aciklama":
+      "Lorsque le SSO est imposé, les membres actifs ci-dessous se connectent via votre IdP d'entreprise. Les invitations en attente sont dirigées vers le flux SSO une fois l'invitation acceptée.",
+    "sso.uyeler.bos": "Aucun membre dans l'équipe.",
+    "sso.uyeler.thUye": "Membre",
+    "sso.uyeler.thRol": "Rôle",
+    "sso.uyeler.thDurum": "État",
+    "sso.uyeler.th2fa": "2FA",
+    "sso.uyeDurum.active": "Actif",
+    "sso.uyeDurum.invited": "Invité",
+    "sso.uyeDurum.suspended": "Suspendu",
+    "sso.uyeler.2faAcik": "Activé",
+
+    "sso.not.metin":
+      "Cet écran est une surface de configuration et de prévisualisation de l'authentification d'entreprise. Les valeurs que vous saisissez sont stockées uniquement dans votre navigateur. Le véritable handshake IdP (échange de métadonnées, vérification de certificat, pont SCIM en direct) est finalisé avec l'équipe Veylify lors de l'onboarding{plan}.",
+    "sso.not.planEk": " lors du passage à un forfait entreprise",
+    "sso.not.saklaniyor": "La configuration est conservée dans le navigateur (localStorage).",
+    "sso.not.sifirla": "Réinitialiser la configuration",
+    "sso.toast.sifirlandi": "Configuration réinitialisée",
+
+    "sso.toast.metadataIndi": "Métadonnées SP téléchargées",
+    "sso.toast.kopyalandi": "{etiket} copié",
+  },
+
+  es: {
+    "sso.baslik": "Centro de preparación de SSO y SAML",
+
+    "sso.tanit.baslik": "Conecta el proveedor de identidad de tu organización a Veylify.",
+    "sso.tanit.aciklama":
+      "Configura el inicio de sesión único (SSO) con SAML 2.0 u OIDC, asigna atributos, previsualiza el aprovisionamiento automático de usuarios mediante SCIM y completa tu preparación paso a paso.",
+
+    "sso.ozet.hazirlik": "Puntuación de preparación de SSO",
+    "sso.ozet.protokol": "Protocolo seleccionado",
+    "sso.ozet.aktifUye": "Miembros activos afectados",
+    "sso.ozet.uygulama": "Estado de aplicación del SSO",
+    "sso.ozet.zorunlu": "Obligatorio",
+    "sso.ozet.istegeBagli": "Opcional",
+
+    "sso.pano.baslik": "Panel de sesiones SSO",
+    "sso.pano.oturumBaslik": "Tendencia de actividad de sesiones (últimos 14 días)",
+    "sso.pano.oturumAciklama": "Sesiones de autenticación exitosas diarias — a través del IdP empresarial.",
+    "sso.pano.saglayiciBaslik": "Estado de preparación del proveedor",
+    "sso.pano.saglayiciAlt": "configuración",
+    "sso.pano.yontemBaslik": "Distribución de métodos de inicio de sesión",
+    "sso.pano.yontemAciklama": "Distribución de miembros activos por método de inicio de sesión.",
+    "sso.pano.yontemSso": "SSO (IdP empresarial)",
+    "sso.pano.yontemMfa": "Contraseña + 2FA",
+    "sso.pano.yontemParola": "Solo contraseña",
+    "sso.pano.merkezUye": "miembros activos",
+    "sso.kpi.oturum": "Sesiones SSO hoy",
+    "sso.kpi.provizyon": "Estado de aprovisionamiento SCIM",
+    "sso.kpi.provizyonAcik": "Activo",
+    "sso.kpi.provizyonKapali": "Desactivado",
+
+    "sso.protokol.baslik": "Selección de protocolo",
+    "sso.protokol.aciklama":
+      "Elige el protocolo compatible con tu proveedor de identidad. La mayoría de los IdP empresariales (Okta, Azure AD, Google Workspace, OneLogin) admiten ambos; SAML 2.0 es el más común en implementaciones empresariales.",
+    "sso.protokol.saml.ac": "Aserciones basadas en XML; el estándar en los IdP empresariales.",
+    "sso.protokol.oidc.ad": "OIDC (OpenID Connect)",
+    "sso.protokol.oidc.ac": "Protocolo moderno basado en JWT sobre OAuth 2.0.",
+
+    "sso.baglanti.saml": "Configuración de conexión SAML",
+    "sso.baglanti.oidc": "Configuración de conexión OIDC",
+    "sso.baglanti.idpBaslik": "Datos del proveedor de identidad (IdP)",
+    "sso.baglanti.idpEntityId": "IdP Entity ID (Issuer)",
+    "sso.baglanti.idpSsoUrl": "URL de SSO del IdP (endpoint de Single Sign-On)",
+    "sso.baglanti.sertifika": "Certificado de firma x509 (PEM)",
+    "sso.baglanti.issuer": "URL de Issuer",
+    "sso.baglanti.clientId": "Client ID",
+    "sso.baglanti.clientSecret": "Client Secret",
+    "sso.baglanti.spBaslik": "Proveedor de servicios (SP) de Veylify — solo lectura",
+    "sso.baglanti.spDegerler": "Valores del SP",
+    "sso.baglanti.oidcCallback": "Callback de OIDC",
+    "sso.baglanti.acsKopyala": "Copiar URL de ACS",
+    "sso.baglanti.redirectKopyala": "Copiar Redirect URI",
+    "sso.baglanti.entityKopyala": "Copiar Entity ID",
+    "sso.baglanti.scimKopyala": "Copiar URL de SCIM",
+
+    "sso.spkod.saml.baslik": "# Proveedor de servicios (SP) de Veylify — introduce estos valores en tu IdP",
+    "sso.spkod.saml.acs": "URL de ACS (Assertion Consumer Service):",
+    "sso.spkod.saml.entity": "SP Entity ID (Audience):",
+    "sso.spkod.saml.nameid": "Formato de NameID:",
+    "sso.spkod.oidc.baslik": "# Valores de callback del cliente OIDC de Veylify",
+    "sso.spkod.oidc.redirect": "Redirect URI (Callback):",
+    "sso.spkod.oidc.kapsam": "Scopes permitidos:",
+    "sso.spkod.oidc.yanit": "Tipo de respuesta:",
+
+    "sso.metadata.baslik": "XML de metadatos del SP",
+    "sso.metadata.indir": "Descargar .xml",
+    "sso.metadata.aciklama":
+      "Sube este archivo de metadatos a tu proveedor de identidad — la URL de ACS, el Entity ID y el formato de NameID se toman automáticamente.",
+
+    "sso.eslesme.baslik": "Asignación de atributos",
+    "sso.eslesme.aciklama":
+      "Asigna los claims que envía tu IdP a los campos de usuario de Veylify. El claim de correo electrónico es obligatorio; los usuarios se emparejan por este campo.",
+    "sso.eslesme.thSpecter": "Campo de Veylify",
+    "sso.eslesme.thClaim": "Nombre de atributo del IdP (claim)",
+    "sso.eslesme.zorunlu": "obligatorio",
+    "sso.eslesme.phZorunlu": "Obligatorio — URI de claim del IdP",
+    "sso.eslesme.phIstege": "Opcional",
+    "sso.eslesme.varsayilan": "Restablecer valores predeterminados",
+    "sso.hedef.email": "Correo electrónico",
+    "sso.hedef.ad": "Nombre completo",
+    "sso.hedef.rol": "Rol",
+    "sso.hedef.grup": "Grupo",
+
+    "sso.scim.baslik": "Aprovisionamiento automático SCIM",
+    "sso.scim.aciklama":
+      "Con SCIM 2.0, los usuarios se crean automáticamente en Veylify cuando se aprovisionan en tu IdP; al desactivarlo, su acceso se revoca al instante (desaprovisionamiento). Introduce la URL base y el token bearer de abajo en la configuración SCIM de tu IdP.",
+    "sso.scim.tabanUrl": "URL base de SCIM (solo lectura)",
+    "sso.scim.bearer": "Token bearer",
+    "sso.scim.uret": "Generar",
+    "sso.scim.henuz": "— aún no generado —",
+    "sso.scim.notBaslik": "Copia el token ahora",
+    "sso.scim.notMetin":
+      "Este token solo se muestra completo en esta pantalla. Guárdalo en un lugar seguro tras añadirlo a la configuración SCIM de tu IdP.",
+    "sso.scim.jetonBaslik": "Token bearer de SCIM (completo)",
+    "sso.scim.toastBaslik": "Token SCIM generado",
+    "sso.scim.toastAciklama": "Guarda el token de forma segura; solo se muestra una vez.",
+
+    "sso.alan.baslik": "Verificación de dominio",
+    "sso.alan.aciklama":
+      "Antes de poder exigir SSO para un dominio, debes verificar la propiedad de ese dominio. Añade el registro TXT de abajo a la configuración DNS de tu dominio y luego haz clic en “Verificar”.",
+    "sso.alan.etiket": "Dominio",
+    "sso.alan.dogrula": "Verificar",
+    "sso.alan.durum": "Estado:",
+    "sso.alan.dogrulandi": "Verificado",
+    "sso.alan.beklemede": "Pendiente",
+    "sso.alan.bagliAlanlar": "Dominios vinculados a tu cuenta: {liste}",
+    "sso.alan.dnsBaslik": "Registro DNS TXT",
+    "sso.alan.dnsKayit": "Registro DNS",
+    "sso.dns.tur": "Tipo:",
+    "sso.dns.ad": "Host:",
+    "sso.dns.adNot": "(o dominio raíz)",
+    "sso.dns.deger": "Valor:",
+    "sso.alan.toastGirin": "Introduce un dominio",
+    "sso.alan.toastGirinAc": "p. ej. tuempresa.com",
+    "sso.alan.toastGecersiz": "Dominio no válido",
+    "sso.alan.toastGecersizAc": "Introduce un nombre de dominio válido.",
+    "sso.alan.toastDogrulandi": "Dominio verificado",
+    "sso.alan.toastDogrulandiAc": "{alan} está listo para SSO.",
+    "sso.alan.toastBekleniyor": "Esperando el registro TXT",
+    "sso.alan.toastBekleniyorAc":
+      "La propagación de DNS puede tardar hasta 24 horas; inténtalo de nuevo una vez añadido el registro.",
+
+    "sso.hazirlik.baslik": "Lista de preparación",
+    "sso.hazirlik.genel": "Preparación general",
+    "sso.hazirlik.adim": "{tamam} / {toplam} pasos completados",
+    "sso.kontrol.protokol.ad": "Protocolo seleccionado",
+    "sso.kontrol.idp.ad": "Datos de conexión del IdP introducidos",
+    "sso.kontrol.idp.ipucuSaml": "Entity ID + URL de SSO",
+    "sso.kontrol.idp.ipucuOidc": "Issuer + Client ID/Secret",
+    "sso.kontrol.sertifika.adSaml": "Certificado de firma añadido",
+    "sso.kontrol.sertifika.adOidc": "Client secret configurado",
+    "sso.kontrol.sertifika.ipucuSaml": "x509 (PEM)",
+    "sso.kontrol.sertifika.ipucuOidc": "Secreto OIDC",
+    "sso.kontrol.eslesme.ad": "Asignación de atributos definida",
+    "sso.kontrol.eslesme.ipucu": "Claim de correo obligatorio",
+    "sso.kontrol.alan.ad": "Dominio verificado",
+    "sso.kontrol.alan.ipucu": "Registro TXT",
+    "sso.kontrol.scim.ad": "Aprovisionamiento SCIM configurado",
+    "sso.kontrol.scim.ipucu": "Token bearer",
+
+    "sso.uygulama.baslik": "Aplicación",
+    "sso.zorunlu.baslik": "Exigir SSO",
+    "sso.zorunlu.aciklama":
+      "Cuando está activado, todos los miembros activos del dominio verificado solo pueden iniciar sesión mediante SSO; el inicio de sesión con contraseña se desactiva. Solo puede activarse cuando la preparación es del 100 %.",
+    "sso.zorunlu.notBaslik": "SSO exigido — atención",
+    "sso.zorunlu.notMetin":
+      "{sayi} miembros activos ahora solo pueden iniciar sesión a través de tu proveedor de identidad empresarial. Si se pierde el acceso al IdP, tu equipo no podrá acceder al panel; contacta con el equipo de soporte de Veylify para la recuperación.",
+    "sso.zorunlu.uyari": "Para exigir SSO, primero completa la lista anterior al 100 % (actualmente {yuzde} %).",
+    "sso.zorunlu.toastHazirDegil": "La preparación no es del 100 %",
+    "sso.zorunlu.toastHazirDegilAc": "Completa todos los elementos de la lista antes de exigir SSO.",
+    "sso.zorunlu.toastAcildi": "SSO exigido",
+    "sso.zorunlu.toastKapandi": "Exigencia de SSO eliminada",
+    "sso.zorunlu.toastAcildiAc": "{sayi} miembros activos ahora solo pueden iniciar sesión mediante SSO.",
+    "sso.zorunlu.toastKapandiAc": "Los miembros también pueden iniciar sesión con contraseña.",
+
+    "sso.uyeler.baslik": "Miembros afectados ({sayi})",
+    "sso.uyeler.aciklama":
+      "Cuando se exige SSO, los miembros activos de abajo inician sesión a través de tu IdP empresarial. Las invitaciones pendientes se dirigen al flujo de SSO una vez aceptada la invitación.",
+    "sso.uyeler.bos": "No hay miembros en el equipo.",
+    "sso.uyeler.thUye": "Miembro",
+    "sso.uyeler.thRol": "Rol",
+    "sso.uyeler.thDurum": "Estado",
+    "sso.uyeler.th2fa": "2FA",
+    "sso.uyeDurum.active": "Activo",
+    "sso.uyeDurum.invited": "Invitado",
+    "sso.uyeDurum.suspended": "Suspendido",
+    "sso.uyeler.2faAcik": "Activado",
+
+    "sso.not.metin":
+      "Esta pantalla es una superficie de configuración y previsualización de la autenticación empresarial. Los valores que introduces se almacenan solo en tu navegador. El verdadero handshake con el IdP (intercambio de metadatos, verificación de certificados, puente SCIM en vivo) se completa con el equipo de Veylify durante el onboarding{plan}.",
+    "sso.not.planEk": " al cambiar a un plan empresarial",
+    "sso.not.saklaniyor": "La configuración se guarda en el navegador (localStorage).",
+    "sso.not.sifirla": "Restablecer la configuración",
+    "sso.toast.sifirlandi": "Configuración restablecida",
+
+    "sso.toast.metadataIndi": "Metadatos del SP descargados",
+    "sso.toast.kopyalandi": "{etiket} copiado",
+  },
+};
+
+export function ssoCeviri(anahtar: string, dil: Dil): string {
+  return sozluk[dil]?.[anahtar] ?? sozluk.tr[anahtar] ?? anahtar;
+}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veylify"
+version = "1.0.0"
+description = "Official Veylify SDK for Python — server-side siteverify and webhook signature verification for ghost-font CAPTCHA / AI-bot protection."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Veylify" }]
+keywords = ["veylify", "captcha", "bot-protection", "ai-bot", "webhook", "siteverify", "ghost-font"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://veylify.com/docs/sdk/python"
+Repository = "https://github.com/veylify/veylify-py"
+
+[project.optional-dependencies]
+flask = ["Flask>=2.0"]
+django = ["Django>=3.2"]
+
+[tool.setuptools]
+# `veylify` is the canonical package; `specter` is a back-compat re-export shim.
+packages = ["veylify", "specter"]

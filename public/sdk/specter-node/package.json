@@ -1,0 +1,42 @@
+{
+  "name": "@veylify/node",
+  "version": "1.0.0",
+  "description": "Official Veylify SDK for Node.js — server-side siteverify and webhook signature verification for ghost-font CAPTCHA / AI-bot protection.",
+  "license": "MIT",
+  "author": "Veylify",
+  "homepage": "https://veylify.com/docs/sdk/node",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/veylify/veylify-node.git"
+  },
+  "keywords": [
+    "veylify",
+    "captcha",
+    "bot-protection",
+    "ai-bot",
+    "webhook",
+    "siteverify",
+    "ghost-font"
+  ],
+  "type": "commonjs",
+  "main": "./veylify.js",
+  "module": "./index.mjs",
+  "types": "./types.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types.d.ts",
+      "import": "./index.mjs",
+      "require": "./veylify.js"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "veylify.js",
+    "specter.js",
+    "index.mjs",
+    "types.d.ts",
+    "README.md"
+  ]
+}

@@ -1,0 +1,641 @@
+import type { Dil } from "@/lib/i18n/panel";
+
+/**
+ * Oturum Güvenliği sayfasına özel i18n sözlüğü (yalnızca bu modül kullanır).
+ * "og." namespace'li anahtarlar. Doğal/native çeviriler; veri (token sayıları,
+ * IP, tarih, yüzde) ve teknik terimler (HMAC-SHA256, nonce, iat/exp, TTL, base64url)
+ * çevrilmez — yalnızca görüntü etiketleri çevrilir. localStorage anahtarları da sabit.
+ *
+ * Duruş kontrolleri (lib'deki kontroller.id), huni aşamaları (lib'deki asama) ve
+ * oturum risk nedenleri lib'de TR üretilir; buradaki anahtarlarla client-tarafında
+ * yeniden üretilir (paylaşılan oturum-guvenlik.ts dosyasına DOKUNULMADAN).
+ *
+ * Interpolasyon: "{n}" yer tutucusu `.replace("{n}", ...)` ile doldurulur.
+ * TR kaynak/otorite; anahtar bulunamazsa TR'ye, o da yoksa anahtarın kendisine düşer.
+ */
+const sozluk: Record<Dil, Record<string, string>> = {
+  tr: {
+    // --- Başlık ---
+    "og.baslik": "Oturum Güvenliği & Token Yaşam Döngüsü",
+
+    // --- Açıklama şeridi ---
+    "og.giris.baslik": "Auth & token katmanının güvenlik-operasyon konsolu.",
+    "og.giris.metin":
+      "Aktif cihaz oturumlarını yönet, doğrulama-token yaşam döngüsünü (verildi → doğrulandı → süre-doldu → replay-engellendi) izle, nonce/replay korumasını ve oturum güvenliği duruşunu tek yerden gör. Bu konsol, hesap ayarlarındaki temel 2FA/şifre ekranını tamamlar.",
+
+    // --- Özet istatistikler ---
+    "og.ozet.durusSkor": "Güvenlik duruşu skoru",
+    "og.ozet.aktifOturum": "Aktif oturum",
+    "og.ozet.verilenToken": "Verilen token (30g)",
+    "og.ozet.replayEngellendi": "Replay engellendi",
+
+    // --- Güvenlik duruşu paneli ---
+    "og.durus.baslik": "Güvenlik duruşu skoru",
+    "og.durus.seviye.guclu": "Güçlü",
+    "og.durus.seviye.iyi": "İyi",
+    "og.durus.seviye.orta": "Orta",
+    "og.durus.seviye.zayif": "Zayıf",
+    "og.durus.seviyeSonek": "duruş",
+    "og.durus.kontrolSayisi": "{gecen}/{toplam} kontrol karşılandı",
+    "og.durus.puan": "{n} puan",
+
+    // --- Duruş kontrolleri (lib id → ad/açıklama/öneri) ---
+    "og.kontrol.twofa.ad": "İki adımlı doğrulama (2FA)",
+    "og.kontrol.twofa.aciklama": "Hesap girişinde TOTP ikinci faktör isteniyor.",
+    "og.kontrol.twofa.oneri": "Ayarlar → Güvenlik'ten TOTP 2FA'yı etkinleştir.",
+    "og.kontrol.oturum-sinir.ad": "Oturum sayısı sınırlı",
+    "og.kontrol.oturum-sinir.aciklama": "Aktif eşzamanlı oturum, {max} sınırının içinde.",
+    "og.kontrol.oturum-sinir.oneri": "Eski/tanınmayan oturumları sonlandır ya da oturum sınırını düşür.",
+    "og.kontrol.token-ttl.ad": "Kısa token TTL",
+    "og.kontrol.token-ttl.aciklama": "Challenge token ömrü kısa tutuluyor (yeniden-kullanım penceresi dar).",
+    "og.kontrol.token-ttl.oneri": "Token TTL'ini {ttl} dk veya altına indir.",
+    "og.kontrol.nonce-replay.ad": "Nonce / replay koruması",
+    "og.kontrol.nonce-replay.aciklama": "Tek-kullanımlık nonce ile tekrar-oynatma engelleniyor.",
+    "og.kontrol.nonce-replay.oneri": "Nonce tek-kullanımlık doğrulamasını aç (verify orkestratörü zaten destekler).",
+    "og.kontrol.yeni-cihaz-2fa.ad": "Yeni cihazda 2FA iste",
+    "og.kontrol.yeni-cihaz-2fa.aciklama": "Tanınmayan cihazdan giriş ek doğrulama tetikliyor.",
+    "og.kontrol.yeni-cihaz-2fa.oneri": "Oturum politikasından 'yeni cihazda 2FA iste'yi aç.",
+    "og.kontrol.supheli-konum.ad": "Şüpheli konumda askıya al",
+    "og.kontrol.supheli-konum.aciklama": "Beklenmedik coğrafyadan oturum otomatik askıya alınıyor.",
+    "og.kontrol.supheli-konum.oneri": "Oturum politikasından 'şüpheli konumda oturumu askıya al'ı aç.",
+
+    // --- Aktif oturumlar paneli ---
+    "og.oturum.baslik": "Aktif oturumlar",
+    "og.oturum.tumDigerleri": "Tüm diğer oturumları sonlandır",
+    "og.oturum.buCihaz": "Bu cihaz",
+    "og.oturum.sonlandirildi": "Sonlandırıldı",
+    "og.oturum.sonlandir": "Oturumu sonlandır",
+    "og.oturum.simdi": "Şimdi",
+
+    // --- Risk etiketleri (enum → etiket) ---
+    "og.risk.dusuk": "Düşük risk",
+    "og.risk.orta": "Orta risk",
+    "og.risk.yuksek": "Yüksek risk",
+
+    // --- Risk nedenleri (lib metni → anahtar) ---
+    "og.neden.buCihaz": "Mevcut oturum (bu cihaz)",
+    "og.neden.tanınmayanKonum": "Tanınmayan konum",
+    "og.neden.tanınmayanCihaz": "Tanınmayan cihaz parmak izi",
+    "og.neden.eskiOturum": "Uzun süredir açık oturum (30 gün+)",
+    "og.neden.bilinen": "Bilinen cihaz ve konum",
+
+    // --- Dürüstlük notu ---
+    "og.durustluk":
+      "<b>Gerçek:</b> token verilen/doğrulanan hacmi (son 30 gün Usage sayaçları), 2FA durumu ve mevcut cookie oturumu (bu cihaz). <b>Temsili:</b> çoklu-cihaz oturum listesi (Auth0/Clerk tarzı ops görünümü) ve replay-engellenen sayısı — sonlandırma durumu ve politika ayarları tarayıcında (localStorage) kalıcıdır.",
+
+    // --- Token yaşam döngüsü paneli ---
+    "og.token.baslik": "Token yaşam döngüsü (doğrulama)",
+    "og.token.oran": "%{oran} · verilenlerin",
+    "og.token.basariOrani": "Doğrulama başarı oranı",
+    "og.token.hmacNot": "HMAC-SHA256 imzalı, stateless commitment token — TTL ≈ {ttl} dk, nonce tek-kullanımlık.",
+    "og.token.kodBaslik": "token yapısı & doğrulama",
+
+    // --- Huni aşamaları (lib asama → ad/açıklama) ---
+    "og.huni.verildi.ad": "Verildi",
+    "og.huni.verildi.aciklama": "HMAC-SHA256 ile imzalı challenge token istemciye gönderildi (iat/exp/nonce mühürlü).",
+    "og.huni.dogrulandi.ad": "Doğrulandı",
+    "og.huni.dogrulandi.aciklama": "İmza + ghost-font cevabı + davranış skoru geçti; imzalı verification token üretildi.",
+    "og.huni.sure_doldu.ad": "Süre doldu",
+    "og.huni.sure_doldu.aciklama": "Kullanılmadan exp (≈5 dk TTL) aşıldı; token artık geçersiz.",
+    "og.huni.replay_engellendi.ad": "Replay engellendi",
+    "og.huni.replay_engellendi.aciklama": "Tek-kullanımlık nonce ikinci kez sunuldu; tekrar-oynatma reddedildi.",
+
+    // --- Token yapısı kod bloğu (yorumlar) ---
+    "og.kod.baslik": "Veylify challenge commitment token (HMAC-SHA256 imzalı)",
+    "og.kod.yapi": "yapı:",
+    "og.kod.cid": "challenge id",
+    "og.kod.seed": "render seed (ghost-font)",
+    "og.kod.len": "cevap uzunluğu",
+    "og.kod.site": "hangi müşteri sitesi",
+    "og.kod.iat": "issued-at",
+    "og.kod.verildiMs": "<verildi-ms>",
+    "og.kod.exp": "TTL: {ttl} dk",
+    "og.kod.nonce": "TEK-KULLANIMLIK (replay önleme)",
+    "og.kod.dogrulamada": "Doğrulamada:",
+    "og.kod.adim1": "sig sabit-zamanlı yeniden hesaplanır  → kurcalama tespiti",
+    "og.kod.adim2": 'now > exp ?  → "expired"  (kullanılmadan süresi doldu)',
+    "og.kod.adim3": "nonce daha önce görüldü mü ?  → \"replay\" reddi",
+    "og.kod.adim4": "seed'den cevap türetilir + davranış skoru → geçer/kalır",
+
+    // --- Replay / nonce paneli ---
+    "og.replay.baslik": "Replay & nonce koruması",
+    "og.replay.etkin": "Etkin",
+    "og.replay.nonce.baslik": "Tek-kullanımlık nonce",
+    "og.replay.nonce.metin1": "Her challenge token'ı benzersiz bir",
+    "og.replay.nonce.metin2":
+      'taşır. Doğrulama sonrası nonce "kullanıldı" kaydına düşer; aynı token ikinci kez sunulursa reddedilir.',
+    "og.replay.ttl.baslik": "Zaman penceresi (TTL)",
+    "og.replay.ttl.metin1": "Token yalnızca",
+    "og.replay.ttl.dk": "{n} dk",
+    "og.replay.ttl.metin2": 'geçerlidir',
+    "og.replay.ttl.metin3": 'Pencere dışı yeniden-oynatma denemesi "expired" ile düşer.',
+    "og.replay.engellenen.baslik": "Engellenen replay (30g)",
+    "og.replay.engellenen.not": "Nonce yeniden-kullanım + süre-aşımı reddi (temsili).",
+
+    // --- Oturum politikası paneli ---
+    "og.politika.baslik": "Oturum politikası",
+    "og.politika.maxOturum.baslik": "Azami eşzamanlı oturum",
+    "og.politika.maxOturum.aciklama": "Bu sınırı aşan aktif oturum güvenlik duruşunu düşürür.",
+    "og.politika.ttl.baslik": "Token TTL (dakika)",
+    "og.politika.ttl.aciklama": "Challenge token ömrü. Kısa TTL yeniden-oynatma penceresini daraltır.",
+    "og.politika.ttl.dk": "{n} dk",
+    "og.politika.yeniCihaz.baslik": "Yeni cihazda 2FA iste",
+    "og.politika.yeniCihaz.aciklama": "Tanınmayan cihazdan girişte ek TOTP doğrulaması tetikle.",
+    "og.politika.supheliKonum.baslik": "Şüpheli konumda oturumu askıya al",
+    "og.politika.supheliKonum.aciklama": "Beklenmedik coğrafyadan gelen oturumu otomatik askıya al ve doğrulama iste.",
+    "og.politika.not": "Politika ayarların tarayıcında (localStorage) kalıcı; duruş skoru anlık olarak yeniden hesaplanır.",
+
+    // --- Toast ---
+    "og.toast.tekSonlandir": "Oturum sonlandırıldı",
+    "og.toast.tumSonlandir": "Diğer tüm oturumlar sonlandırıldı",
+  },
+
+  en: {
+    "og.baslik": "Session Security & Token Lifecycle",
+
+    "og.giris.baslik": "The security-operations console for the auth & token layer.",
+    "og.giris.metin":
+      "Manage active device sessions, track the verification-token lifecycle (issued → verified → expired → replay-blocked), and view nonce/replay protection and session security posture in one place. This console complements the basic 2FA/password screen in account settings.",
+
+    "og.ozet.durusSkor": "Security posture score",
+    "og.ozet.aktifOturum": "Active sessions",
+    "og.ozet.verilenToken": "Issued tokens (30d)",
+    "og.ozet.replayEngellendi": "Replay blocked",
+
+    "og.durus.baslik": "Security posture score",
+    "og.durus.seviye.guclu": "Strong",
+    "og.durus.seviye.iyi": "Good",
+    "og.durus.seviye.orta": "Moderate",
+    "og.durus.seviye.zayif": "Weak",
+    "og.durus.seviyeSonek": "posture",
+    "og.durus.kontrolSayisi": "{gecen}/{toplam} checks met",
+    "og.durus.puan": "{n} pts",
+
+    "og.kontrol.twofa.ad": "Two-factor authentication (2FA)",
+    "og.kontrol.twofa.aciklama": "A TOTP second factor is required at account login.",
+    "og.kontrol.twofa.oneri": "Enable TOTP 2FA under Settings → Security.",
+    "og.kontrol.oturum-sinir.ad": "Session count limited",
+    "og.kontrol.oturum-sinir.aciklama": "Active concurrent sessions are within the limit of {max}.",
+    "og.kontrol.oturum-sinir.oneri": "Terminate old/unrecognized sessions or lower the session limit.",
+    "og.kontrol.token-ttl.ad": "Short token TTL",
+    "og.kontrol.token-ttl.aciklama": "Challenge token lifetime is kept short (narrow reuse window).",
+    "og.kontrol.token-ttl.oneri": "Lower the token TTL to {ttl} min or below.",
+    "og.kontrol.nonce-replay.ad": "Nonce / replay protection",
+    "og.kontrol.nonce-replay.aciklama": "Replay is blocked via single-use nonce.",
+    "og.kontrol.nonce-replay.oneri": "Enable single-use nonce verification (the verify orchestrator already supports it).",
+    "og.kontrol.yeni-cihaz-2fa.ad": "Require 2FA on new device",
+    "og.kontrol.yeni-cihaz-2fa.aciklama": "Login from an unrecognized device triggers extra verification.",
+    "og.kontrol.yeni-cihaz-2fa.oneri": "Enable 'require 2FA on new device' in session policy.",
+    "og.kontrol.supheli-konum.ad": "Suspend on suspicious location",
+    "og.kontrol.supheli-konum.aciklama": "Sessions from unexpected geographies are auto-suspended.",
+    "og.kontrol.supheli-konum.oneri": "Enable 'suspend session on suspicious location' in session policy.",
+
+    "og.oturum.baslik": "Active sessions",
+    "og.oturum.tumDigerleri": "Terminate all other sessions",
+    "og.oturum.buCihaz": "This device",
+    "og.oturum.sonlandirildi": "Terminated",
+    "og.oturum.sonlandir": "Terminate session",
+    "og.oturum.simdi": "Now",
+
+    "og.risk.dusuk": "Low risk",
+    "og.risk.orta": "Medium risk",
+    "og.risk.yuksek": "High risk",
+
+    "og.neden.buCihaz": "Current session (this device)",
+    "og.neden.tanınmayanKonum": "Unrecognized location",
+    "og.neden.tanınmayanCihaz": "Unrecognized device fingerprint",
+    "og.neden.eskiOturum": "Long-open session (30+ days)",
+    "og.neden.bilinen": "Known device and location",
+
+    "og.durustluk":
+      "<b>Real:</b> token issued/verified volume (last 30 days of Usage counters), 2FA status, and the current cookie session (this device). <b>Representative:</b> the multi-device session list (Auth0/Clerk-style ops view) and the replay-blocked count — termination state and policy settings persist in your browser (localStorage).",
+
+    "og.token.baslik": "Token lifecycle (verification)",
+    "og.token.oran": "{oran}% · of issued",
+    "og.token.basariOrani": "Verification success rate",
+    "og.token.hmacNot": "HMAC-SHA256 signed, stateless commitment token — TTL ≈ {ttl} min, single-use nonce.",
+    "og.token.kodBaslik": "token structure & verification",
+
+    "og.huni.verildi.ad": "Issued",
+    "og.huni.verildi.aciklama": "An HMAC-SHA256-signed challenge token was sent to the client (iat/exp/nonce sealed).",
+    "og.huni.dogrulandi.ad": "Verified",
+    "og.huni.dogrulandi.aciklama": "Signature + ghost-font answer + behavior score passed; a signed verification token was issued.",
+    "og.huni.sure_doldu.ad": "Expired",
+    "og.huni.sure_doldu.aciklama": "exp (≈5 min TTL) elapsed without use; the token is now invalid.",
+    "og.huni.replay_engellendi.ad": "Replay blocked",
+    "og.huni.replay_engellendi.aciklama": "A single-use nonce was presented a second time; the replay was rejected.",
+
+    "og.kod.baslik": "Veylify challenge commitment token (HMAC-SHA256 signed)",
+    "og.kod.yapi": "structure:",
+    "og.kod.cid": "challenge id",
+    "og.kod.seed": "render seed (ghost-font)",
+    "og.kod.len": "answer length",
+    "og.kod.site": "which customer site",
+    "og.kod.iat": "issued-at",
+    "og.kod.verildiMs": "<issued-ms>",
+    "og.kod.exp": "TTL: {ttl} min",
+    "og.kod.nonce": "SINGLE-USE (replay prevention)",
+    "og.kod.dogrulamada": "On verification:",
+    "og.kod.adim1": "sig recomputed in constant time  → tamper detection",
+    "og.kod.adim2": 'now > exp ?  → "expired"  (expired unused)',
+    "og.kod.adim3": 'nonce seen before ?  → "replay" rejection',
+    "og.kod.adim4": "answer derived from seed + behavior score → pass/fail",
+
+    "og.replay.baslik": "Replay & nonce protection",
+    "og.replay.etkin": "Active",
+    "og.replay.nonce.baslik": "Single-use nonce",
+    "og.replay.nonce.metin1": "Each challenge token carries a unique",
+    "og.replay.nonce.metin2":
+      'After verification the nonce is marked "used"; if the same token is presented a second time, it is rejected.',
+    "og.replay.ttl.baslik": "Time window (TTL)",
+    "og.replay.ttl.metin1": "The token is valid for only",
+    "og.replay.ttl.dk": "{n} min",
+    "og.replay.ttl.metin2": "",
+    "og.replay.ttl.metin3": 'An out-of-window replay attempt fails with "expired".',
+    "og.replay.engellenen.baslik": "Replay blocked (30d)",
+    "og.replay.engellenen.not": "Nonce reuse + time-out rejection (representative).",
+
+    "og.politika.baslik": "Session policy",
+    "og.politika.maxOturum.baslik": "Maximum concurrent sessions",
+    "og.politika.maxOturum.aciklama": "Active sessions above this limit lower the security posture.",
+    "og.politika.ttl.baslik": "Token TTL (minutes)",
+    "og.politika.ttl.aciklama": "Challenge token lifetime. A short TTL narrows the replay window.",
+    "og.politika.ttl.dk": "{n} min",
+    "og.politika.yeniCihaz.baslik": "Require 2FA on new device",
+    "og.politika.yeniCihaz.aciklama": "Trigger an extra TOTP check when logging in from an unrecognized device.",
+    "og.politika.supheliKonum.baslik": "Suspend session on suspicious location",
+    "og.politika.supheliKonum.aciklama": "Auto-suspend sessions from unexpected geographies and require verification.",
+    "og.politika.not": "Your policy settings persist in the browser (localStorage); the posture score is recomputed instantly.",
+
+    "og.toast.tekSonlandir": "Session terminated",
+    "og.toast.tumSonlandir": "All other sessions terminated",
+  },
+
+  de: {
+    "og.baslik": "Sitzungssicherheit & Token-Lebenszyklus",
+
+    "og.giris.baslik": "Die Sicherheits-Operations-Konsole für die Auth- & Token-Schicht.",
+    "og.giris.metin":
+      "Verwalte aktive Gerätesitzungen, verfolge den Verifizierungstoken-Lebenszyklus (ausgestellt → verifiziert → abgelaufen → Replay-blockiert) und sieh Nonce-/Replay-Schutz sowie die Sitzungssicherheitslage an einem Ort. Diese Konsole ergänzt den grundlegenden 2FA-/Passwort-Bildschirm in den Kontoeinstellungen.",
+
+    "og.ozet.durusSkor": "Sicherheitslage-Score",
+    "og.ozet.aktifOturum": "Aktive Sitzungen",
+    "og.ozet.verilenToken": "Ausgestellte Token (30 T)",
+    "og.ozet.replayEngellendi": "Replay blockiert",
+
+    "og.durus.baslik": "Sicherheitslage-Score",
+    "og.durus.seviye.guclu": "Stark",
+    "og.durus.seviye.iyi": "Gut",
+    "og.durus.seviye.orta": "Mittel",
+    "og.durus.seviye.zayif": "Schwach",
+    "og.durus.seviyeSonek": "Lage",
+    "og.durus.kontrolSayisi": "{gecen}/{toplam} Prüfungen erfüllt",
+    "og.durus.puan": "{n} Pkt.",
+
+    "og.kontrol.twofa.ad": "Zwei-Faktor-Authentifizierung (2FA)",
+    "og.kontrol.twofa.aciklama": "Beim Kontologin wird ein TOTP-Zweitfaktor verlangt.",
+    "og.kontrol.twofa.oneri": "Aktiviere TOTP-2FA unter Einstellungen → Sicherheit.",
+    "og.kontrol.oturum-sinir.ad": "Sitzungsanzahl begrenzt",
+    "og.kontrol.oturum-sinir.aciklama": "Aktive gleichzeitige Sitzungen liegen innerhalb des Limits von {max}.",
+    "og.kontrol.oturum-sinir.oneri": "Alte/unbekannte Sitzungen beenden oder das Sitzungslimit senken.",
+    "og.kontrol.token-ttl.ad": "Kurze Token-TTL",
+    "og.kontrol.token-ttl.aciklama": "Die Challenge-Token-Lebensdauer wird kurz gehalten (schmales Wiederverwendungsfenster).",
+    "og.kontrol.token-ttl.oneri": "Token-TTL auf {ttl} Min. oder darunter senken.",
+    "og.kontrol.nonce-replay.ad": "Nonce-/Replay-Schutz",
+    "og.kontrol.nonce-replay.aciklama": "Replay wird über eine Einmal-Nonce blockiert.",
+    "og.kontrol.nonce-replay.oneri": "Einmal-Nonce-Verifizierung aktivieren (der Verify-Orchestrator unterstützt das bereits).",
+    "og.kontrol.yeni-cihaz-2fa.ad": "2FA bei neuem Gerät verlangen",
+    "og.kontrol.yeni-cihaz-2fa.aciklama": "Login von einem unbekannten Gerät löst eine Zusatzprüfung aus.",
+    "og.kontrol.yeni-cihaz-2fa.oneri": "In der Sitzungsrichtlinie '2FA bei neuem Gerät verlangen' aktivieren.",
+    "og.kontrol.supheli-konum.ad": "Bei verdächtigem Standort aussetzen",
+    "og.kontrol.supheli-konum.aciklama": "Sitzungen aus unerwarteten Regionen werden automatisch ausgesetzt.",
+    "og.kontrol.supheli-konum.oneri": "In der Sitzungsrichtlinie 'Sitzung bei verdächtigem Standort aussetzen' aktivieren.",
+
+    "og.oturum.baslik": "Aktive Sitzungen",
+    "og.oturum.tumDigerleri": "Alle anderen Sitzungen beenden",
+    "og.oturum.buCihaz": "Dieses Gerät",
+    "og.oturum.sonlandirildi": "Beendet",
+    "og.oturum.sonlandir": "Sitzung beenden",
+    "og.oturum.simdi": "Jetzt",
+
+    "og.risk.dusuk": "Geringes Risiko",
+    "og.risk.orta": "Mittleres Risiko",
+    "og.risk.yuksek": "Hohes Risiko",
+
+    "og.neden.buCihaz": "Aktuelle Sitzung (dieses Gerät)",
+    "og.neden.tanınmayanKonum": "Unbekannter Standort",
+    "og.neden.tanınmayanCihaz": "Unbekannter Geräte-Fingerabdruck",
+    "og.neden.eskiOturum": "Lange offene Sitzung (30+ Tage)",
+    "og.neden.bilinen": "Bekanntes Gerät und bekannter Standort",
+
+    "og.durustluk":
+      "<b>Echt:</b> Token-Ausgabe-/Verifizierungsvolumen (Usage-Zähler der letzten 30 Tage), 2FA-Status und aktuelle Cookie-Sitzung (dieses Gerät). <b>Repräsentativ:</b> die Multi-Geräte-Sitzungsliste (Auth0/Clerk-artige Ops-Ansicht) und die Replay-blockiert-Zahl — Beendigungsstatus und Richtlinieneinstellungen bleiben in deinem Browser (localStorage) erhalten.",
+
+    "og.token.baslik": "Token-Lebenszyklus (Verifizierung)",
+    "og.token.oran": "{oran} % · der ausgestellten",
+    "og.token.basariOrani": "Verifizierungs-Erfolgsrate",
+    "og.token.hmacNot": "HMAC-SHA256-signiert, zustandsloses Commitment-Token — TTL ≈ {ttl} Min., Einmal-Nonce.",
+    "og.token.kodBaslik": "Token-Struktur & Verifizierung",
+
+    "og.huni.verildi.ad": "Ausgestellt",
+    "og.huni.verildi.aciklama": "Ein HMAC-SHA256-signiertes Challenge-Token wurde an den Client gesendet (iat/exp/nonce versiegelt).",
+    "og.huni.dogrulandi.ad": "Verifiziert",
+    "og.huni.dogrulandi.aciklama": "Signatur + Ghost-Font-Antwort + Verhaltens-Score bestanden; ein signiertes Verifizierungstoken wurde ausgestellt.",
+    "og.huni.sure_doldu.ad": "Abgelaufen",
+    "og.huni.sure_doldu.aciklama": "exp (≈5 Min. TTL) ungenutzt verstrichen; das Token ist nun ungültig.",
+    "og.huni.replay_engellendi.ad": "Replay blockiert",
+    "og.huni.replay_engellendi.aciklama": "Eine Einmal-Nonce wurde ein zweites Mal vorgelegt; der Replay wurde abgelehnt.",
+
+    "og.kod.baslik": "Veylify Challenge-Commitment-Token (HMAC-SHA256-signiert)",
+    "og.kod.yapi": "Struktur:",
+    "og.kod.cid": "Challenge-ID",
+    "og.kod.seed": "Render-Seed (Ghost-Font)",
+    "og.kod.len": "Antwortlänge",
+    "og.kod.site": "welche Kundenseite",
+    "og.kod.iat": "issued-at",
+    "og.kod.verildiMs": "<ausgestellt-ms>",
+    "og.kod.exp": "TTL: {ttl} Min.",
+    "og.kod.nonce": "EINMALIG (Replay-Vermeidung)",
+    "og.kod.dogrulamada": "Bei der Verifizierung:",
+    "og.kod.adim1": "sig wird in konstanter Zeit neu berechnet  → Manipulationserkennung",
+    "og.kod.adim2": 'now > exp ?  → "expired"  (ungenutzt abgelaufen)',
+    "og.kod.adim3": 'Nonce schon gesehen ?  → "replay"-Ablehnung',
+    "og.kod.adim4": "Antwort aus Seed abgeleitet + Verhaltens-Score → bestanden/durchgefallen",
+
+    "og.replay.baslik": "Replay- & Nonce-Schutz",
+    "og.replay.etkin": "Aktiv",
+    "og.replay.nonce.baslik": "Einmal-Nonce",
+    "og.replay.nonce.metin1": "Jedes Challenge-Token trägt eine eindeutige",
+    "og.replay.nonce.metin2":
+      'Nach der Verifizierung wird die Nonce als "verwendet" markiert; wird dasselbe Token ein zweites Mal vorgelegt, wird es abgelehnt.',
+    "og.replay.ttl.baslik": "Zeitfenster (TTL)",
+    "og.replay.ttl.metin1": "Das Token ist nur",
+    "og.replay.ttl.dk": "{n} Min.",
+    "og.replay.ttl.metin2": "gültig",
+    "og.replay.ttl.metin3": 'Ein Replay-Versuch außerhalb des Fensters scheitert mit "expired".',
+    "og.replay.engellenen.baslik": "Replay blockiert (30 T)",
+    "og.replay.engellenen.not": "Nonce-Wiederverwendung + Timeout-Ablehnung (repräsentativ).",
+
+    "og.politika.baslik": "Sitzungsrichtlinie",
+    "og.politika.maxOturum.baslik": "Maximale gleichzeitige Sitzungen",
+    "og.politika.maxOturum.aciklama": "Aktive Sitzungen über diesem Limit senken die Sicherheitslage.",
+    "og.politika.ttl.baslik": "Token-TTL (Minuten)",
+    "og.politika.ttl.aciklama": "Challenge-Token-Lebensdauer. Eine kurze TTL verengt das Replay-Fenster.",
+    "og.politika.ttl.dk": "{n} Min.",
+    "og.politika.yeniCihaz.baslik": "2FA bei neuem Gerät verlangen",
+    "og.politika.yeniCihaz.aciklama": "Beim Login von einem unbekannten Gerät eine zusätzliche TOTP-Prüfung auslösen.",
+    "og.politika.supheliKonum.baslik": "Sitzung bei verdächtigem Standort aussetzen",
+    "og.politika.supheliKonum.aciklama": "Sitzungen aus unerwarteten Regionen automatisch aussetzen und Verifizierung verlangen.",
+    "og.politika.not": "Deine Richtlinieneinstellungen bleiben im Browser (localStorage) erhalten; der Lage-Score wird sofort neu berechnet.",
+
+    "og.toast.tekSonlandir": "Sitzung beendet",
+    "og.toast.tumSonlandir": "Alle anderen Sitzungen beendet",
+  },
+
+  fr: {
+    "og.baslik": "Sécurité de session & cycle de vie des tokens",
+
+    "og.giris.baslik": "La console d'opérations de sécurité de la couche auth & token.",
+    "og.giris.metin":
+      "Gérez les sessions d'appareils actives, suivez le cycle de vie des tokens de vérification (émis → vérifié → expiré → replay-bloqué) et visualisez la protection nonce/replay ainsi que la posture de sécurité de session en un seul endroit. Cette console complète l'écran 2FA/mot de passe de base des paramètres du compte.",
+
+    "og.ozet.durusSkor": "Score de posture de sécurité",
+    "og.ozet.aktifOturum": "Sessions actives",
+    "og.ozet.verilenToken": "Tokens émis (30 j)",
+    "og.ozet.replayEngellendi": "Replay bloqué",
+
+    "og.durus.baslik": "Score de posture de sécurité",
+    "og.durus.seviye.guclu": "Forte",
+    "og.durus.seviye.iyi": "Bonne",
+    "og.durus.seviye.orta": "Moyenne",
+    "og.durus.seviye.zayif": "Faible",
+    "og.durus.seviyeSonek": "posture",
+    "og.durus.kontrolSayisi": "{gecen}/{toplam} contrôles satisfaits",
+    "og.durus.puan": "{n} pts",
+
+    "og.kontrol.twofa.ad": "Authentification à deux facteurs (2FA)",
+    "og.kontrol.twofa.aciklama": "Un second facteur TOTP est requis à la connexion au compte.",
+    "og.kontrol.twofa.oneri": "Activez la 2FA TOTP dans Paramètres → Sécurité.",
+    "og.kontrol.oturum-sinir.ad": "Nombre de sessions limité",
+    "og.kontrol.oturum-sinir.aciklama": "Les sessions simultanées actives sont dans la limite de {max}.",
+    "og.kontrol.oturum-sinir.oneri": "Terminez les sessions anciennes/non reconnues ou abaissez la limite de sessions.",
+    "og.kontrol.token-ttl.ad": "TTL de token court",
+    "og.kontrol.token-ttl.aciklama": "La durée de vie du token de challenge est maintenue courte (fenêtre de réutilisation étroite).",
+    "og.kontrol.token-ttl.oneri": "Abaissez le TTL du token à {ttl} min ou moins.",
+    "og.kontrol.nonce-replay.ad": "Protection nonce / replay",
+    "og.kontrol.nonce-replay.aciklama": "Le replay est bloqué via un nonce à usage unique.",
+    "og.kontrol.nonce-replay.oneri": "Activez la vérification du nonce à usage unique (l'orchestrateur de vérification le prend déjà en charge).",
+    "og.kontrol.yeni-cihaz-2fa.ad": "Exiger la 2FA sur nouvel appareil",
+    "og.kontrol.yeni-cihaz-2fa.aciklama": "Une connexion depuis un appareil non reconnu déclenche une vérification supplémentaire.",
+    "og.kontrol.yeni-cihaz-2fa.oneri": "Activez « exiger la 2FA sur nouvel appareil » dans la politique de session.",
+    "og.kontrol.supheli-konum.ad": "Suspendre en cas de localisation suspecte",
+    "og.kontrol.supheli-konum.aciklama": "Les sessions provenant de zones inattendues sont automatiquement suspendues.",
+    "og.kontrol.supheli-konum.oneri": "Activez « suspendre la session en cas de localisation suspecte » dans la politique de session.",
+
+    "og.oturum.baslik": "Sessions actives",
+    "og.oturum.tumDigerleri": "Terminer toutes les autres sessions",
+    "og.oturum.buCihaz": "Cet appareil",
+    "og.oturum.sonlandirildi": "Terminée",
+    "og.oturum.sonlandir": "Terminer la session",
+    "og.oturum.simdi": "Maintenant",
+
+    "og.risk.dusuk": "Risque faible",
+    "og.risk.orta": "Risque moyen",
+    "og.risk.yuksek": "Risque élevé",
+
+    "og.neden.buCihaz": "Session actuelle (cet appareil)",
+    "og.neden.tanınmayanKonum": "Localisation non reconnue",
+    "og.neden.tanınmayanCihaz": "Empreinte d'appareil non reconnue",
+    "og.neden.eskiOturum": "Session ouverte de longue date (30+ jours)",
+    "og.neden.bilinen": "Appareil et localisation connus",
+
+    "og.durustluk":
+      "<b>Réel :</b> volume de tokens émis/vérifiés (compteurs Usage des 30 derniers jours), statut 2FA et session cookie actuelle (cet appareil). <b>Représentatif :</b> la liste des sessions multi-appareils (vue ops de type Auth0/Clerk) et le nombre de replays bloqués — l'état de terminaison et les réglages de politique persistent dans votre navigateur (localStorage).",
+
+    "og.token.baslik": "Cycle de vie des tokens (vérification)",
+    "og.token.oran": "{oran} % · des émis",
+    "og.token.basariOrani": "Taux de réussite de vérification",
+    "og.token.hmacNot": "Token de commitment sans état, signé HMAC-SHA256 — TTL ≈ {ttl} min, nonce à usage unique.",
+    "og.token.kodBaslik": "structure du token & vérification",
+
+    "og.huni.verildi.ad": "Émis",
+    "og.huni.verildi.aciklama": "Un token de challenge signé HMAC-SHA256 a été envoyé au client (iat/exp/nonce scellés).",
+    "og.huni.dogrulandi.ad": "Vérifié",
+    "og.huni.dogrulandi.aciklama": "Signature + réponse ghost-font + score comportemental validés ; un token de vérification signé a été émis.",
+    "og.huni.sure_doldu.ad": "Expiré",
+    "og.huni.sure_doldu.aciklama": "exp (≈5 min de TTL) écoulé sans usage ; le token est désormais invalide.",
+    "og.huni.replay_engellendi.ad": "Replay bloqué",
+    "og.huni.replay_engellendi.aciklama": "Un nonce à usage unique a été présenté une seconde fois ; le replay a été rejeté.",
+
+    "og.kod.baslik": "Token de commitment de challenge Veylify (signé HMAC-SHA256)",
+    "og.kod.yapi": "structure :",
+    "og.kod.cid": "id de challenge",
+    "og.kod.seed": "seed de rendu (ghost-font)",
+    "og.kod.len": "longueur de la réponse",
+    "og.kod.site": "quel site client",
+    "og.kod.iat": "issued-at",
+    "og.kod.verildiMs": "<émis-ms>",
+    "og.kod.exp": "TTL : {ttl} min",
+    "og.kod.nonce": "USAGE UNIQUE (prévention du replay)",
+    "og.kod.dogrulamada": "À la vérification :",
+    "og.kod.adim1": "sig recalculé en temps constant  → détection d'altération",
+    "og.kod.adim2": 'now > exp ?  → "expired"  (expiré sans usage)',
+    "og.kod.adim3": 'nonce déjà vu ?  → rejet « replay »',
+    "og.kod.adim4": "réponse dérivée du seed + score comportemental → réussi/échoué",
+
+    "og.replay.baslik": "Protection replay & nonce",
+    "og.replay.etkin": "Actif",
+    "og.replay.nonce.baslik": "Nonce à usage unique",
+    "og.replay.nonce.metin1": "Chaque token de challenge porte un",
+    "og.replay.nonce.metin2":
+      'unique. Après vérification, le nonce est marqué « utilisé » ; si le même token est présenté une seconde fois, il est rejeté.',
+    "og.replay.ttl.baslik": "Fenêtre temporelle (TTL)",
+    "og.replay.ttl.metin1": "Le token n'est valide que",
+    "og.replay.ttl.dk": "{n} min",
+    "og.replay.ttl.metin2": "",
+    "og.replay.ttl.metin3": 'Une tentative de replay hors fenêtre échoue avec « expired ».',
+    "og.replay.engellenen.baslik": "Replay bloqué (30 j)",
+    "og.replay.engellenen.not": "Réutilisation de nonce + rejet pour dépassement de délai (représentatif).",
+
+    "og.politika.baslik": "Politique de session",
+    "og.politika.maxOturum.baslik": "Sessions simultanées maximales",
+    "og.politika.maxOturum.aciklama": "Les sessions actives au-delà de cette limite abaissent la posture de sécurité.",
+    "og.politika.ttl.baslik": "TTL du token (minutes)",
+    "og.politika.ttl.aciklama": "Durée de vie du token de challenge. Un TTL court réduit la fenêtre de replay.",
+    "og.politika.ttl.dk": "{n} min",
+    "og.politika.yeniCihaz.baslik": "Exiger la 2FA sur nouvel appareil",
+    "og.politika.yeniCihaz.aciklama": "Déclencher une vérification TOTP supplémentaire lors d'une connexion depuis un appareil non reconnu.",
+    "og.politika.supheliKonum.baslik": "Suspendre la session en cas de localisation suspecte",
+    "og.politika.supheliKonum.aciklama": "Suspendre automatiquement les sessions provenant de zones inattendues et exiger une vérification.",
+    "og.politika.not": "Vos réglages de politique persistent dans le navigateur (localStorage) ; le score de posture est recalculé instantanément.",
+
+    "og.toast.tekSonlandir": "Session terminée",
+    "og.toast.tumSonlandir": "Toutes les autres sessions ont été terminées",
+  },
+
+  es: {
+    "og.baslik": "Seguridad de sesión & ciclo de vida de tokens",
+
+    "og.giris.baslik": "La consola de operaciones de seguridad de la capa de auth & tokens.",
+    "og.giris.metin":
+      "Gestiona las sesiones de dispositivos activas, sigue el ciclo de vida del token de verificación (emitido → verificado → expirado → replay-bloqueado) y consulta la protección nonce/replay y la postura de seguridad de sesión en un solo lugar. Esta consola complementa la pantalla básica de 2FA/contraseña de los ajustes de la cuenta.",
+
+    "og.ozet.durusSkor": "Puntaje de postura de seguridad",
+    "og.ozet.aktifOturum": "Sesiones activas",
+    "og.ozet.verilenToken": "Tokens emitidos (30 d)",
+    "og.ozet.replayEngellendi": "Replay bloqueado",
+
+    "og.durus.baslik": "Puntaje de postura de seguridad",
+    "og.durus.seviye.guclu": "Fuerte",
+    "og.durus.seviye.iyi": "Buena",
+    "og.durus.seviye.orta": "Media",
+    "og.durus.seviye.zayif": "Débil",
+    "og.durus.seviyeSonek": "postura",
+    "og.durus.kontrolSayisi": "{gecen}/{toplam} controles cumplidos",
+    "og.durus.puan": "{n} pts",
+
+    "og.kontrol.twofa.ad": "Autenticación de dos factores (2FA)",
+    "og.kontrol.twofa.aciklama": "Se requiere un segundo factor TOTP al iniciar sesión en la cuenta.",
+    "og.kontrol.twofa.oneri": "Activa 2FA TOTP en Ajustes → Seguridad.",
+    "og.kontrol.oturum-sinir.ad": "Número de sesiones limitado",
+    "og.kontrol.oturum-sinir.aciklama": "Las sesiones simultáneas activas están dentro del límite de {max}.",
+    "og.kontrol.oturum-sinir.oneri": "Termina las sesiones antiguas/no reconocidas o baja el límite de sesiones.",
+    "og.kontrol.token-ttl.ad": "TTL de token corto",
+    "og.kontrol.token-ttl.aciklama": "La vida del token de desafío se mantiene corta (ventana de reutilización estrecha).",
+    "og.kontrol.token-ttl.oneri": "Baja el TTL del token a {ttl} min o menos.",
+    "og.kontrol.nonce-replay.ad": "Protección nonce / replay",
+    "og.kontrol.nonce-replay.aciklama": "El replay se bloquea mediante un nonce de un solo uso.",
+    "og.kontrol.nonce-replay.oneri": "Activa la verificación de nonce de un solo uso (el orquestador de verificación ya lo admite).",
+    "og.kontrol.yeni-cihaz-2fa.ad": "Exigir 2FA en dispositivo nuevo",
+    "og.kontrol.yeni-cihaz-2fa.aciklama": "El inicio de sesión desde un dispositivo no reconocido activa una verificación extra.",
+    "og.kontrol.yeni-cihaz-2fa.oneri": "Activa 'exigir 2FA en dispositivo nuevo' en la política de sesión.",
+    "og.kontrol.supheli-konum.ad": "Suspender en ubicación sospechosa",
+    "og.kontrol.supheli-konum.aciklama": "Las sesiones desde geografías inesperadas se suspenden automáticamente.",
+    "og.kontrol.supheli-konum.oneri": "Activa 'suspender sesión en ubicación sospechosa' en la política de sesión.",
+
+    "og.oturum.baslik": "Sesiones activas",
+    "og.oturum.tumDigerleri": "Terminar todas las demás sesiones",
+    "og.oturum.buCihaz": "Este dispositivo",
+    "og.oturum.sonlandirildi": "Terminada",
+    "og.oturum.sonlandir": "Terminar sesión",
+    "og.oturum.simdi": "Ahora",
+
+    "og.risk.dusuk": "Riesgo bajo",
+    "og.risk.orta": "Riesgo medio",
+    "og.risk.yuksek": "Riesgo alto",
+
+    "og.neden.buCihaz": "Sesión actual (este dispositivo)",
+    "og.neden.tanınmayanKonum": "Ubicación no reconocida",
+    "og.neden.tanınmayanCihaz": "Huella de dispositivo no reconocida",
+    "og.neden.eskiOturum": "Sesión abierta desde hace mucho (30+ días)",
+    "og.neden.bilinen": "Dispositivo y ubicación conocidos",
+
+    "og.durustluk":
+      "<b>Real:</b> volumen de tokens emitidos/verificados (contadores de Usage de los últimos 30 días), estado de 2FA y sesión de cookie actual (este dispositivo). <b>Representativo:</b> la lista de sesiones multidispositivo (vista ops estilo Auth0/Clerk) y el número de replays bloqueados — el estado de terminación y los ajustes de política persisten en tu navegador (localStorage).",
+
+    "og.token.baslik": "Ciclo de vida del token (verificación)",
+    "og.token.oran": "{oran} % · de los emitidos",
+    "og.token.basariOrani": "Tasa de éxito de verificación",
+    "og.token.hmacNot": "Token de commitment sin estado, firmado con HMAC-SHA256 — TTL ≈ {ttl} min, nonce de un solo uso.",
+    "og.token.kodBaslik": "estructura del token & verificación",
+
+    "og.huni.verildi.ad": "Emitido",
+    "og.huni.verildi.aciklama": "Se envió al cliente un token de desafío firmado con HMAC-SHA256 (iat/exp/nonce sellados).",
+    "og.huni.dogrulandi.ad": "Verificado",
+    "og.huni.dogrulandi.aciklama": "Firma + respuesta ghost-font + puntaje de comportamiento superados; se emitió un token de verificación firmado.",
+    "og.huni.sure_doldu.ad": "Expirado",
+    "og.huni.sure_doldu.aciklama": "exp (≈5 min de TTL) transcurrido sin uso; el token ya no es válido.",
+    "og.huni.replay_engellendi.ad": "Replay bloqueado",
+    "og.huni.replay_engellendi.aciklama": "Un nonce de un solo uso se presentó por segunda vez; el replay fue rechazado.",
+
+    "og.kod.baslik": "Token de commitment de desafío de Veylify (firmado con HMAC-SHA256)",
+    "og.kod.yapi": "estructura:",
+    "og.kod.cid": "id de desafío",
+    "og.kod.seed": "seed de render (ghost-font)",
+    "og.kod.len": "longitud de la respuesta",
+    "og.kod.site": "qué sitio de cliente",
+    "og.kod.iat": "issued-at",
+    "og.kod.verildiMs": "<emitido-ms>",
+    "og.kod.exp": "TTL: {ttl} min",
+    "og.kod.nonce": "UN SOLO USO (prevención de replay)",
+    "og.kod.dogrulamada": "En la verificación:",
+    "og.kod.adim1": "sig se recalcula en tiempo constante  → detección de manipulación",
+    "og.kod.adim2": 'now > exp ?  → "expired"  (expiró sin usar)',
+    "og.kod.adim3": 'nonce visto antes ?  → rechazo por "replay"',
+    "og.kod.adim4": "respuesta derivada del seed + puntaje de comportamiento → pasa/no pasa",
+
+    "og.replay.baslik": "Protección de replay & nonce",
+    "og.replay.etkin": "Activo",
+    "og.replay.nonce.baslik": "Nonce de un solo uso",
+    "og.replay.nonce.metin1": "Cada token de desafío lleva un",
+    "og.replay.nonce.metin2":
+      'único. Tras la verificación, el nonce se marca como "usado"; si el mismo token se presenta por segunda vez, se rechaza.',
+    "og.replay.ttl.baslik": "Ventana temporal (TTL)",
+    "og.replay.ttl.metin1": "El token solo es válido durante",
+    "og.replay.ttl.dk": "{n} min",
+    "og.replay.ttl.metin2": "",
+    "og.replay.ttl.metin3": 'Un intento de replay fuera de la ventana falla con "expired".',
+    "og.replay.engellenen.baslik": "Replay bloqueado (30 d)",
+    "og.replay.engellenen.not": "Reutilización de nonce + rechazo por tiempo agotado (representativo).",
+
+    "og.politika.baslik": "Política de sesión",
+    "og.politika.maxOturum.baslik": "Sesiones simultáneas máximas",
+    "og.politika.maxOturum.aciklama": "Las sesiones activas por encima de este límite bajan la postura de seguridad.",
+    "og.politika.ttl.baslik": "TTL del token (minutos)",
+    "og.politika.ttl.aciklama": "Vida del token de desafío. Un TTL corto reduce la ventana de replay.",
+    "og.politika.ttl.dk": "{n} min",
+    "og.politika.yeniCihaz.baslik": "Exigir 2FA en dispositivo nuevo",
+    "og.politika.yeniCihaz.aciklama": "Activar una verificación TOTP extra al iniciar sesión desde un dispositivo no reconocido.",
+    "og.politika.supheliKonum.baslik": "Suspender sesión en ubicación sospechosa",
+    "og.politika.supheliKonum.aciklama": "Suspender automáticamente las sesiones desde geografías inesperadas y exigir verificación.",
+    "og.politika.not": "Tus ajustes de política persisten en el navegador (localStorage); el puntaje de postura se recalcula al instante.",
+
+    "og.toast.tekSonlandir": "Sesión terminada",
+    "og.toast.tumSonlandir": "Todas las demás sesiones han sido terminadas",
+  },
+};
+
+/** Anahtarı verilen dile çevir. Bulunamazsa TR'ye, o da yoksa anahtarın kendisine düşer. */
+export function oturumGuvenlikCeviri(anahtar: string, dil: Dil): string {
+  return sozluk[dil]?.[anahtar] ?? sozluk.tr?.[anahtar] ?? anahtar;
+}

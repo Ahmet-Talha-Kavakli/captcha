@@ -1,0 +1,340 @@
+@import "tailwindcss";
+
+/*
+ * Specter — Tema Sistemi
+ * =======================
+ * İki tasarım bölgesi tek @theme altında birleştirildi:
+ *   • LANDING  → koyu "abyss" zemin + teal/emerald "specter" vurgu,
+ *                Sora display + Inter body (Argus DNA'sı, ghost temasına
+ *                uyarlanmış).
+ *   • DASHBOARD → beyaz zemin + tek teal vurgu + ink gri skala,
+ *                gölgesiz kart, yatay nav (Latch DNA'sı).
+ */
+
+@theme {
+  /* --- Specter vurgu (teal/cyan — ghost-glow, LANDING) --- */
+  --color-specter-50: #ecfeff;
+  --color-specter-100: #cffafe;
+  --color-specter-200: #a5f3fc;
+  --color-specter-300: #67e8f9; /* landing highlight / glow */
+  --color-specter-400: #22d3ee;
+  --color-specter-500: #06b6d4; /* landing ana vurgu */
+  --color-specter-600: #0891b2;
+  --color-specter-700: #0e7490;
+  --color-specter-800: #155e75;
+  --color-specter-900: #164e63;
+
+  /* --- Brand indigo (DASHBOARD ana vurgu — Sentinel DNA) --- */
+  /* --- Brand: Tavily mavisi (aktif menü, link, vurgu) --- */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dce8ff;
+  --color-brand-200: #c0d5ff;
+  --color-brand-300: #97b9ff;
+  --color-brand-400: #6a97fb;
+  --color-brand-500: #4179f0;
+  --color-brand-600: #2f6fed; /* ANA vurgu — link, aktif menü, grafik */
+  --color-brand-700: #2258d4;
+  --color-brand-800: #1e48ab;
+  --color-brand-900: #1d3f87;
+  --color-brand-950: #162a56;
+
+  /* --- Metin skalası (Tavily: sıcak siyah/gri) --- */
+  --color-slate-ink: #1a1a18; /* ana metin/başlık — neredeyse siyah */
+  --color-slate-muted: #6b6a63; /* ikincil (sıcak gri) */
+  --color-slate-faint: #9c9a90; /* placeholder/meta */
+
+  /* --- Açık yüzeyler (Tavily krem tema) --- */
+  --color-canvas: #f4f1ea; /* sayfa zemini — sıcak krem */
+  --color-surface: #faf9f4; /* kartlar — açık krem */
+  --color-line: #e6e1d5; /* kenar/ayraç — yumuşak krem çizgi */
+  --color-line-strong: #d8d2c3; /* input kenarı */
+
+  /* --- Koyu ink (siyah pill buton/overlay — Tavily) --- */
+  --color-ink-950: #0a0a0a;
+  --color-ink-900: #1c1b19; /* primary siyah buton */
+  --color-ink-850: #26241f;
+  --color-ink-800: #2f2d27; /* buton hover */
+  --color-ink-700: #423f37;
+
+  /* --- Durum renkleri (Sentinel) --- */
+  --color-ok: #16a34a;
+  --color-ok-soft: #dcfce7;
+  --color-warn: #d97706;
+  --color-warn-soft: #fef3c7;
+  --color-danger2: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-info: #4a41e8;
+  --color-info-soft: #e0e5ff;
+
+  /* --- Emerald yardımcı (başarı / "human" sinyali) --- */
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+
+  /* --- Abyss (landing koyu zeminler) --- */
+  --color-abyss-950: #05070d;
+  --color-abyss-900: #0b1120; /* ana koyu zemin */
+  --color-abyss-800: #111a2e;
+  --color-abyss-700: #1a2540;
+  --color-abyss-600: #26324f;
+
+  /* --- Veylify marka (indigo→violet, BEYAZ TEMA landing ana vurgu) --- */
+  --color-veylify-50: #eef2ff;
+  --color-veylify-100: #e0e7ff;
+  --color-veylify-200: #c7d2fe;
+  --color-veylify-300: #a5b4fc;
+  --color-veylify-400: #818cf8;
+  --color-veylify-500: #6366f1;
+  --color-veylify-600: #4f46e5; /* ana vurgu */
+  --color-veylify-700: #4338ca;
+  --color-veylify-800: #3730a3;
+  --color-veylify-900: #312e81;
+  --color-veylify-950: #1e1b4b;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+
+  /* --- Mist (landing açık ferah zemin) --- */
+  --color-mist: #f6fafb;
+  --color-mist-100: #eef4f6;
+
+  /* --- Ink skalası (Tavily sıcak krem→siyah; açık uç well/hover, koyu uç siyah buton) --- */
+  --color-ink-50: #f7f5ef;
+  --color-ink-100: #f0ede4;
+  --color-ink-150: #ebe7dc;
+  --color-ink-200: #e6e1d5; /* GLOBAL border — krem çizgi */
+  --color-ink-300: #d8d2c3;
+  --color-ink-400: #9c9a90;
+  --color-ink-500: #6b6a63;
+  --color-ink-600: #524f47;
+  --color-ink-700: #423f37;
+  --color-ink-800: #2f2d27;
+  --color-ink-900: #1c1b19; /* siyah pill buton */
+  --color-ink-950: #0a0a0a;
+
+  /* --- Durum renkleri --- */
+  --color-ok-50: #f0fdf4;
+  --color-ok-500: #22c55e;
+  --color-ok-700: #16803c;
+  --color-warn-50: #fffbeb;
+  --color-warn-600: #d97706;
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #dc2626;
+  --color-danger-600: #b91c1c;
+  --color-info-50: #eff6ff;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+
+  /* --- Fontlar (Tavily: her yer Inter) --- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* display artık ayrı bir font DEĞİL — Tavily gibi tek Inter ailesi (sadece
+     daha sıkı letter-spacing + ağır weight'lerle "display" hissi). Sora kaldırıldı. */
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-jb), ui-monospace, "SF Mono", monospace;
+
+  /* --- Gölgeler --- */
+  --shadow-soft: 0 4px 24px -8px rgba(6, 182, 212, 0.12);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-lift: 0 8px 24px -8px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.05);
+  --shadow-glow: 0 0 0 1px rgba(124, 116, 255, 0.2), 0 8px 40px -8px rgba(74, 65, 232, 0.35);
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* --- Radius --- */
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.5rem;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a18;
+}
+
+* {
+  border-color: var(--color-ink-200);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--color-veylify-200);
+  color: var(--color-veylify-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-veylify-600);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---------- Landing dekoratif yardımcılar ---------- */
+
+/* Nokta/çizgi grid arka planı (hero) */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(103, 232, 249, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(103, 232, 249, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Marquee (logo şeridi) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 30s linear infinite; }
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+
+/* Scroll reveal (IntersectionObserver ile .in-view eklenir) */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+.reveal.d1 { transition-delay: 0.08s; }
+.reveal.d2 { transition-delay: 0.16s; }
+.reveal.d3 { transition-delay: 0.24s; }
+.reveal.d4 { transition-delay: 0.32s; }
+.reveal.d5 { transition-delay: 0.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .animate-marquee { animation: none; }
+}
+
+/* Ghost-glow pulse (canlı nokta) */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(6, 182, 212, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+}
+.pulse-ring { animation: pulse-ring 2s infinite; }
+
+/* ---------- Dashboard yardımcılar (Latch DNA) ---------- */
+.shadow-pop { box-shadow: var(--shadow-pop); }
+.shadow-modal { box-shadow: var(--shadow-modal); }
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-pop { animation: pop-in 0.12s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-modal { animation: modal-in 0.16s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.num { font-variant-numeric: tabular-nums; }
+
+/* Tavily-benzeri sıkı, tok tipografi */
+body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; letter-spacing: -0.011em; }
+
+/* SAYFA GÖVDESİ ASLA YANA KAYMAZ (kullanıcı kuralı: hiçbir yerde yatay scroll yok).
+   İçerik taşarsa kırpılır; kasıtlı kaydırma gereken öğeler (uzun kod, geniş tablo)
+   kendi `.overflow-x-auto` sarmalayıcısı içinde kaydırılır. */
+html, body { max-width: 100%; overflow-x: hidden; }
+h1, h2, h3, h4, h5, h6 { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+
+/* Kaydırma çubuğu HER YERDE gizli — kaydırma çalışır, çubuk hiç görünmez.
+   (Kullanıcı isteği: hiçbir sayfada scroll çubuğu çıkmasın.) */
+html { scrollbar-width: none; -ms-overflow-style: none; }
+*, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+.scrollbar-thin::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Scrollbar tamamen gizle (sidebar) — kaydırma çalışır, çubuk görünmez */
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Sentinel DNA animasyonları */
+@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-up { animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fade-in 0.3s ease; }
+
+/* Onboarding kutlaması: konfeti parçacığı düşüşü (bir kez, kutulama anı) */
+@keyframes konfeti {
+  0%   { opacity: 0; transform: translateY(-12px) rotate(0deg); }
+  10%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(120px) rotate(var(--konfeti-donme, 180deg)); }
+}
+.animate-konfeti { animation: konfeti var(--konfeti-sure, 2s) cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-konfeti { animation: none !important; display: none !important; }
+}
+
+/* Landing: karar akışı satırlarının soldan kayarak belirmesi */
+@keyframes zn-slide-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+/* Landing: yavaş yüzen dekoratif ışıma */
+@keyframes zn-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.zn-float { animation: zn-float 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .zn-float, [style*="zn-slide-in"] { animation: none !important; }
+}
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.animate-pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+/* skeleton shimmer */
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.skeleton { background: linear-gradient(90deg, #eef0f4 25%, #f6f7fa 50%, #eef0f4 75%); background-size: 800px 100%; animation: shimmer 1.4s infinite; }
+
+/* ============================================================
+   KOYU TEMA (panel) — data-theme="dark" ile aktif.
+   Panel bileşenleri token-sınıfları (bg-canvas, text-slate-ink,
+   border-line...) kullandığından, token'ları burada override etmek
+   TÜM paneli tek yerden koyu yapar. Landing beyaz kalır (marketing
+   layout'unda data-theme uygulanmaz). Yumuşak geçiş.
+   ============================================================ */
+:root[data-theme="dark"] {
+  /* zeminler — sıcak-koyu antrasit */
+  --color-canvas: #14151a;
+  --color-surface: #1c1e26;
+  --color-line: #2b2e39;
+  --color-line-strong: #3a3e4c;
+
+  /* metin — açık, okunaklı */
+  --color-slate-ink: #f2f3f7;
+  --color-slate-muted: #a7abba;
+  --color-slate-faint: #71768a;
+
+  /* border eşlemleri (ink-*) koyu */
+  --color-ink-100: #1c1e26;
+  --color-ink-150: #22242e;
+  --color-ink-200: #2b2e39;
+  --color-ink-300: #3a3e4c;
+
+  /* durum yumuşak tonları — koyu zemin üstünde okunur */
+  --color-ok-soft: #10291b;
+  --color-warn-soft: #2e2410;
+  --color-danger-soft: #2e1616;
+  --color-brand-50: #182136;
+  --color-brand-100: #1f2c48;
+}
+/* Koyu temada beyaz ink butonlar ters dönmesin: primary buton açık kalsın */
+:root[data-theme="dark"] .bg-white { background-color: var(--color-surface); }
+/* yumuşak tema geçişi */
+:root[data-theme="dark"] body,
+html.tema-gecis * { transition: background-color .25s ease, border-color .25s ease, color .2s ease; }
+
+/* skeleton koyu varyant */
+:root[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #1c1e26 25%, #24262f 50%, #1c1e26 75%);
+  background-size: 800px 100%;
+}

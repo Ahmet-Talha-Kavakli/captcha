@@ -1,0 +1,528 @@
+/**
+ * Ölçekleme Politikası sayfası — yerel i18n sözlüğü.
+ *
+ * Panel geneli `ceviri()` yerine bu yerel `olCeviri()` kullanılır; böylece
+ * sayfaya özgü uzun metinler ana sözlüğü şişirmez. Anahtar bulunamazsa TR'ye,
+ * o da yoksa anahtarın kendisine düşer.
+ *
+ * ENUM GÜVENLİĞİ:
+ *   - `aksiyon.*` anahtarları OlcekAksiyon enum değerlerini (ölçek-yukarı/
+ *     ölçek-aşağı/sabit) çevirir; enum değerleri asla çevrilmez, yalnızca
+ *     gösterim etiketi.
+ *   - `slo.*` anahtarları SloRisk enum değerlerini (düşük/orta/yüksek) çevirir.
+ *   - `bolge.*` anahtarları EdgeBolge enum değerlerini (avrupa/kuzey-amerika/…)
+ *     çevirir; sunucudaki BOLGE_AD (TR) yerine istemcide dile göre türetilir —
+ *     böylece pops.ts (lib) değiştirilmez.
+ *   - `gerekce.*`, `politika.*` anahtarları sunucuda önceden birleştirilmiş TR
+ *     metin (b.gerekce, politika.ozet, politika.kurallar) yerine sayısal
+ *     alanlardan istemcide yeniden türetilir. Böylece olcek.ts (saf çekirdek)
+ *     mantığına dokunulmaz.
+ *   - RPS sayıları, PoP kodları, para birimi tutarları ise VERİDİR — çevrilmez;
+ *     yalnızca yerel (BCP-47) biçimlendirmeyle sunulur.
+ */
+import type { Dil } from "@/lib/i18n/panel";
+
+const sozluk: Record<Dil, Record<string, string>> = {
+  tr: {
+    // dürüstlük notu
+    "not.baslik": "Modellenmiş FinOps analizi",
+    "not.a": "Birim maliyet",
+    "not.dugumAy": "${maliyet}/düğüm/ay",
+    "not.ve": "ve",
+    "not.rpsDugum": "{rps} RPS/düğüm",
+    "not.b": "birer",
+    "not.varsayim": "modellenmiş varsayımdır",
+    "not.c": "— canlı bir bulut faturalandırma API'sinden gelmez. Yük öngörüsü, gerçek PoP topolojisindeki gözlemlenen RPS ile olay verisinden türetilen sezgisel büyüme trendine dayanır.",
+
+    // özet kartları
+    "stat.mevcutMaliyet": "Mevcut aylık maliyet",
+    "stat.oneriliMaliyet": "Önerilen aylık maliyet",
+    "stat.netTasarruf": "Net aylık tasarruf",
+    "stat.netEkMaliyet": "Net aylık ek maliyet",
+    "stat.sloRiskli": "SLO-riskli bölge",
+
+    // politika özeti paneli
+    "politika.baslik": "Önerilen ölçekleme politikası",
+    "politika.hedefRozet": "Hedef headroom {yuzde}",
+    "politika.maliyetEtkisiBaslik": "Öngörülen aylık maliyet etkisi",
+    "politika.etkiTasarruf": "aşırı-tedarik geri kazanımı (net)",
+    "politika.etkiEkYatirim": "SLO koruması için net ek yatırım",
+    "politika.etkiNotr": "maliyet-nötr",
+    "politika.tasarruf": "tasarruf",
+    "politika.ekMaliyet": "ek maliyet",
+
+    // politika özet metni (sunucudan değil, sayılardan türetilir)
+    "ozet.slo": "Önce SLO: {riskli} bölgede öngörülen yük headroom'u kritik eşiğe düşürüyor — önce bu bölgeler yukarı ölçeklenmeli. Ardından {asagi} aşırı-tedarikli bölge aşağı ölçeklenerek net maliyet nötrlenir.",
+    "ozet.tasarruf": "Tasarruf fırsatı: {asagi} bölge aşırı-tedarikli; %{hedef} hedef headroom korunarak aylık ~${tutar} israf geri kazanılabilir.",
+    "ozet.dengede": "Filo dengede. %{hedef} hedef headroom çoğu bölgede tutuyor; agresif değişiklik önerilmiyor, mevcut kademe korunmalı.",
+
+    // politika kuralları (sunucudan değil, sayılardan türetilir)
+    "kural.1": "Hedef headroom %{hedef}: pik anında bile doluluk ≤ %{tavan} kalır (spike tamponu).",
+    "kural.2": "Öngörülen headroom hedefin yarısının (%{yari}) altına düşerse YUKARI ölçekle (SLO koruması).",
+    "kural.3": "Öngörülen yükte bile headroom hedefin belirgin üstündeyse AŞAĞI ölçekle (israf geri kazanımı).",
+    "kural.4": "Önceliklendirme: önce SLO-riskli bölgeler, sonra en yüksek tasarruflu aşağı-ölçeklemeler.",
+    "kural.5": "Birim maliyet (${maliyet}/düğüm/ay) ve {rps} RPS/düğüm birer MODELLENMİŞ VARSAYIMDIR.",
+
+    // maliyet vs SLO denge görseli
+    "denge.baslik": "Maliyet vs SLO dengesi",
+    "denge.oncesel": "öngörülen yük altında",
+    "denge.aria": "Maliyet vs SLO denge grafiği",
+    "denge.sloRiskBolge": "SLO riski bölgesi",
+    "denge.hedef": "hedef {yuzde}",
+    "denge.xEksen": "Öngörülen headroom (SLO güvenliği →)",
+    "denge.yEksen": "Aylık maliyet ($)",
+    "denge.efsaneMevcut": "mevcut/öngörülen",
+    "denge.efsaneOneri": "öneri sonrası",
+    "denge.netEtki": "Net etki:",
+    "denge.ay": "/ay",
+
+    // bölge ölçekleme tablosu
+    "tablo.baslik": "Bölge ölçekleme kararları",
+    "tablo.tumu": "Tümü",
+    "tablo.bolge": "Bölge",
+    "tablo.kapasiteYuk": "Kapasite / Yük",
+    "tablo.headroom": "Headroom",
+    "tablo.aksiyon": "Aksiyon",
+    "tablo.maliyetEtkisi": "Maliyet etkisi",
+    "tablo.slo": "SLO",
+    "tablo.pop": "PoP",
+    "tablo.dugum": "düğüm",
+    "tablo.ongoru": "öngörü",
+    "tablo.israfGeri": "israf geri kazanımı",
+    "tablo.sloYatirim": "SLO yatırımı",
+    "tablo.risk": "risk",
+    "tablo.ay": "/ay",
+
+    // headroom barı
+    "headroom.hedefTavan": "Hedef doluluk tavanı {yuzde}",
+    "headroom.headroom": "headroom {yuzde}",
+    "headroom.oneri": "öneri {yuzde}",
+
+    // ölçekleme takvimi
+    "takvim.baslik": "Ölçekleme takvimi · önceliklendirilmiş",
+    "takvim.oncelik": "önce SLO riski, sonra tasarruf",
+    "takvim.eylemYok": "Eylem gerekmiyor",
+    "takvim.eylemYokMetin": "Tüm bölgeler hedef headroom bandında; mevcut kapasite kademesi korunmalı.",
+    "takvim.sloEtiket": "SLO",
+    "takvim.dugum": "düğüm",
+    "takvim.ay": "/ay",
+    "takvim.dipnot": "Öneriler saf/deterministik bir politika motorundan üretilir; uygulamadan önce bölge-özel bakım pencerelerini ve gerçek fatura verilerini doğrulayın.",
+    "takvim.disaAktar": "Politikayı dışa aktar",
+
+    // aksiyon enum etiketleri
+    "aksiyon.ölçek-yukarı": "Yukarı ölçekle",
+    "aksiyon.ölçek-aşağı": "Aşağı ölçekle",
+    "aksiyon.sabit": "Sabit tut",
+
+    // SLO risk enum etiketleri
+    "slo.düşük": "düşük",
+    "slo.orta": "orta",
+    "slo.yüksek": "yüksek",
+
+    // bölge enum etiketleri (pops.ts BOLGE_AD yerine)
+    "bolge.avrupa": "Avrupa",
+    "bolge.kuzey-amerika": "Kuzey Amerika",
+    "bolge.asya": "Asya-Pasifik",
+    "bolge.guney-amerika": "Güney Amerika",
+    "bolge.okyanusya": "Okyanusya",
+    "bolge.afrika": "Afrika / Orta Doğu",
+
+    // bölge gerekçe metinleri (sunucudan değil, sayılardan türetilir)
+    "gerekce.yukari": "Öngörülen yük (%{buyume} büyüme) altında headroom %{tahHead}'e düşüyor — hedef %{hedef} altında. SLO'yu korumak için +{delta} düğüm.",
+    "gerekce.asagi": "Aşırı-tedarik: mevcut headroom %{head}, öngörülen yükte bile %{tahHead}. {mutlakDelta} düğüm çıkarılıp israf geri kazanılabilir; SLO korunur.",
+    "gerekce.sabit": "Dengede: headroom %{head} (öngörülende %{tahHead}), hedefe yakın. Kapasite değişikliği gerekmez.",
+  },
+
+  en: {
+    "not.baslik": "Modeled FinOps analysis",
+    "not.a": "Unit cost",
+    "not.dugumAy": "${maliyet}/node/month",
+    "not.ve": "and",
+    "not.rpsDugum": "{rps} RPS/node",
+    "not.b": "are both a",
+    "not.varsayim": "modeled assumption",
+    "not.c": "— they don't come from a live cloud billing API. The load forecast is based on the observed RPS in the real PoP topology plus a heuristic growth trend derived from event data.",
+
+    "stat.mevcutMaliyet": "Current monthly cost",
+    "stat.oneriliMaliyet": "Recommended monthly cost",
+    "stat.netTasarruf": "Net monthly savings",
+    "stat.netEkMaliyet": "Net monthly extra cost",
+    "stat.sloRiskli": "SLO-risky regions",
+
+    "politika.baslik": "Recommended scaling policy",
+    "politika.hedefRozet": "Target headroom {yuzde}",
+    "politika.maliyetEtkisiBaslik": "Projected monthly cost impact",
+    "politika.etkiTasarruf": "over-provisioning recovery (net)",
+    "politika.etkiEkYatirim": "net extra investment for SLO protection",
+    "politika.etkiNotr": "cost-neutral",
+    "politika.tasarruf": "savings",
+    "politika.ekMaliyet": "extra cost",
+
+    "ozet.slo": "SLO first: in {riskli} regions the projected load drops headroom to a critical threshold — these regions should be scaled up first. Then {asagi} over-provisioned regions are scaled down to neutralize net cost.",
+    "ozet.tasarruf": "Savings opportunity: {asagi} regions are over-provisioned; while keeping the {hedef}% target headroom, ~${tutar}/month of waste can be recovered.",
+    "ozet.dengede": "Fleet balanced. The {hedef}% target headroom holds in most regions; no aggressive change is recommended, keep the current tier.",
+
+    "kural.1": "Target headroom {hedef}%: utilization stays ≤ {tavan}% even at peak (spike buffer).",
+    "kural.2": "If projected headroom drops below half the target ({yari}%), scale UP (SLO protection).",
+    "kural.3": "If headroom stays clearly above target even under projected load, scale DOWN (waste recovery).",
+    "kural.4": "Prioritization: SLO-risky regions first, then the highest-saving scale-downs.",
+    "kural.5": "Unit cost (${maliyet}/node/month) and {rps} RPS/node are both a MODELED ASSUMPTION.",
+
+    "denge.baslik": "Cost vs SLO balance",
+    "denge.oncesel": "under projected load",
+    "denge.aria": "Cost vs SLO balance chart",
+    "denge.sloRiskBolge": "SLO risk zone",
+    "denge.hedef": "target {yuzde}",
+    "denge.xEksen": "Projected headroom (SLO safety →)",
+    "denge.yEksen": "Monthly cost ($)",
+    "denge.efsaneMevcut": "current/projected",
+    "denge.efsaneOneri": "after recommendation",
+    "denge.netEtki": "Net impact:",
+    "denge.ay": "/mo",
+
+    "tablo.baslik": "Regional scaling decisions",
+    "tablo.tumu": "All",
+    "tablo.bolge": "Region",
+    "tablo.kapasiteYuk": "Capacity / Load",
+    "tablo.headroom": "Headroom",
+    "tablo.aksiyon": "Action",
+    "tablo.maliyetEtkisi": "Cost impact",
+    "tablo.slo": "SLO",
+    "tablo.pop": "PoP",
+    "tablo.dugum": "nodes",
+    "tablo.ongoru": "forecast",
+    "tablo.israfGeri": "waste recovery",
+    "tablo.sloYatirim": "SLO investment",
+    "tablo.risk": "risk",
+    "tablo.ay": "/mo",
+
+    "headroom.hedefTavan": "Target utilization ceiling {yuzde}",
+    "headroom.headroom": "headroom {yuzde}",
+    "headroom.oneri": "rec. {yuzde}",
+
+    "takvim.baslik": "Scaling schedule · prioritized",
+    "takvim.oncelik": "SLO risk first, then savings",
+    "takvim.eylemYok": "No action needed",
+    "takvim.eylemYokMetin": "All regions are within the target headroom band; the current capacity tier should be kept.",
+    "takvim.sloEtiket": "SLO",
+    "takvim.dugum": "nodes",
+    "takvim.ay": "/mo",
+    "takvim.dipnot": "Recommendations are produced by a pure/deterministic policy engine; before applying, verify region-specific maintenance windows and real billing data.",
+    "takvim.disaAktar": "Export policy",
+
+    "aksiyon.ölçek-yukarı": "Scale up",
+    "aksiyon.ölçek-aşağı": "Scale down",
+    "aksiyon.sabit": "Hold steady",
+
+    "slo.düşük": "low",
+    "slo.orta": "medium",
+    "slo.yüksek": "high",
+
+    "bolge.avrupa": "Europe",
+    "bolge.kuzey-amerika": "North America",
+    "bolge.asya": "Asia-Pacific",
+    "bolge.guney-amerika": "South America",
+    "bolge.okyanusya": "Oceania",
+    "bolge.afrika": "Africa / Middle East",
+
+    "gerekce.yukari": "Under projected load ({buyume}% growth) headroom drops to {tahHead}% — below the {hedef}% target. +{delta} nodes to protect the SLO.",
+    "gerekce.asagi": "Over-provisioned: current headroom {head}%, {tahHead}% even under projected load. {mutlakDelta} nodes can be removed to recover waste; the SLO is preserved.",
+    "gerekce.sabit": "Balanced: headroom {head}% ({tahHead}% projected), close to target. No capacity change needed.",
+  },
+
+  de: {
+    "not.baslik": "Modellierte FinOps-Analyse",
+    "not.a": "Stückkosten",
+    "not.dugumAy": "{maliyet} $/Knoten/Monat",
+    "not.ve": "und",
+    "not.rpsDugum": "{rps} RPS/Knoten",
+    "not.b": "sind jeweils eine",
+    "not.varsayim": "modellierte Annahme",
+    "not.c": "— sie stammen nicht aus einer Live-Cloud-Abrechnungs-API. Die Lastprognose basiert auf dem beobachteten RPS in der realen PoP-Topologie plus einem aus Ereignisdaten abgeleiteten heuristischen Wachstumstrend.",
+
+    "stat.mevcutMaliyet": "Aktuelle monatliche Kosten",
+    "stat.oneriliMaliyet": "Empfohlene monatliche Kosten",
+    "stat.netTasarruf": "Monatliche Netto-Ersparnis",
+    "stat.netEkMaliyet": "Monatliche Netto-Mehrkosten",
+    "stat.sloRiskli": "SLO-riskante Regionen",
+
+    "politika.baslik": "Empfohlene Skalierungsrichtlinie",
+    "politika.hedefRozet": "Ziel-Headroom {yuzde}",
+    "politika.maliyetEtkisiBaslik": "Prognostizierte monatliche Kostenwirkung",
+    "politika.etkiTasarruf": "Rückgewinnung durch Überbereitstellung (netto)",
+    "politika.etkiEkYatirim": "Netto-Mehrinvestition für SLO-Schutz",
+    "politika.etkiNotr": "kostenneutral",
+    "politika.tasarruf": "Ersparnis",
+    "politika.ekMaliyet": "Mehrkosten",
+
+    "ozet.slo": "SLO zuerst: In {riskli} Regionen senkt die prognostizierte Last den Headroom auf eine kritische Schwelle — diese Regionen sollten zuerst hochskaliert werden. Anschließend werden {asagi} überbereitgestellte Regionen herunterskaliert, um die Nettokosten auszugleichen.",
+    "ozet.tasarruf": "Sparpotenzial: {asagi} Regionen sind überbereitgestellt; bei Beibehaltung des {hedef} % Ziel-Headrooms können ~{tutar} $/Monat an Verschwendung zurückgewonnen werden.",
+    "ozet.dengede": "Flotte ausgeglichen. Der {hedef} % Ziel-Headroom hält in den meisten Regionen; keine aggressive Änderung empfohlen, aktuelle Stufe beibehalten.",
+
+    "kural.1": "Ziel-Headroom {hedef} %: Auslastung bleibt selbst bei Spitzen ≤ {tavan} % (Spike-Puffer).",
+    "kural.2": "Fällt der prognostizierte Headroom unter die Hälfte des Ziels ({yari} %), HOCH skalieren (SLO-Schutz).",
+    "kural.3": "Bleibt der Headroom auch unter prognostizierter Last deutlich über dem Ziel, HERUNTER skalieren (Verschwendungs-Rückgewinnung).",
+    "kural.4": "Priorisierung: zuerst SLO-riskante Regionen, dann die sparsamsten Herunterskalierungen.",
+    "kural.5": "Stückkosten ({maliyet} $/Knoten/Monat) und {rps} RPS/Knoten sind jeweils eine MODELLIERTE ANNAHME.",
+
+    "denge.baslik": "Kosten vs. SLO-Balance",
+    "denge.oncesel": "unter prognostizierter Last",
+    "denge.aria": "Kosten-vs.-SLO-Balance-Diagramm",
+    "denge.sloRiskBolge": "SLO-Risikozone",
+    "denge.hedef": "Ziel {yuzde}",
+    "denge.xEksen": "Prognostizierter Headroom (SLO-Sicherheit →)",
+    "denge.yEksen": "Monatliche Kosten ($)",
+    "denge.efsaneMevcut": "aktuell/prognostiziert",
+    "denge.efsaneOneri": "nach Empfehlung",
+    "denge.netEtki": "Netto-Wirkung:",
+    "denge.ay": "/Monat",
+
+    "tablo.baslik": "Regionale Skalierungsentscheidungen",
+    "tablo.tumu": "Alle",
+    "tablo.bolge": "Region",
+    "tablo.kapasiteYuk": "Kapazität / Last",
+    "tablo.headroom": "Headroom",
+    "tablo.aksiyon": "Aktion",
+    "tablo.maliyetEtkisi": "Kostenwirkung",
+    "tablo.slo": "SLO",
+    "tablo.pop": "PoP",
+    "tablo.dugum": "Knoten",
+    "tablo.ongoru": "Prognose",
+    "tablo.israfGeri": "Verschwendungs-Rückgewinnung",
+    "tablo.sloYatirim": "SLO-Investition",
+    "tablo.risk": "Risiko",
+    "tablo.ay": "/Monat",
+
+    "headroom.hedefTavan": "Ziel-Auslastungsobergrenze {yuzde}",
+    "headroom.headroom": "Headroom {yuzde}",
+    "headroom.oneri": "Empf. {yuzde}",
+
+    "takvim.baslik": "Skalierungsplan · priorisiert",
+    "takvim.oncelik": "SLO-Risiko zuerst, dann Ersparnis",
+    "takvim.eylemYok": "Keine Aktion nötig",
+    "takvim.eylemYokMetin": "Alle Regionen liegen im Ziel-Headroom-Band; die aktuelle Kapazitätsstufe sollte beibehalten werden.",
+    "takvim.sloEtiket": "SLO",
+    "takvim.dugum": "Knoten",
+    "takvim.ay": "/Monat",
+    "takvim.dipnot": "Empfehlungen stammen aus einer reinen/deterministischen Richtlinien-Engine; vor der Anwendung region-spezifische Wartungsfenster und echte Abrechnungsdaten prüfen.",
+    "takvim.disaAktar": "Richtlinie exportieren",
+
+    "aksiyon.ölçek-yukarı": "Hochskalieren",
+    "aksiyon.ölçek-aşağı": "Herunterskalieren",
+    "aksiyon.sabit": "Beibehalten",
+
+    "slo.düşük": "niedrig",
+    "slo.orta": "mittel",
+    "slo.yüksek": "hoch",
+
+    "bolge.avrupa": "Europa",
+    "bolge.kuzey-amerika": "Nordamerika",
+    "bolge.asya": "Asien-Pazifik",
+    "bolge.guney-amerika": "Südamerika",
+    "bolge.okyanusya": "Ozeanien",
+    "bolge.afrika": "Afrika / Naher Osten",
+
+    "gerekce.yukari": "Unter prognostizierter Last ({buyume} % Wachstum) fällt der Headroom auf {tahHead} % — unter das {hedef} %-Ziel. +{delta} Knoten zum Schutz des SLO.",
+    "gerekce.asagi": "Überbereitgestellt: aktueller Headroom {head} %, {tahHead} % selbst unter prognostizierter Last. {mutlakDelta} Knoten können entfernt werden, um Verschwendung zurückzugewinnen; das SLO bleibt erhalten.",
+    "gerekce.sabit": "Ausgeglichen: Headroom {head} % ({tahHead} % prognostiziert), nahe am Ziel. Keine Kapazitätsänderung nötig.",
+  },
+
+  fr: {
+    "not.baslik": "Analyse FinOps modélisée",
+    "not.a": "Coût unitaire",
+    "not.dugumAy": "{maliyet} $/nœud/mois",
+    "not.ve": "et",
+    "not.rpsDugum": "{rps} RPS/nœud",
+    "not.b": "sont chacun une",
+    "not.varsayim": "hypothèse modélisée",
+    "not.c": "— ils ne proviennent pas d'une API de facturation cloud en direct. La prévision de charge repose sur le RPS observé dans la topologie PoP réelle plus une tendance de croissance heuristique dérivée des données d'événements.",
+
+    "stat.mevcutMaliyet": "Coût mensuel actuel",
+    "stat.oneriliMaliyet": "Coût mensuel recommandé",
+    "stat.netTasarruf": "Économies mensuelles nettes",
+    "stat.netEkMaliyet": "Surcoût mensuel net",
+    "stat.sloRiskli": "Régions à risque SLO",
+
+    "politika.baslik": "Politique de mise à l'échelle recommandée",
+    "politika.hedefRozet": "Headroom cible {yuzde}",
+    "politika.maliyetEtkisiBaslik": "Impact mensuel projeté sur les coûts",
+    "politika.etkiTasarruf": "récupération du surprovisionnement (net)",
+    "politika.etkiEkYatirim": "investissement net supplémentaire pour la protection SLO",
+    "politika.etkiNotr": "neutre en coût",
+    "politika.tasarruf": "économies",
+    "politika.ekMaliyet": "surcoût",
+
+    "ozet.slo": "SLO d'abord : dans {riskli} régions, la charge projetée fait chuter le headroom à un seuil critique — ces régions doivent d'abord être mises à l'échelle vers le haut. Ensuite, {asagi} régions surprovisionnées sont mises à l'échelle vers le bas pour neutraliser le coût net.",
+    "ozet.tasarruf": "Opportunité d'économies : {asagi} régions sont surprovisionnées ; en maintenant le headroom cible de {hedef} %, ~{tutar} $/mois de gaspillage peuvent être récupérés.",
+    "ozet.dengede": "Flotte équilibrée. Le headroom cible de {hedef} % tient dans la plupart des régions ; aucun changement agressif recommandé, conserver le palier actuel.",
+
+    "kural.1": "Headroom cible {hedef} % : l'utilisation reste ≤ {tavan} % même en pointe (tampon de pic).",
+    "kural.2": "Si le headroom projeté descend sous la moitié de la cible ({yari} %), mise à l'échelle vers le HAUT (protection SLO).",
+    "kural.3": "Si le headroom reste nettement au-dessus de la cible même sous charge projetée, mise à l'échelle vers le BAS (récupération du gaspillage).",
+    "kural.4": "Priorisation : d'abord les régions à risque SLO, puis les réductions les plus économiques.",
+    "kural.5": "Le coût unitaire ({maliyet} $/nœud/mois) et {rps} RPS/nœud sont chacun une HYPOTHÈSE MODÉLISÉE.",
+
+    "denge.baslik": "Équilibre coût vs SLO",
+    "denge.oncesel": "sous charge projetée",
+    "denge.aria": "Graphique d'équilibre coût vs SLO",
+    "denge.sloRiskBolge": "Zone de risque SLO",
+    "denge.hedef": "cible {yuzde}",
+    "denge.xEksen": "Headroom projeté (sécurité SLO →)",
+    "denge.yEksen": "Coût mensuel ($)",
+    "denge.efsaneMevcut": "actuel/projeté",
+    "denge.efsaneOneri": "après recommandation",
+    "denge.netEtki": "Impact net :",
+    "denge.ay": "/mois",
+
+    "tablo.baslik": "Décisions de mise à l'échelle régionales",
+    "tablo.tumu": "Tous",
+    "tablo.bolge": "Région",
+    "tablo.kapasiteYuk": "Capacité / Charge",
+    "tablo.headroom": "Headroom",
+    "tablo.aksiyon": "Action",
+    "tablo.maliyetEtkisi": "Impact sur les coûts",
+    "tablo.slo": "SLO",
+    "tablo.pop": "PoP",
+    "tablo.dugum": "nœuds",
+    "tablo.ongoru": "prévision",
+    "tablo.israfGeri": "récupération du gaspillage",
+    "tablo.sloYatirim": "investissement SLO",
+    "tablo.risk": "risque",
+    "tablo.ay": "/mois",
+
+    "headroom.hedefTavan": "Plafond d'utilisation cible {yuzde}",
+    "headroom.headroom": "headroom {yuzde}",
+    "headroom.oneri": "reco. {yuzde}",
+
+    "takvim.baslik": "Calendrier de mise à l'échelle · priorisé",
+    "takvim.oncelik": "risque SLO d'abord, puis économies",
+    "takvim.eylemYok": "Aucune action nécessaire",
+    "takvim.eylemYokMetin": "Toutes les régions sont dans la bande de headroom cible ; le palier de capacité actuel doit être conservé.",
+    "takvim.sloEtiket": "SLO",
+    "takvim.dugum": "nœuds",
+    "takvim.ay": "/mois",
+    "takvim.dipnot": "Les recommandations sont produites par un moteur de politique pur/déterministe ; avant application, vérifiez les fenêtres de maintenance spécifiques à la région et les données de facturation réelles.",
+    "takvim.disaAktar": "Exporter la politique",
+
+    "aksiyon.ölçek-yukarı": "Mettre à l'échelle vers le haut",
+    "aksiyon.ölçek-aşağı": "Mettre à l'échelle vers le bas",
+    "aksiyon.sabit": "Maintenir",
+
+    "slo.düşük": "faible",
+    "slo.orta": "moyen",
+    "slo.yüksek": "élevé",
+
+    "bolge.avrupa": "Europe",
+    "bolge.kuzey-amerika": "Amérique du Nord",
+    "bolge.asya": "Asie-Pacifique",
+    "bolge.guney-amerika": "Amérique du Sud",
+    "bolge.okyanusya": "Océanie",
+    "bolge.afrika": "Afrique / Moyen-Orient",
+
+    "gerekce.yukari": "Sous charge projetée ({buyume} % de croissance), le headroom chute à {tahHead} % — sous la cible de {hedef} %. +{delta} nœuds pour protéger le SLO.",
+    "gerekce.asagi": "Surprovisionné : headroom actuel {head} %, {tahHead} % même sous charge projetée. {mutlakDelta} nœuds peuvent être retirés pour récupérer le gaspillage ; le SLO est préservé.",
+    "gerekce.sabit": "Équilibré : headroom {head} % ({tahHead} % projeté), proche de la cible. Aucun changement de capacité nécessaire.",
+  },
+
+  es: {
+    "not.baslik": "Análisis FinOps modelado",
+    "not.a": "Coste unitario",
+    "not.dugumAy": "{maliyet} $/nodo/mes",
+    "not.ve": "y",
+    "not.rpsDugum": "{rps} RPS/nodo",
+    "not.b": "son cada uno una",
+    "not.varsayim": "suposición modelada",
+    "not.c": "— no provienen de una API de facturación en la nube en vivo. La previsión de carga se basa en el RPS observado en la topología PoP real más una tendencia de crecimiento heurística derivada de los datos de eventos.",
+
+    "stat.mevcutMaliyet": "Coste mensual actual",
+    "stat.oneriliMaliyet": "Coste mensual recomendado",
+    "stat.netTasarruf": "Ahorro mensual neto",
+    "stat.netEkMaliyet": "Coste extra mensual neto",
+    "stat.sloRiskli": "Regiones con riesgo SLO",
+
+    "politika.baslik": "Política de escalado recomendada",
+    "politika.hedefRozet": "Headroom objetivo {yuzde}",
+    "politika.maliyetEtkisiBaslik": "Impacto mensual proyectado en costes",
+    "politika.etkiTasarruf": "recuperación de sobreaprovisionamiento (neto)",
+    "politika.etkiEkYatirim": "inversión extra neta para protección SLO",
+    "politika.etkiNotr": "neutro en coste",
+    "politika.tasarruf": "ahorro",
+    "politika.ekMaliyet": "coste extra",
+
+    "ozet.slo": "SLO primero: en {riskli} regiones la carga proyectada reduce el headroom a un umbral crítico — estas regiones deben escalarse hacia arriba primero. Luego {asagi} regiones sobreaprovisionadas se escalan hacia abajo para neutralizar el coste neto.",
+    "ozet.tasarruf": "Oportunidad de ahorro: {asagi} regiones están sobreaprovisionadas; manteniendo el headroom objetivo del {hedef} %, se pueden recuperar ~{tutar} $/mes de desperdicio.",
+    "ozet.dengede": "Flota equilibrada. El headroom objetivo del {hedef} % se mantiene en la mayoría de las regiones; no se recomienda un cambio agresivo, mantener el nivel actual.",
+
+    "kural.1": "Headroom objetivo {hedef} %: la utilización se mantiene ≤ {tavan} % incluso en pico (amortiguador de picos).",
+    "kural.2": "Si el headroom proyectado cae por debajo de la mitad del objetivo ({yari} %), escala HACIA ARRIBA (protección SLO).",
+    "kural.3": "Si el headroom se mantiene claramente por encima del objetivo incluso bajo carga proyectada, escala HACIA ABAJO (recuperación de desperdicio).",
+    "kural.4": "Priorización: primero las regiones con riesgo SLO, luego las reducciones con mayor ahorro.",
+    "kural.5": "El coste unitario ({maliyet} $/nodo/mes) y {rps} RPS/nodo son cada uno una SUPOSICIÓN MODELADA.",
+
+    "denge.baslik": "Equilibrio coste vs SLO",
+    "denge.oncesel": "bajo carga proyectada",
+    "denge.aria": "Gráfico de equilibrio coste vs SLO",
+    "denge.sloRiskBolge": "Zona de riesgo SLO",
+    "denge.hedef": "objetivo {yuzde}",
+    "denge.xEksen": "Headroom proyectado (seguridad SLO →)",
+    "denge.yEksen": "Coste mensual ($)",
+    "denge.efsaneMevcut": "actual/proyectado",
+    "denge.efsaneOneri": "tras recomendación",
+    "denge.netEtki": "Impacto neto:",
+    "denge.ay": "/mes",
+
+    "tablo.baslik": "Decisiones de escalado regional",
+    "tablo.tumu": "Todos",
+    "tablo.bolge": "Región",
+    "tablo.kapasiteYuk": "Capacidad / Carga",
+    "tablo.headroom": "Headroom",
+    "tablo.aksiyon": "Acción",
+    "tablo.maliyetEtkisi": "Impacto en costes",
+    "tablo.slo": "SLO",
+    "tablo.pop": "PoP",
+    "tablo.dugum": "nodos",
+    "tablo.ongoru": "previsión",
+    "tablo.israfGeri": "recuperación de desperdicio",
+    "tablo.sloYatirim": "inversión SLO",
+    "tablo.risk": "riesgo",
+    "tablo.ay": "/mes",
+
+    "headroom.hedefTavan": "Techo de utilización objetivo {yuzde}",
+    "headroom.headroom": "headroom {yuzde}",
+    "headroom.oneri": "rec. {yuzde}",
+
+    "takvim.baslik": "Calendario de escalado · priorizado",
+    "takvim.oncelik": "primero riesgo SLO, luego ahorro",
+    "takvim.eylemYok": "No se necesita acción",
+    "takvim.eylemYokMetin": "Todas las regiones están dentro de la banda de headroom objetivo; el nivel de capacidad actual debe mantenerse.",
+    "takvim.sloEtiket": "SLO",
+    "takvim.dugum": "nodos",
+    "takvim.ay": "/mes",
+    "takvim.dipnot": "Las recomendaciones son producidas por un motor de políticas puro/determinista; antes de aplicar, verifica las ventanas de mantenimiento específicas de la región y los datos de facturación reales.",
+    "takvim.disaAktar": "Exportar política",
+
+    "aksiyon.ölçek-yukarı": "Escalar hacia arriba",
+    "aksiyon.ölçek-aşağı": "Escalar hacia abajo",
+    "aksiyon.sabit": "Mantener",
+
+    "slo.düşük": "bajo",
+    "slo.orta": "medio",
+    "slo.yüksek": "alto",
+
+    "bolge.avrupa": "Europa",
+    "bolge.kuzey-amerika": "Norteamérica",
+    "bolge.asya": "Asia-Pacífico",
+    "bolge.guney-amerika": "Sudamérica",
+    "bolge.okyanusya": "Oceanía",
+    "bolge.afrika": "África / Oriente Medio",
+
+    "gerekce.yukari": "Bajo carga proyectada ({buyume} % de crecimiento) el headroom baja a {tahHead} % — por debajo del objetivo del {hedef} %. +{delta} nodos para proteger el SLO.",
+    "gerekce.asagi": "Sobreaprovisionado: headroom actual {head} %, {tahHead} % incluso bajo carga proyectada. Se pueden retirar {mutlakDelta} nodos para recuperar desperdicio; el SLO se preserva.",
+    "gerekce.sabit": "Equilibrado: headroom {head} % ({tahHead} % proyectado), cerca del objetivo. No se necesita cambio de capacidad.",
+  },
+};
+
+/** Ölçekleme Politikası sayfası — yerel çeviri yardımcısı. */
+export function olCeviri(anahtar: string, dil: Dil): string {
+  return sozluk[dil]?.[anahtar] ?? sozluk.tr?.[anahtar] ?? anahtar;
+}

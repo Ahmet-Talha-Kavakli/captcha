@@ -1,0 +1,46 @@
+/**
+ * GET  /api/sites  → sahibin siteleri
+ * POST /api/sites  → yeni site + key çifti üret
+ */
+import { NextResponse } from "next/server";
+import { currentUser } from "@/lib/auth";
+import { Sites } from "@/lib/db/db";
+import { generateSiteKeys } from "@/lib/specter/crypto";
+
+export async function GET() {
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  return NextResponse.json({ sites: Sites.forOwner(user.id) });
+}
+
+export async function POST(req: Request) {
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const body = await req.json().catch(() => ({}));
+  const name: string = (body.name || "").trim();
+  const domainsRaw: string = body.domains || "";
+  if (!name) {
+    return NextResponse.json({ error: "Site adı gerekli" }, { status: 400 });
+  }
+
+  const domains = domainsRaw
+    .split(/[\n,]/)
+    .map((d: string) => d.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, ""))
+    .filter(Boolean);
+
+  const { siteKey, secretKey } = generateSiteKeys();
+  const site = Sites.create({
+    ownerId: user.id,
+    name,
+    domains: domains.length ? domains : ["localhost"],
+    siteKey,
+    secretKey,
+    difficulty: body.difficulty || "medium",
+    behaviorThreshold: 0.35,
+    invisibleMode: false,
+    mode: body.mode || "challenge",
+  });
+
+  return NextResponse.json({ site });
+}
