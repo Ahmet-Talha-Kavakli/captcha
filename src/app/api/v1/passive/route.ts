@@ -9,7 +9,7 @@
  * Bu, reCAPTCHA v3 / Turnstile'ın sürtünmesiz akışının Specter karşılığı.
  */
 import { NextResponse } from "next/server";
-import { Sites, Events, Users, Usage } from "@/lib/db/db";
+import { Sites, Events, Users, Usage, IpRep } from "@/lib/db/db";
 import { rateLimit } from "@/lib/db/rate";
 import { scoreBehavior, emptySignals, type BehaviorSignals } from "@/lib/specter/behavior";
 import { signVerification, secureSeed, type VerificationClaim } from "@/lib/specter/crypto";
@@ -170,6 +170,12 @@ export async function POST(req: Request) {
   // Gerçek kullanım ölçümü: görünmez mod da doğrulama sayılır.
   Usage.increment(site.id, "issued", 1);
   Usage.increment(site.id, gecti ? "verified" : "challenged", 1);
+  // GERÇEK ÖĞRENME (verify ile simetrik): IP itibarını gözlemle. Passive'de
+  // "geçemedi" tek başına bot demek değil (meşru kullanıcı da olabilir), o yüzden
+  // yalnızca KESİN otomasyon/AI/besleme kanıtı varsa itibar bozulur; temiz geçiş
+  // itibarı iyileştirir. Böylece kesin-bot IP'lerin PoW zorluğu adaptif artar.
+  const kesinBot = otomasyonKaniti || aiEngeli || beslemeEngeli;
+  IpRep.gozlemle(m.ip, { country: m.country, asn: m.asn, bloklandi: kesinBot });
 
   // MONITOR MODU: "sadece izle" — görünmez geçemeyecek (challenge gerektiren)
   // istek bile ENGELLENMEZ; olay gerçek verdict'iyle (yukarıda "challenged")
