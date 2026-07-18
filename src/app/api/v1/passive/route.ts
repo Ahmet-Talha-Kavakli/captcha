@@ -19,12 +19,15 @@ import { Rules } from "@/lib/db/db";
 import { aiAjanTespit } from "@/lib/specter/ai-agents";
 import { fingerprintUret } from "@/lib/specter/fingerprint";
 import { tehditBeslemeEslestir } from "@/lib/specter/threat-feed";
+import { originIzinli } from "@/lib/specter/origin-esles";
 import { aramaBotuDegerlendir } from "@/lib/specter/arama-botu";
 import type { Verdict } from "@/lib/db/schema";
 
-function cors(origin: string | null): Record<string, string> {
+// CORS — origin YALNIZCA site domain'i izinliyse yansıtılır (körü körüne değil).
+function cors(origin: string | null, izinli?: string[]): Record<string, string> {
+  const ok = izinli ? originIzinli(origin, izinli) : false;
   return {
-    "Access-Control-Allow-Origin": origin || "null",
+    "Access-Control-Allow-Origin": ok ? origin! : "null",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     Vary: "Origin",
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
   // İşleme başlangıcı — event'e GERÇEK sunucu gecikmesi yazmak için.
   const t0 = performance.now();
   const origin = req.headers.get("origin");
-  const headers = cors(origin);
+  let headers = cors(origin); // site bilinene kadar güvenli varsayılan
   const body = await req.json().catch(() => ({}));
   const { siteKey } = body as { siteKey?: string };
   const signals: BehaviorSignals = { ...emptySignals(), ...(body.signals || {}) };
@@ -46,6 +49,7 @@ export async function POST(req: Request) {
   if (!siteKey) return NextResponse.json({ error: "siteKey gerekli" }, { status: 400, headers });
   const site = Sites.bySiteKey(siteKey);
   if (!site || !site.active) return NextResponse.json({ error: "Geçersiz site anahtarı" }, { status: 403, headers });
+  headers = cors(origin, site.domains); // site domain'ine göre yeniden hesapla
   if (!site.invisibleMode) {
     // Görünmez mod kapalı → daima challenge iste.
     return NextResponse.json({ passed: false, reason: "invisible_disabled" }, { status: 200, headers });

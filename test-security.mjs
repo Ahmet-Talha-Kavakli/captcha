@@ -195,6 +195,17 @@ async function main() {
   check("CORS: prefix-spoof (evil-acme-shop.com.x.net) → reddedilir (null)", (await corsBasi("https://evil-acme-shop.com.attacker.net")) === "null");
   check("CORS: suffix-spoof (acme-shop.com.evil.net) → reddedilir (null)", (await corsBasi("https://acme-shop.com.evil.net")) === "null");
 
+  // passive CORS — eskiden HER origin körü körüne yansıtılıyordu (tam CSRF açığı).
+  const passiveCors = async (origin) => {
+    const r = await fetch(`${BASE}/api/v1/passive`, {
+      method: "POST", headers: { "Content-Type": "application/json", Origin: origin },
+      body: JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: {} }),
+    });
+    return r.headers.get("access-control-allow-origin");
+  };
+  check("passive CORS: yabancı origin (evil.com) → null (körü körüne yansıtmaz)", (await passiveCors("https://evil.com")) === "null");
+  check("passive CORS: meşru domain → yansıtılır", (await passiveCors("https://acme-shop.com")) === "https://acme-shop.com");
+
   // PLAN LİMİTLERİ — free plan (site 1, ekip 1) aşımı reddedilmeli; aksi halde
   // plan farkı anlamsız olurdu (gelir kaçağı). Pro yükseltince limit açılmalı.
   const planEmail = `plan${Date.now()}@x.dev`;

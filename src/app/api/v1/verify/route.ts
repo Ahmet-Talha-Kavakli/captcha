@@ -17,6 +17,7 @@ import { verifyAttempt } from "@/lib/specter/verify";
 import { verifyToken } from "@/lib/specter/crypto";
 import { emptySignals, type BehaviorSignals } from "@/lib/specter/behavior";
 import { extractMeta, classifyUA } from "@/lib/specter/request-meta";
+import { originIzinli } from "@/lib/specter/origin-esles";
 import { evaluateRules } from "@/lib/specter/rule-engine";
 import { aiAjanTespit } from "@/lib/specter/ai-agents";
 import { fingerprintUret } from "@/lib/specter/fingerprint";
@@ -66,9 +67,14 @@ function logEvent(
   else Usage.increment(siteId, "challenged", 1);
 }
 
-function cors(origin: string | null): Record<string, string> {
+// CORS başlıkları — origin YALNIZCA izinli domain listesindeyse yansıtılır.
+// izinli verilmezse (OPTIONS ön-uçuş, site henüz bilinmiyor) güvenli varsayılan:
+// origin yansıtılmaz ("null"). POST'ta site resolve edilince domain'e göre yeniden
+// hesaplanır. Daha önce origin KÖRÜ KÖRÜNE yansıtılıyordu (her siteye açık = CSRF).
+function cors(origin: string | null, izinli?: string[]): Record<string, string> {
+  const ok = izinli ? originIzinli(origin, izinli) : false;
   return {
-    "Access-Control-Allow-Origin": origin || "null",
+    "Access-Control-Allow-Origin": ok ? origin! : "null",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     Vary: "Origin",
@@ -83,7 +89,8 @@ export async function POST(req: Request) {
   // İsteğin işleme başlangıcı — event'lere GERÇEK sunucu gecikmesi yazmak için.
   const t0 = performance.now();
   const origin = req.headers.get("origin");
-  const headers = cors(origin);
+  // Site bilinene kadar güvenli varsayılan (origin yansıtılmaz).
+  let headers = cors(origin);
   const body = await req.json().catch(() => ({}));
 
   const { siteKey, token, input } = body as {
@@ -101,6 +108,8 @@ export async function POST(req: Request) {
   if (!site || !site.active) {
     return NextResponse.json({ error: "Geçersiz site anahtarı" }, { status: 403, headers });
   }
+  // Site elde edildi → CORS'u onun izinli domain'lerine göre yeniden hesapla.
+  headers = cors(origin, site.domains);
 
   // İki kademeli rate-limit (DoS koruması): IP+site 120/dk (saldırgan yalnızca
   // kendi IP'sini kilitler) + site geneli 2400/dk üst tavan.
