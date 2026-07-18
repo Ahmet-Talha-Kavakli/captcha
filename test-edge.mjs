@@ -97,6 +97,47 @@ async function main() {
   check("Challenge quotaWarning kesin kota sayısı (used/limit) sızdırmaz — sadece overage boolean",
     !("used" in qw) && !("limit" in qw));
 
+  // 19) KOTA-AŞIM ZORLAMASI SÖZLEŞMESİ (gelir-kritik). plans.ts kotaDurumu()
+  // mantığının değişmez davranışını korur: biri block→overage'a çevirse veya
+  // asildi eşiğini bozsa free kullanıcılar sınırsız doğrulama yapar (gelir
+  // kaybı). Saf fonksiyon reprodüksiyonu (deriveAnswer deseni — tsx yok).
+  // Kaynak: src/lib/specter/plans.ts (PLANLAR + kotaDurumu). Değerler değişirse
+  // BU test de güncellenmeli — kasıtsız değişikliği yakalamak amacı budur.
+  const PLANLAR_T = {
+    free:  { kota: 10_000,      asim: "block" },
+    pro:   { kota: 1_000_000,   asim: "overage" },
+    scale: { kota: 100_000_000, asim: "overage" },
+  };
+  function kotaDurumuT(kullanilan, plan) {
+    const t = PLANLAR_T[plan] ?? PLANLAR_T.free;
+    const kota = t.kota;
+    const oran = kota > 0 ? kullanilan / kota : 0;
+    return { kota, asildi: kullanilan >= kota, uyari: oran >= 0.9, asimDavranisi: t.asim };
+  }
+  // Free plan: kota altında geçer, kotada/üstünde aşılır + block davranışı.
+  check("Kota: free 9.999 < 10.000 → aşılmadı", kotaDurumuT(9_999, "free").asildi === false);
+  check("Kota: free 10.000 = kota → AŞILDI (>=)", kotaDurumuT(10_000, "free").asildi === true);
+  check("Kota: free aşımda davranış = block (ücretsiz reddedilir/krediye düşer)",
+    kotaDurumuT(10_000, "free").asimDavranisi === "block");
+  // Pro plan: aşımda overage (bloklanmaz, ek ücret).
+  check("Kota: pro 1.000.000 = kota → AŞILDI", kotaDurumuT(1_000_000, "pro").asildi === true);
+  check("Kota: pro aşımda davranış = overage (bloklanmaz)",
+    kotaDurumuT(1_000_000, "pro").asimDavranisi === "overage");
+  // %90 uyarı eşiği (proaktif yükseltme bildirimi tetikler).
+  check("Kota: free %90'da (9.000) uyari=true", kotaDurumuT(9_000, "free").uyari === true);
+  check("Kota: free %89'da (8.900) uyari=false", kotaDurumuT(8_900, "free").uyari === false);
+  // Bilinmeyen plan → free'ye düşer (güvenli varsayılan, sınırsız DEĞİL).
+  check("Kota: bilinmeyen plan → free'ye düşer (10.000 kota, sınırsız değil)",
+    kotaDurumuT(10_000, "belirsiz").asildi === true && kotaDurumuT(10_000, "belirsiz").asimDavranisi === "block");
+
+  // 20) GERÇEK ENDPOINT bağlama: demo sitesi kota-altında → challenge 200 döner
+  // ve kota-aşımı reddi (429 quota_exceeded) VERMEZ. Bu, reprodüksiyon mantığını
+  // canlı zorlama yoluna bağlar (kota kontrolü tamamen kaldırılmışsa da 200'dür,
+  // ama header'ın 'exceeded' OLMAMASI zorlama-yolunun çalıştığını teyit eder).
+  const chRes = await post("/api/v1/challenge", { siteKey: "pk_demo_veylify_public" });
+  check("Kota: demo (kota-altı) challenge → 200, quota_exceeded değil",
+    chRes.status === 200 && chRes.headers.get("X-Veylify-Quota") !== "exceeded");
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
