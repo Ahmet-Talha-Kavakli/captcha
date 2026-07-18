@@ -8,6 +8,7 @@
  */
 
 import crypto from "node:crypto";
+import { MARKA } from "@/lib/marka";
 import {
   emptyDatabase,
   type Database,
@@ -210,16 +211,20 @@ export function buildSeed(now: number): Database {
     { name: "api.acme.com", domains: ["api.acme.com"], difficulty: "high" as const, mode: "block" as const, days: 45 },
     { name: "blog.acme.com", domains: ["blog.acme.com"], difficulty: "low" as const, mode: "monitor" as const, days: 30 },
   ];
-  const sites: Site[] = siteConfigs.map((c) => ({
+  const sites: Site[] = siteConfigs.map((c, ci) => ({
     id: id("site"),
     ownerId: owner.id,
     name: c.name,
     domains: c.domains,
-    siteKey: "pk_live_" + crypto.randomBytes(10).toString("hex"),
+    // İLK site → sabit public demo anahtarı (/demo sayfası her ortamda
+    // gerçek challenge/verify/passive çağırabilsin diye deterministik).
+    siteKey: ci === 0 ? MARKA.demoSiteKey : "pk_live_" + crypto.randomBytes(10).toString("hex"),
     secretKey: "sk_live_" + crypto.randomBytes(14).toString("hex"),
     difficulty: c.difficulty,
     behaviorThreshold: c.difficulty === "high" ? 0.5 : 0.35,
-    invisibleMode: c.mode !== "monitor",
+    // İlk (demo) site görünmez modu açık tutar → /demo'nun passive uç çağrısı
+    // gerçek karar döndürür.
+    invisibleMode: ci === 0 ? true : c.mode !== "monitor",
     mode: c.mode,
     createdAt: now - c.days * 86400000,
     active: true,

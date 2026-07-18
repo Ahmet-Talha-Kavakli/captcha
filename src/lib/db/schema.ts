@@ -737,7 +737,7 @@ export interface IletisimMesaji {
   ip?: string;
 }
 
-export const SCHEMA_VERSION = 27;
+export const SCHEMA_VERSION = 28;
 
 export function emptyDatabase(): Database {
   return {

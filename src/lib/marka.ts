@@ -22,6 +22,13 @@ export const MARKA = {
   koruniyorEn: "Protected by Veylify",
   /** Destek e-postası. */
   destekEposta: "destek@veylify.com",
+  /**
+   * Sabit public demo site-key. `/demo` sayfasının gerçek API'leri (challenge/
+   * verify/passive) her ortamda çağırabilmesi için deterministik olmalı;
+   * seed.ts bu değeri demo hesabının İLK sitesine atar. Halka açık, sadece
+   * demo trafiği içindir.
+   */
+  demoSiteKey: "pk_demo_veylify_public",
   /** Marka rengi (ana vurgu) — landing beyaz tema için. */
   renk: "#4f46e5",
 } as const;
