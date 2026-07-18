@@ -433,8 +433,9 @@
       trap.tabIndex = -1;
       trap.setAttribute("aria-hidden", "true");
       trap.setAttribute("autocomplete", "off");
-      // Görsel olarak tamamen gizle — ekran okuyucular da aria-hidden ile atlar.
-      trap.style.cssText = "position:absolute!important;left:-9999px!important;top:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none";
+      // Görsel olarak tamamen gizle — CSP-uyumlu sınıf (inline style katı
+      // style-src'de bloklanıyordu). Shadow DOM STYLE'ında tanımlı.
+      trap.className = "vy-honeypot";
       trap.addEventListener("input", function () { HONEYPOT.tetik = true; });
       root.appendChild(trap);
     } catch (e) { /* sessiz — honeypot opsiyonel katmandır */ }
@@ -499,6 +500,7 @@
     '.secure .lock{width:11px;height:11px}',
     '.canvasWrap{position:relative;padding:2px 16px 0}',
     '.cvFrame{position:relative;border-radius:12px;overflow:hidden;background:#0b1120;box-shadow:0 0 0 1px rgba(255,255,255,.07),inset 0 0 30px rgba(0,0,0,.5)}',
+    '.cvFrame canvas{height:104px;width:100%;display:block}', /* CSP: inline canvas.style yerine */
     'canvas{width:100%;height:104px;display:block}',
     /* canvas üstünde hafif tarama-çizgisi dokusu (yeni nesil his) */
     '.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0px,rgba(255,255,255,.025) 1px,transparent 1px,transparent 3px);border-radius:12px}',
@@ -537,6 +539,11 @@
     '.xmark{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(220,38,38,.26),rgba(220,38,38,.08));color:#f87171;display:grid;place-items:center;font-size:26px;box-shadow:0 0 0 1px rgba(248,113,113,.3)}',
     '.msg{font-size:15px;font-weight:600;color:#e8eef7;letter-spacing:-.01em}',
     '.hint{font-size:12.5px;color:#7387a0}',
+    /* CSP-UYUMLU gizleme sınıfları — inline style yerine (katı style-src 'self'
+       olan müşteri sitelerinde inline style CSP ihlali yapıyordu). */
+    '.vy-honeypot{position:absolute!important;left:-9999px!important;top:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none}',
+    '.vy-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
+    '.vy-gizli{display:none!important}',
     '@media (prefers-reduced-motion:reduce){.dot,.check{animation:none}}'
   ].join("");
 
@@ -561,7 +568,20 @@
     target.__specterMounted = true;
 
     var shadow = target.attachShadow ? target.attachShadow({ mode: "open" }) : target;
-    var style = h("style"); style.textContent = STYLE; shadow.appendChild(style);
+    // Stil enjeksiyonu — CSP-UYUMLU: katı style-src 'self' olan sitelerde <style>
+    // element'i (özellikle host'a düşerse) CSP ihlali raporluyor. Constructable
+    // StyleSheet (adoptedStyleSheets) style-src'den MUAF — desteklenirse onu kullan,
+    // yoksa <style>'a düş (eski tarayıcı; Shadow DOM'da zaten izole).
+    var stilKondu = false;
+    try {
+      if (shadow.adoptedStyleSheets && typeof CSSStyleSheet === "function") {
+        var sheet = new CSSStyleSheet();
+        sheet.replaceSync(STYLE);
+        shadow.adoptedStyleSheets = [sheet];
+        stilKondu = true;
+      }
+    } catch (e) { stilKondu = false; }
+    if (!stilKondu) { var style = h("style"); style.textContent = STYLE; shadow.appendChild(style); }
 
     // ----- i18n: dil algıla (data-lang > <html lang> > tarayıcı > tr) -----
     var I18N = {
@@ -770,7 +790,7 @@
     // yakalar; insan/ekran-okuyucu asla görmez.
     honeypotAlaniEkle(challengeState);
     // ekran okuyucu için görünmez canlı-duyuru bölgesi
-    challengeState.appendChild(h("div", { class: "sesDuyuru", role: "status", "aria-live": "polite", style: "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" }));
+    challengeState.appendChild(h("div", { class: "sesDuyuru vy-sr-only", role: "status", "aria-live": "polite" }));
 
     var successState = h("div", { class: "state", role: "status", "aria-live": "polite" }, [
       h("div", { class: "check" }, ["✓"]),
@@ -817,7 +837,8 @@
     var ttlTimer = 0; // TTL otomatik-yenileme zamanlayıcısı (kod süresi dolmadan tazele).
 
     function show(which) {
-      challengeState.style.display = which === "challenge" ? "block" : "none";
+      // CSP-uyumlu: inline .style.display yerine class toggle (katı style-src).
+      challengeState.classList.toggle("vy-gizli", which !== "challenge");
       checkingState.classList.toggle("on", which === "checking");
       successState.classList.toggle("on", which === "success");
       failState.classList.toggle("on", which === "fail");
@@ -862,7 +883,7 @@
       var ratio = Math.min(window.devicePixelRatio || 1, 2);
       var cssW = 296, cssH = 104;
       canvas.width = cssW * ratio; canvas.height = cssH * ratio;
-      canvas.style.height = cssH + "px";
+      // Görsel yükseklik CSS'te (.cvFrame canvas) — inline canvas.style CSP ihlaliydi.
       var ctx = canvas.getContext("2d");
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       field = new GhostField(ctx, p.seed, p.length, p.difficulty, cssW, cssH, p.type);
@@ -911,7 +932,7 @@
           var ttlSn = typeof data.ttl === "number" && data.ttl > 15 ? data.ttl : 120;
           ttlTimer = setTimeout(function () {
             // success/checking'e geçildiyse dokunma; sadece bekleyen challenge'ı tazele.
-            if (challengeState.style.display !== "none") loadChallenge();
+            if (!challengeState.classList.contains("vy-gizli")) loadChallenge();
           }, (ttlSn - 8) * 1000);
         })
         .catch(function () {
