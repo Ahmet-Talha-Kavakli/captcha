@@ -263,6 +263,71 @@ async function main() {
   const key4 = await mkKey("k4");
   check("İptal edilen anahtar limiti açar → yeni anahtar 200", key4.status === 200);
 
+  // ---- WEBHOOK SSRF KORUMASI ----
+  // Webhook URL'si sunucunun giden isteğidir → iç/loopback/metadata hedefleri
+  // engellenmelidir (aksi halde SSRF: kullanıcı sunucuya iç kaynaklara istek
+  // yaptırır — cloud metadata token'ı sızdırma dahil).
+  //
+  // NOT: guvenliWebhookUrl() saf mantığını reprodüksiyonla test ederiz (deriveAnswer
+  // deseni — .ts import yok). Kaynak: src/lib/specter/webhook-delivery.ts. Test
+  // ortamında sunucu VEYLIFY_ALLOW_LOCAL_WEBHOOK=1 ile çalıştığından (e2e local
+  // alıcı için) endpoint loopback'i kabul eder; ama PRODUCTION mantığı (env yok)
+  // burada saf fonksiyonla doğrulanır — bariz iç hedefler reddedilmeli.
+  function icselIPv4(host) {
+    const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (!m) return false;
+    const a = +m[1], b = +m[2];
+    if (a === 127 || a === 10 || a === 0 || a >= 224) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true;
+    return false;
+  }
+  function guvenliUrlProd(url) { // env=yok (production) davranışı
+    let u; try { u = new URL(url); } catch { return false; }
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+    if (!host) return false;
+    if (host === "localhost" || host.endsWith(".localhost")) return false;
+    if (host === "0.0.0.0" || host === "::") return false;
+    if (host.endsWith(".internal") || host.endsWith(".local")) return false;
+    if (host === "::1") return false;
+    if (/^f[cd][0-9a-f]{0,2}:/.test(host)) return false;
+    if (host.startsWith("fe80:")) return false;
+    if (host.includes("169.254.169.254")) return false;
+    if (icselIPv4(host)) return false;
+    return true;
+  }
+  for (const [url, etiket] of [
+    ["http://127.0.0.1:9/x", "loopback 127.0.0.1"],
+    ["http://localhost:9/x", "localhost"],
+    ["http://169.254.169.254/latest/meta-data/", "cloud metadata 169.254.169.254"],
+    ["http://10.0.0.1/x", "private 10.0.0.0/8"],
+    ["http://172.16.5.5/x", "private 172.16/12"],
+    ["http://192.168.0.1/x", "private 192.168/16"],
+    ["http://[::1]:9/x", "IPv6 loopback ::1"],
+    ["http://[fd00::1]/x", "IPv6 ULA fd00::/8"],
+    ["ftp://evil.example.com/x", "http(s) olmayan şema"],
+    ["http://foo.internal/x", "iç TLD .internal"],
+  ]) {
+    check(`Webhook SSRF (prod mantığı): ${etiket} → reddedilir`, guvenliUrlProd(url) === false);
+  }
+  // Meşru dış URL'ler kabul edilmeli (koruma aşırı-geniş değil).
+  check("Webhook SSRF (prod mantığı): https://hooks.example.com → kabul", guvenliUrlProd("https://hooks.example.com/veylify") === true);
+  check("Webhook SSRF (prod mantığı): http://93.184.216.34 (public IP) → kabul", guvenliUrlProd("http://93.184.216.34/x") === true);
+  // Endpoint ENTEGRASYON: meşru dış URL gerçekten oluşturulabilmeli (env ne olursa).
+  const mesru = await fetch(`${BASE}/api/webhooks`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
+    body: JSON.stringify({ siteId: site.id, url: "https://hooks.example.com/veylify", events: ["*"] }),
+  });
+  check("Webhook SSRF: meşru dış https URL → endpoint kabul eder (oluşur)", mesru.status === 200);
+  // http(s) olmayan şema endpoint'te de reddedilmeli (env-bağımsız).
+  const kotuSema = await fetch(`${BASE}/api/webhooks`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
+    body: JSON.stringify({ siteId: site.id, url: "ftp://evil.example.com/x", events: ["*"] }),
+  });
+  check("Webhook SSRF: ftp şema → endpoint reddeder (400)", kotuSema.status === 400);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

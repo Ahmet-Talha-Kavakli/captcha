@@ -399,6 +399,9 @@ async function main() {
 
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
+  // ÖNEMLİ: Bu test loopback alıcı (127.0.0.1) kullanır. SSRF koruması loopback'i
+  // engellediğinden, SUNUCU `VEYLIFY_ALLOW_LOCAL_WEBHOOK=1` ile başlatılmalı:
+  //   VEYLIFY_ALLOW_LOCAL_WEBHOOK=1 npm start   (test ortamı; production'da ASLA)
   let whAlinan = null;
   const whSrv = http.createServer((rq, rs) => {
     let b = ""; rq.on("data", (c) => (b += c));

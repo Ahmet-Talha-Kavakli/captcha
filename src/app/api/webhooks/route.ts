@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { Webhooks, Sites, Audit } from "@/lib/db/db";
-import { webhookTetikle } from "@/lib/specter/webhook-delivery";
+import { webhookTetikle, guvenliWebhookUrl } from "@/lib/specter/webhook-delivery";
 
 /** Yeni webhook endpoint'i oluştur. */
 export async function POST(req: Request) {
@@ -10,6 +10,13 @@ export async function POST(req: Request) {
   const { siteId, url, events } = await req.json().catch(() => ({}));
   if (!url || typeof url !== "string" || !/^https?:\/\//.test(url)) {
     return NextResponse.json({ error: "invalid_url" }, { status: 400 });
+  }
+  // SSRF koruması: iç/loopback/metadata hedeflerine webhook kurulamaz.
+  if (!guvenliWebhookUrl(url)) {
+    return NextResponse.json(
+      { error: "unsafe_url", hint: "Webhook URL'si herkese açık bir adres olmalı (localhost/iç ağ/metadata IP'leri engellenir)." },
+      { status: 400 },
+    );
   }
   // Sahiplik guard: hedef site sahibe ait olmalı.
   const site = Sites.byId(siteId);

@@ -23,6 +23,60 @@ export interface WebhookEvent {
   data: Record<string, unknown>;
 }
 
+/* ------------------------------------------------------------------ SSRF koruması
+ * Webhook URL'si SUNUCUNUN yaptığı giden istektir → kötü niyetli kullanıcı iç
+ * kaynaklara (loopback, private LAN, cloud metadata 169.254.169.254) istek
+ * yaptırabilir (SSRF). Teslimat ÖNCESİ ve oluşturma sırasında host doğrulanır:
+ * yalnızca http(s), varsayılan portlar/yaygın portlar, ve İÇSEL OLMAYAN host.
+ * Not: DNS-rebinding'e tam bağışık değildir (isim→IP teslimat anında çözülür)
+ * ama bariz iç hedefleri (IP-literal + localhost) engeller — pratik ilk savunma. */
+
+/** Bir IPv4 literal'i içsel mi (loopback/private/link-local/metadata)? */
+function icselIPv4(host: string): boolean {
+  const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!m) return false;
+  const [a, b] = [Number(m[1]), Number(m[2])];
+  if (a === 127) return true;                     // 127.0.0.0/8 loopback
+  if (a === 10) return true;                       // 10.0.0.0/8 private
+  if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12 private
+  if (a === 192 && b === 168) return true;         // 192.168.0.0/16 private
+  if (a === 169 && b === 254) return true;         // 169.254.0.0/16 link-local (metadata!)
+  if (a === 0) return true;                         // 0.0.0.0/8
+  if (a >= 224) return true;                        // multicast/reserved
+  return false;
+}
+
+/**
+ * Webhook hedef URL'si güvenli mi (SSRF'e karşı)? Yalnızca http(s) şeması ve
+ * içsel-olmayan host kabul edilir. Loopback isimleri + IPv6 loopback/ULA + IPv4
+ * private/link-local literalleri reddedilir.
+ */
+export function guvenliWebhookUrl(url: string): boolean {
+  let u: URL;
+  try { u = new URL(url); } catch { return false; }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, ""); // IPv6 köşeli parantezi soy
+  if (!host) return false;
+  // GELİŞTİRME/TEST İSTİSNASI: yalnızca açık opt-in (VEYLIFY_ALLOW_LOCAL_WEBHOOK=1)
+  // ile loopback'e izin ver — yerel webhook alıcısıyla uçtan-uca test için.
+  // Production'da bu env ASLA set edilmez; şema (http/https) kontrolü yine geçerli.
+  if (process.env.VEYLIFY_ALLOW_LOCAL_WEBHOOK === "1") return true;
+  // Yaygın iç isimler
+  if (host === "localhost" || host.endsWith(".localhost")) return false;
+  if (host === "0.0.0.0" || host === "::" ) return false;
+  // .internal / .local gibi iç TLD'ler (mDNS/kurumsal)
+  if (host.endsWith(".internal") || host.endsWith(".local")) return false;
+  // IPv6 loopback (::1) ve unique-local (fc00::/7 → fc.., fd..)
+  if (host === "::1") return false;
+  if (/^f[cd][0-9a-f]{0,2}:/.test(host)) return false;
+  // IPv6 link-local (fe80::/10) ve IPv4-mapped metadata
+  if (host.startsWith("fe80:")) return false;
+  if (host.includes("169.254.169.254")) return false;
+  // IPv4 literal içsel aralıkları
+  if (icselIPv4(host)) return false;
+  return true;
+}
+
 /** İmza başlığını üret (Stripe biçimi): t=<ts>,v1=<hmac-sha256(hex)> */
 export function webhookImza(govde: string, secret: string, ts: number): string {
   const imza = crypto
@@ -48,6 +102,11 @@ export function webhookImzaDogrula(govde: string, secret: string, header: string
 /** Tek bir teslimat denemesi — gerçek HTTP POST. */
 async function teslimEt(url: string, govde: string, imza: string, timeoutMs = 6000): Promise<{ status: number; durationMs: number }> {
   const bas = Date.now();
+  // SSRF SON SAVUNMA: teslimat anında da doğrula (eski/DB'de kalmış webhook'lar
+  // veya oluşturma-guard'ı atlanmış olsa bile iç hedeflere istek atılmaz).
+  if (!guvenliWebhookUrl(url)) {
+    return { status: 0, durationMs: Date.now() - bas };
+  }
   const controller = new AbortController();
   const zamanlayici = setTimeout(() => controller.abort(), timeoutMs);
   try {
