@@ -155,13 +155,21 @@ async function main() {
   const ruleData = await ruleRes.json();
   check("Kural oluşturuldu (kural motoru)", ruleRes.ok && ruleData.rule?.id);
 
-  // 11) AI asistan yanıt üretiyor
+  // 11) AI asistan GERÇEK VERİ-TEMELLİ yanıt üretiyor (sabit metin değil).
   const askRes = await fetch(`${BASE}/api/assistant`, {
     method: "POST", headers: { "Content-Type": "application/json", Cookie: jar },
     body: JSON.stringify({ soru: "Koruma skorum nasıl?" }),
   });
   const ask = await askRes.json();
   check("Specter Zeka yanıt üretti", askRes.ok && typeof ask.cevap === "string" && ask.cevap.length > 20);
+  // Veri-temelli kanıt: koruma-skoru sorusuna gerçek skor (N/100) + kaynak linkleri döner.
+  check("Zeka yanıtı gerçek veri içerir (skor N/100 + kaynaklar)",
+    /\d+\/100/.test(ask.cevap) && Array.isArray(ask.kaynaklar) && ask.kaynaklar.length > 0);
+  const askAi = await (await fetch(`${BASE}/api/assistant`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jar },
+    body: JSON.stringify({ soru: "AI ajan trafiği ne durumda?" }),
+  })).json();
+  check("Zeka farklı soruya farklı (niyet-temelli) yanıt verir", askAi.cevap !== ask.cevap && /AI ajan|GPTBot|Ghost-font/i.test(askAi.cevap));
 
   // 12) Kural simülasyon: VPN + düşük skor → block
   const simRes = await fetch(`${BASE}/api/rules/simulate`, {
