@@ -814,6 +814,7 @@
 
     var state = { token: null, params: null, powCozum: null };
     var field = null, raf = 0, animStart = 0;
+    var ttlTimer = 0; // TTL otomatik-yenileme zamanlayıcısı (kod süresi dolmadan tazele).
 
     function show(which) {
       challengeState.style.display = which === "challenge" ? "block" : "none";
@@ -882,6 +883,8 @@
 
     function loadChallenge() {
       input.value = ""; btn.disabled = true; input.disabled = true;
+      // Önceki TTL yenileme zamanlayıcısını temizle (üst üste binmesin).
+      if (ttlTimer) { clearTimeout(ttlTimer); ttlTimer = 0; }
       fetch(ORIGIN + "/api/v1/challenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -901,6 +904,15 @@
           draw();
           btn.disabled = false; input.disabled = false;
           show("challenge");
+          // TTL OTOMATİK YENİLEME: kod süresi dolmadan ~8sn önce sessizce yeni
+          // challenge çek. Böylece formu açık bırakıp geç kalan kullanıcı
+          // "süresi dolmuş kod" hatası ALMAZ; challenge her zaman geçerli kalır.
+          // Yalnızca challenge hâlâ görünürken (kullanıcı çözmediyse) yenilenir.
+          var ttlSn = typeof data.ttl === "number" && data.ttl > 15 ? data.ttl : 120;
+          ttlTimer = setTimeout(function () {
+            // success/checking'e geçildiyse dokunma; sadece bekleyen challenge'ı tazele.
+            if (challengeState.style.display !== "none") loadChallenge();
+          }, (ttlSn - 8) * 1000);
         })
         .catch(function () {
           show("fail");
@@ -955,6 +967,8 @@
         .then(function (res) {
           if (res.success) {
             hidden.value = res.token;
+            // Doğrulandı → TTL yenileme timer'ını durdur (artık gereksiz).
+            if (ttlTimer) { clearTimeout(ttlTimer); ttlTimer = 0; }
             show("success");
             target.dispatchEvent(new CustomEvent("veylify-verified", { detail: res, bubbles: true }));
               target.dispatchEvent(new CustomEvent("specter-verified", { detail: res, bubbles: true }));
