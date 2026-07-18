@@ -1,11 +1,25 @@
+import { Suspense } from "react";
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { AuthMixfont } from "../../AuthMixfont";
+import { clerkYapili } from "@/lib/clerk-durum";
 
 export const metadata = { title: "Kayıt ol" };
 
-/** Kayıt — Clerk <SignUp> (gerçek kimlik doğrulama). Marka temalı. */
+/**
+ * Kayıt sayfası. Clerk yapılandırılmışsa Clerk <SignUp>; aksi halde (env yok/
+ * placeholder → <SignUp> boş render eder) kendi kayıt formumuza (AuthMixfont →
+ * /api/auth/register) DÜŞÜLÜR. Böylece kayıt her koşulda çalışır.
+ */
 export default function KayitPage() {
+  if (!clerkYapili()) {
+    return (
+      <Suspense>
+        <AuthMixfont mode="sign-up" />
+      </Suspense>
+    );
+  }
   return (
     <div className="flex flex-col items-center gap-6">
       <Link href="/" aria-label="Ana sayfa">

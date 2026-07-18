@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { Users, Audit } from "@/lib/db/db";
+import { ODEME_HAZIR } from "@/lib/specter/plans";
 
 /** Kredi paketleri — miktar + fiyat (₺). */
 export const KREDI_PAKETLERI = [
@@ -31,6 +32,18 @@ export async function GET() {
 export async function POST(req: Request) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // Ödeme altyapısı canlı değilken kredi tahsilatı yapılmaz (UI-bypass dahil).
+  if (!ODEME_HAZIR) {
+    return NextResponse.json(
+      {
+        error: "payment-not-ready",
+        yakinda: true,
+        mesaj: "Kredi satın alma yakında. Ödeme altyapısı yayına alınınca kredi yükleyebileceksiniz.",
+      },
+      { status: 402 },
+    );
+  }
 
   const body = await req.json().catch(() => ({}));
   const paket = KREDI_PAKETLERI.find((p) => p.id === body.paket);

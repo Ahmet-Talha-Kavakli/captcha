@@ -5,6 +5,18 @@
  * Hem panel (fatura/kullanım) hem public API (kota aşımı zorlaması) kullanır.
  */
 
+/**
+ * ÖDEME ALTYAPISI DURUMU
+ * ----------------------
+ * Ödeme sağlayıcı (Stripe/iyzico) entegrasyonu HENÜZ CANLI DEĞİL. Bu bayrak
+ * `false` iken para tahsil eden akışlar (kredi satın alma, ücretli plana geçiş,
+ * kart ekleme) "Yakında" olarak sunulur — hiçbir gerçek tahsilat/DB-yükseltme
+ * yapılmaz. Ücretsiz plana düşme ve Scale satış-talebi (para tahsil etmez)
+ * etkilenmez. Altyapı canlıya alınınca burada tek satır `true` yapılır ve tüm
+ * satın-alma akışları otomatik açılır. Tek kaynak — UI + API aynı bayrağı okur.
+ */
+export const ODEME_HAZIR = false;
+
 export type Plan = "free" | "pro" | "scale";
 
 export interface PlanTanim {

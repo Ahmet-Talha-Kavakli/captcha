@@ -4,7 +4,7 @@ import {
   Fingerprint, GitBranch, Sparkles, Lock, Activity, Server, Layers,
 } from "lucide-react";
 import { Badge, Highlight, Reveal } from "@/components/site/primitives";
-import { HeroGorsel, GhostFontGorsel, IzgaraArka, UrunEkranGorseli, AiAjanKoruma } from "@/components/site/gorseller";
+import { HeroGorsel, GhostFontGorsel, IzgaraArka, UrunEkranGorseli, AiAjanKoruma, Gorsel } from "@/components/site/gorseller";
 import { GhostHero } from "@/components/site/GhostHero";
 import { AkisDiyagram, MimariSema } from "@/components/site/illustrasyonlar";
 import { MarkaLogo, GUVEN_MARKALARI } from "@/components/site/marka-logolari";
@@ -12,34 +12,41 @@ import { Faq, SORULAR } from "@/components/site/Faq";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { MARKA } from "@/lib/marka";
 import { PLANLAR as PLAN_KAYNAK } from "@/lib/specter/plans";
+import { landingDil } from "@/lib/i18n/landing-sunucu";
+import { landingCeviri, type LandingDil } from "@/lib/i18n/landing";
 
-export default function LandingPage() {
+/** Bölümlere geçirilen çeviri yardımcısı tipi. */
+type T = (anahtar: string) => string;
+
+export default async function LandingPage() {
+  const dil = await landingDil();
+  const t: T = (k) => landingCeviri(k, dil);
   return (
     <>
       <JsonLd sss={SORULAR} />
-      <Hero />
-      <LogoStrip />
-      <Problem />
-      <GhostFont />
-      <HowItWorks />
-      <Features />
-      <UrunOnizleme />
-      <AiKoruma />
-      <Compare />
-      <Testimonials />
-      <Stats />
-      <Guven />
-      <Entegrasyonlar />
-      <CodeSection />
-      <Pricing />
+      <Hero t={t} />
+      <LogoStrip t={t} />
+      <Problem t={t} />
+      <GhostFont t={t} />
+      <HowItWorks t={t} />
+      <Features t={t} />
+      <UrunOnizleme t={t} />
+      <AiKoruma t={t} />
+      <Compare t={t} />
+      <Testimonials t={t} />
+      <Stats t={t} />
+      <Guven t={t} />
+      <Entegrasyonlar t={t} />
+      <CodeSection t={t} />
+      <Pricing t={t} />
       <Faq />
-      <FinalCta />
+      <FinalCta t={t} />
     </>
   );
 }
 
 /* ============================================================ HERO */
-function Hero() {
+function Hero({ t }: { t: T }) {
   return (
     <section className="relative overflow-hidden px-5 pt-16 pb-20 lg:px-8 lg:pt-24">
       <IzgaraArka />
@@ -48,20 +55,18 @@ function Hero() {
         <div>
           <Reveal>
             <Badge variant="indigo">
-              <Sparkles className="size-3.5" /> AI çağının bot koruması
+              <Sparkles className="size-3.5" /> {t("hero.rozet")}
             </Badge>
           </Reveal>
           <Reveal delay={1}>
             <h1 className="mt-5 text-[40px] font-extrabold leading-[1.05] tracking-tight text-veylify-950 sm:text-[54px]">
-              AI botları her CAPTCHA'yı geçiyor.{" "}
-              <Highlight variant="gradient">{MARKA.ad}</Highlight> geçemedikleri katman.
+              {t("hero.baslik1")}{" "}
+              <Highlight variant="gradient">{MARKA.ad}</Highlight> {t("hero.baslik2")}
             </h1>
           </Reveal>
           <Reveal delay={2}>
             <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-slate-600">
-              Ghost-font teknolojisiyle insanın gördüğü, makinenin göremediği bir
-              doğrulama. Davranış analizi, kural motoru ve görünmez mod ile
-              sitenizi GPTBot, ClaudeBot ve tüm AI kazıyıcılardan koruyun.
+              {t("hero.aciklama")}
             </p>
           </Reveal>
           <Reveal delay={3}>
@@ -70,27 +75,30 @@ function Hero() {
                 href="/kayit"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-veylify-600 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_32px_-10px_rgba(79,70,229,0.65)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
               >
-                Ücretsiz başla <ArrowRight className="size-[18px]" />
+                {t("hero.cta1")} <ArrowRight className="size-[18px]" />
               </Link>
               <Link
                 href="/demo"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-veylify-200 bg-white px-7 py-3.5 text-[15px] font-semibold text-veylify-700 transition hover:border-veylify-300 hover:bg-veylify-50"
               >
-                <Eye className="size-[18px]" /> Canlı demo
+                <Eye className="size-[18px]" /> {t("hero.cta2")}
               </Link>
             </div>
           </Reveal>
           <Reveal delay={4}>
             <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-slate-500">
-              {["10 dakikada kurulur", "Kredi kartı gerekmez", "reCAPTCHA uyumlu API"].map((t) => (
-                <span key={t} className="flex items-center gap-1.5">
-                  <Check className="size-4 text-veylify-600" /> {t}
+              {[t("hero.rozet1"), t("hero.rozet2"), t("hero.rozet3")].map((r) => (
+                <span key={r} className="flex items-center gap-1.5">
+                  <Check className="size-4 text-veylify-600" /> {r}
                 </span>
               ))}
             </div>
           </Reveal>
         </div>
-        <Reveal delay={2} className="zn-float">
+        <Reveal delay={2} className="zn-float space-y-5">
+          {/* Gerçek üretilmiş hero görseli — insan siluetinin kalkandan geçişi,
+              dağılan AI botları. Ürünün vaadini tek bakışta anlatır. */}
+          <Gorsel ad="hero" alt={t("hero.gorselAlt")} oran="16/11" oncelik />
           <HeroGorsel />
         </Reveal>
       </div>
@@ -99,12 +107,12 @@ function Hero() {
 }
 
 /* ============================================================ LOGO STRIP */
-function LogoStrip() {
+function LogoStrip({ t }: { t: T }) {
   return (
     <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-10 lg:px-8">
       <div className="mx-auto max-w-6xl text-center">
         <p className="text-[13px] font-medium uppercase tracking-wider text-slate-400">
-          Kullandığınız yığınla sorunsuz çalışır
+          {t("logo.baslik")}
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
           {GUVEN_MARKALARI.map((ad) => (
@@ -117,22 +125,22 @@ function LogoStrip() {
 }
 
 /* ============================================================ PROBLEM */
-function Problem() {
+function Problem({ t }: { t: T }) {
   const kartlar = [
-    { ikon: Bot, baslik: "AI ajanları CAPTCHA'yı çözüyor", metin: "GPT-4o ve Claude görüntü CAPTCHA'larını %90+ doğrulukla geçiyor. Klasik doğrulama artık işe yaramıyor." },
-    { ikon: Server, baslik: "İçeriğiniz eğitim verisine dönüşüyor", metin: "Kazıyıcı botlar sitenizi saniyeler içinde kopyalayıp AI modellerine yem yapıyor — izniniz olmadan." },
-    { ikon: Zap, baslik: "Altyapı maliyeti patlıyor", metin: "Trafiğinizin %40'ı bot. Her istek sunucu, bant genişliği ve para yakıyor." },
+    { ikon: Bot, baslik: t("problem.k1.baslik"), metin: t("problem.k1.metin") },
+    { ikon: Server, baslik: t("problem.k2.baslik"), metin: t("problem.k2.metin") },
+    { ikon: Zap, baslik: t("problem.k3.baslik"), metin: t("problem.k3.metin") },
   ];
   return (
     <section className="px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Sorun</Badge>
+          <Badge variant="indigo">{t("problem.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            CAPTCHA artık insanı bottan ayıramıyor
+            {t("problem.baslik")}
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
-            Yapay zeka görüntü tanımada insanı geçti. Eski doğrulama katmanları çöktü.
+            {t("problem.aciklama")}
           </p>
         </Reveal>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -154,30 +162,36 @@ function Problem() {
 }
 
 /* ============================================================ GHOST-FONT */
-function GhostFont() {
+function GhostFont({ t }: { t: T }) {
   return (
     <section className="relative overflow-hidden bg-veylify-950 px-5 py-20 lg:px-8">
       <div className="pointer-events-none absolute -right-20 top-0 -z-0 h-80 w-80 rounded-full bg-violet-600/20 blur-3xl" />
       <div className="relative mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-veylify-200 ring-1 ring-white/10">
-            <Eye className="size-3.5" /> Ghost-font teknolojisi
+            <Eye className="size-3.5" /> {t("ghost.rozet")}
           </span>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            İnsan görür. Makine göremez.
+            {t("ghost.baslik")}
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-white/60">
-            Temporal dithering ile karakterler tek karede gürültüye gömülür; yalnızca
-            hareket koheransını algılayan insan gözü okur. Ekran görüntüsü alan AI
-            bile sahte bir mesaj görür.
+            {t("ghost.aciklama")}
           </p>
         </div>
+        {/* Gerçek ghost-font görseli — okunabilir ama taranamaz yüzey. */}
+        <div className="mt-12">
+          <Gorsel
+            ad="kavram-ghost-yazit"
+            alt={t("ghost.gorselAlt")}
+            oran="21/9"
+          />
+        </div>
         {/* canlı interaktif demo (gerçek motor) + statik karşılaştırma */}
-        <div className="mt-12 grid items-start gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1fr_1.1fr]">
           <div>
             <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-white">
-              <span className="rounded-full bg-veylify-600 px-2.5 py-1 text-[11px] uppercase tracking-wide">Kendin dene</span>
-              Basılı tut, metnin nasıl kaybolduğunu gör
+              <span className="rounded-full bg-veylify-600 px-2.5 py-1 text-[11px] uppercase tracking-wide">{t("ghost.dene")}</span>
+              {t("ghost.deneMetin")}
             </div>
             <GhostHero />
           </div>
@@ -189,19 +203,19 @@ function GhostFont() {
 }
 
 /* ============================================================ HOW IT WORKS */
-function HowItWorks() {
+function HowItWorks({ t }: { t: T }) {
   const adimlar = [
-    { no: "01", ikon: Code2, baslik: "Tek satır entegrasyon", metin: "Script etiketini ekleyin ya da reCAPTCHA uyumlu API'yi çağırın. Mevcut kodunuz değişmez." },
-    { no: "02", ikon: Activity, baslik: "Trafiği anında sınıflandır", metin: "Her istek ghost-font, davranış biyometrisi, TLS parmak izi ve kural motorundan geçer." },
-    { no: "03", ikon: ShieldCheck, baslik: "İnsan geçer, bot durur", metin: "Milisaniyeler içinde karar: izin, doğrula veya engelle. Gerçek kullanıcı hiç fark etmez." },
+    { no: "01", ikon: Code2, baslik: t("nasil.a1.baslik"), metin: t("nasil.a1.metin") },
+    { no: "02", ikon: Activity, baslik: t("nasil.a2.baslik"), metin: t("nasil.a2.metin") },
+    { no: "03", ikon: ShieldCheck, baslik: t("nasil.a3.baslik"), metin: t("nasil.a3.metin") },
   ];
   return (
     <section id="nasil" className="px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Nasıl çalışır</Badge>
+          <Badge variant="indigo">{t("nasil.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Kurulumdan korumaya 10 dakika
+            {t("nasil.baslik")}
           </h2>
         </Reveal>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -226,7 +240,7 @@ function HowItWorks() {
           <Reveal delay={1} className="flex flex-col justify-center gap-5">
             <MimariSema />
             <div className="grid grid-cols-3 gap-3 text-center">
-              {[["48ms", "karar süresi"], ["5", "savunma katmanı"], ["%0", "sızıntı"]].map(([d, e]) => (
+              {[["48ms", t("nasil.stat1")], ["5", t("nasil.stat2")], ["%0", t("nasil.stat3")]].map(([d, e]) => (
                 <div key={e} className="rounded-2xl border border-veylify-100 bg-white p-4">
                   <div className="bg-gradient-to-r from-veylify-600 to-violet-600 bg-clip-text text-2xl font-extrabold text-transparent">{d}</div>
                   <div className="mt-0.5 text-[11.5px] font-medium text-slate-500">{e}</div>
@@ -241,27 +255,39 @@ function HowItWorks() {
 }
 
 /* ============================================================ FEATURES */
-function Features() {
+function Features({ t }: { t: T }) {
   const ozellikler = [
-    { ikon: Eye, baslik: "Ghost-font CAPTCHA", metin: "Temporal dithering — OCR'ı %100 kör eder, insanı hiç yormaz." },
-    { ikon: Fingerprint, baslik: "Davranış biyometrisi", metin: "Fare, tuş ve dokunuş dinamiğinden insan-bot ayrımı." },
-    { ikon: GitBranch, baslik: "Kural motoru", metin: "Path, ülke, ASN, bot sınıfı ile özel politikalar; canlı playground." },
-    { ikon: Lock, baslik: "Görünmez mod", metin: "Challenge göstermeden, reCAPTCHA v3 gibi arka planda skorla." },
-    { ikon: Bot, baslik: "AI ajan kataloğu", metin: "GPTBot, ClaudeBot, Bytespider — 15+ crawler'ı UA + TLS ile doğrula." },
-    { ikon: Globe, baslik: "Coğrafi & ASN istihbaratı", metin: "Datacenter, VPN, botnet trafiğini kaynağından yakala." },
-    { ikon: Gauge, baslik: "48ms yanıt", metin: "Edge'de çalışır; kullanıcı deneyimini hiç yavaşlatmaz." },
-    { ikon: Layers, baslik: "Çok-katmanlı savunma", metin: "Bir katman atlansa diğeri yakalar — defense in depth." },
+    { ikon: Eye, baslik: t("ozellik.f1.baslik"), metin: t("ozellik.f1.metin") },
+    { ikon: Fingerprint, baslik: t("ozellik.f2.baslik"), metin: t("ozellik.f2.metin") },
+    { ikon: GitBranch, baslik: t("ozellik.f3.baslik"), metin: t("ozellik.f3.metin") },
+    { ikon: Lock, baslik: t("ozellik.f4.baslik"), metin: t("ozellik.f4.metin") },
+    { ikon: Bot, baslik: t("ozellik.f5.baslik"), metin: t("ozellik.f5.metin") },
+    { ikon: Globe, baslik: t("ozellik.f6.baslik"), metin: t("ozellik.f6.metin") },
+    { ikon: Gauge, baslik: t("ozellik.f7.baslik"), metin: t("ozellik.f7.metin") },
+    { ikon: Layers, baslik: t("ozellik.f8.baslik"), metin: t("ozellik.f8.metin") },
   ];
   return (
     <section id="ozellikler" className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Özellikler</Badge>
+          <Badge variant="indigo">{t("ozellik.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Tek katman değil, bütün bir savunma platformu
+            {t("ozellik.baslik")}
           </h2>
         </Reveal>
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Üç sütunlu görsel şerit — katmanlı savunmanın görsel dili. */}
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          {[
+            { ad: "ozellik-davranis", alt: t("ozellik.gorsel1Alt") },
+            { ad: "ozellik-powkanit", alt: t("ozellik.gorsel2Alt") },
+            { ad: "kavram-katmanli-savunma", alt: t("ozellik.gorsel3Alt") },
+          ].map((g) => (
+            <Reveal key={g.ad}>
+              <Gorsel ad={g.ad} alt={g.alt} oran="16/11" />
+            </Reveal>
+          ))}
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ozellikler.map((o, i) => (
             <Reveal key={o.baslik} delay={(((i % 4) + 1) as 1 | 2 | 3 | 4)}>
               <div className="h-full rounded-2xl border border-veylify-100 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-25px_rgba(79,70,229,0.3)]">
@@ -280,27 +306,28 @@ function Features() {
 }
 
 /* ============================================================ ÜRÜN ÖNİZLEME */
-function UrunOnizleme() {
+function UrunOnizleme({ t }: { t: T }) {
   const noktalar = [
-    { ikon: Activity, baslik: "Canlı komuta merkezi", metin: "Her isteğin kararını gerçek zamanlı izle: izin, doğrula, engelle." },
-    { ikon: Bot, baslik: "AI ajan istihbaratı", metin: "GPTBot'tan Bytespider'a kadar her operatörü tek panelde yönet." },
-    { ikon: Gauge, baslik: "Milisaniye içgörü", metin: "48ms altında karar, 14 günlük trafik trendleri, ısı haritaları." },
+    { ikon: Activity, baslik: t("urun.n1.baslik"), metin: t("urun.n1.metin") },
+    { ikon: Bot, baslik: t("urun.n2.baslik"), metin: t("urun.n2.metin") },
+    { ikon: Gauge, baslik: t("urun.n3.baslik"), metin: t("urun.n3.metin") },
   ];
   return (
     <section className="relative overflow-hidden px-5 py-20 lg:px-8">
       <div className="pointer-events-none absolute -left-32 top-20 -z-10 size-80 rounded-full bg-veylify-100/40 blur-3xl" />
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Ürünü gör</Badge>
+          <Badge variant="indigo">{t("urun.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Tek panelden bütün bot trafiğin
+            {t("urun.baslik")}
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
-            İnsan mı, bot mu, hangi AI ajanı — her şey tek ekranda, canlı ve okunur.
+            {t("urun.aciklama")}
           </p>
         </Reveal>
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr]">
-          <Reveal>
+          <Reveal className="space-y-5">
+            <Gorsel ad="panel-soc" alt={t("urun.gorselAlt")} oran="16/10" />
             <UrunEkranGorseli />
           </Reveal>
           <Reveal delay={1} className="flex flex-col gap-5">
@@ -323,34 +350,33 @@ function UrunOnizleme() {
 }
 
 /* ============================================================ AI-AJAN KORUMASI */
-function AiKoruma() {
+function AiKoruma({ t }: { t: T }) {
   return (
     <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.15fr]">
           <Reveal>
-            <Badge variant="indigo">AI ajan kataloğu</Badge>
+            <Badge variant="indigo">{t("aikoruma.rozet")}</Badge>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-              Her AI ajanına ayrı politika
+              {t("aikoruma.baslik")}
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
-              GPTBot, ClaudeBot, Google-Extended, Bytespider — 15+ tanınan AI
-              crawler&apos;ı User-Agent ve TLS parmak iziyle doğrular. İzin ver,
-              doğrula ya da engelle; kararların tek tıkla gerçek robots.txt&apos;e döner.
+              {t("aikoruma.aciklama")}
             </p>
             <div className="mt-7 flex flex-col gap-3">
               {[
-                "Model eğitimi crawler'larını engelle, aramayı serbest bırak",
-                "robots.txt'i yok sayan ajanları AKTİF olarak durdur",
-                "Tek tıkla hazır politika profilleri (sıkı / dengeli / açık)",
-              ].map((t) => (
-                <span key={t} className="flex items-start gap-2.5 text-[14px] text-slate-700">
-                  <Check className="mt-0.5 size-[18px] shrink-0 text-veylify-600" /> {t}
+                t("aikoruma.m1"),
+                t("aikoruma.m2"),
+                t("aikoruma.m3"),
+              ].map((m) => (
+                <span key={m} className="flex items-start gap-2.5 text-[14px] text-slate-700">
+                  <Check className="mt-0.5 size-[18px] shrink-0 text-veylify-600" /> {m}
                 </span>
               ))}
             </div>
           </Reveal>
-          <Reveal delay={1}>
+          <Reveal delay={1} className="space-y-5">
+            <Gorsel ad="ai-ajan" alt={t("aikoruma.gorselAlt")} oran="16/11" />
             <AiAjanKoruma />
           </Reveal>
         </div>
@@ -360,25 +386,25 @@ function AiKoruma() {
 }
 
 /* ============================================================ COMPARE */
-function Compare() {
+function Compare({ t }: { t: T }) {
   // Karşılaştırma "Klasik CAPTCHA" (statik görüntü tabanlı) ile — her satır
   // ürünün GERÇEK yeteneğini yansıtır (yanıltıcı karşılaştırma yasal risk).
   const satirlar: [string, boolean, boolean][] = [
-    ["AI vision modellerine dayanıklı (ghost-font)", true, false],
-    ["Ekran görüntüsüne karşı dayanıklı (temporal dithering)", true, false],
-    ["Davranış biyometrisi (fare/klavye/zamanlama)", true, false],
-    ["AI ajanlarına aktif politika (robots.txt + engelleme)", true, false],
-    ["Görünmez mod (davranışla sürtünmesiz doğrulama)", true, false],
-    ["Coğrafi & ASN istihbaratı + kural motoru", true, false],
+    [t("compare.s1"), true, false],
+    [t("compare.s2"), true, false],
+    [t("compare.s3"), true, false],
+    [t("compare.s4"), true, false],
+    [t("compare.s5"), true, false],
+    [t("compare.s6"), true, false],
     ["reCAPTCHA uyumlu siteverify API", true, true],
   ];
   return (
     <section id="karsilastirma" className="px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Karşılaştırma</Badge>
+          <Badge variant="indigo">{t("compare.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Klasik CAPTCHA'nın yapamadığı
+            {t("compare.baslik")}
           </h2>
         </Reveal>
         <Reveal delay={1}>
@@ -386,7 +412,7 @@ function Compare() {
             <div className="grid grid-cols-[1.6fr_1fr_1fr] border-b border-veylify-100 bg-veylify-50/50 px-5 py-4 text-[13px] font-semibold">
               <span className="text-slate-500">Özellik</span>
               <span className="text-center text-veylify-700">{MARKA.ad}</span>
-              <span className="text-center text-slate-400">Klasik CAPTCHA</span>
+              <span className="text-center text-slate-400">{t("compare.klasik")}</span>
             </div>
             {satirlar.map(([ad, z, k], i) => (
               <div
@@ -410,7 +436,7 @@ function Compare() {
 }
 
 /* ============================================================ TESTIMONIALS */
-function Testimonials() {
+function Testimonials({ t }: { t: T }) {
   const yorumlar = [
     {
       metin: "reCAPTCHA'dan geçiş: görünmez mod ile gerçek kullanıcılar hiç sürtünme yaşamadan, bot trafiği davranış skoru + kural motoruyla eleniyor.",
@@ -429,9 +455,9 @@ function Testimonials() {
     <section className="px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Kullanım senaryoları</Badge>
+          <Badge variant="indigo">{t("yorum.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Veylify ile botları <Highlight variant="gradient">nasıl durdurursunuz</Highlight>
+            {t("yorum.baslik")}
           </h2>
           <p className="mt-3 text-[15px] text-veylify-600">
             Aşağıdaki senaryolar, Veylify'ın gerçek yeteneklerini gösteren temsili örneklerdir.
@@ -469,12 +495,12 @@ function Testimonials() {
 }
 
 /* ============================================================ STATS */
-function Stats() {
+function Stats({ t }: { t: T }) {
   const stats: [string, string][] = [
-    ["%100", "OCR körlüğü (kanıtlı)"],
-    ["48ms", "ortalama yanıt süresi"],
-    ["15+", "tanınan AI crawler"],
-    ["%99.4", "insan geçiş oranı"],
+    ["%100", t("stat.1")],
+    ["48ms", t("stat.2")],
+    ["15+", t("stat.3")],
+    ["%99.4", t("stat.4")],
   ];
   return (
     <section className="bg-gradient-to-br from-veylify-600 to-violet-600 px-5 py-16 lg:px-8">
@@ -491,23 +517,22 @@ function Stats() {
 }
 
 /* ============================================================ CODE */
-function CodeSection() {
+function CodeSection({ t }: { t: T }) {
   return (
     <section className="px-5 py-20 lg:px-8">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
         <Reveal>
-          <Badge variant="indigo">Geliştirici dostu</Badge>
+          <Badge variant="indigo">{t("kod.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Tek satır ekle, koruma başlasın
+            {t("kod.baslik")}
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
-            Script etiketi ya da reCAPTCHA uyumlu API. Mevcut backend'iniz değişmeden
-            çalışır. Her dilde SDK, kapsamlı dokümanlar.
+            {t("kod.aciklama")}
           </p>
           <ul className="mt-6 space-y-3">
-            {["Sunucu-taraflı doğrulama (siteverify)", "Görünmez pasif skorlama", "Webhook & Slack entegrasyonu"].map((t) => (
-              <li key={t} className="flex items-center gap-2.5 text-[14px] text-slate-700">
-                <Check className="size-[18px] text-veylify-600" /> {t}
+            {[t("kod.m1"), t("kod.m2"), t("kod.m3")].map((m) => (
+              <li key={m} className="flex items-center gap-2.5 text-[14px] text-slate-700">
+                <Check className="size-[18px] text-veylify-600" /> {m}
               </li>
             ))}
           </ul>
@@ -544,27 +569,27 @@ if (verdict !== "allowed") return blockRequest();`}
 }
 
 /* ============================================================ PRICING */
-function Pricing() {
+function Pricing({ t }: { t: T }) {
   // Tek kaynak: plan adları/fiyatları/limitleri plans.ts'ten türetilir (landing = müşteriye söz).
-  const num = (n: number) => (n >= 100000000 ? "Sınırsız" : n.toLocaleString("tr-TR"));
+  const num = (n: number) => (n >= 100000000 ? t("fiyat.sinirsiz") : n.toLocaleString("tr-TR"));
   const f = PLAN_KAYNAK.free, p2 = PLAN_KAYNAK.pro, s = PLAN_KAYNAK.scale;
   const planlar = [
-    { ad: f.ad, fiyat: f.fiyat.replace("/ay", ""), period: "/ay", ozet: "Kişisel projeler için", vurgu: false,
-      ozellikler: [`${num(f.dogrulamaKotasi)} doğrulama/ay`, "Ghost-font CAPTCHA", `${f.siteLimiti} site`, "Topluluk desteği"] },
-    { ad: p2.ad, fiyat: p2.fiyat.replace("/ay", ""), period: "/ay", ozet: "Büyüyen ekipler için", vurgu: true,
-      ozellikler: [`${num(p2.dogrulamaKotasi)} doğrulama/ay`, "Tüm savunma katmanları", `${p2.siteLimiti} site`, "Kural motoru + görünmez mod", "Öncelikli destek"] },
-    { ad: s.ad, fiyat: s.fiyat, period: "", ozet: "Yüksek trafik & SLA", vurgu: false, ozel: true,
-      ozellikler: ["Sınırsız doğrulama", "Özel SLA + SSO", "Sınırsız site", "Adanmış çözüm mühendisi", "On-premise seçeneği"] },
+    { ad: f.ad, fiyat: f.fiyat.replace("/ay", ""), period: "/ay", ozet: t("fiyat.free.ozet"), vurgu: false,
+      ozellikler: [`${num(f.dogrulamaKotasi)} ${t("fiyat.dogrulamaAy")}`, t("fiyat.ghostfont"), `${f.siteLimiti} ${t("fiyat.site")}`, t("fiyat.toplulukDestek")] },
+    { ad: p2.ad, fiyat: p2.fiyat.replace("/ay", ""), period: "/ay", ozet: t("fiyat.pro.ozet"), vurgu: true,
+      ozellikler: [`${num(p2.dogrulamaKotasi)} ${t("fiyat.dogrulamaAy")}`, t("fiyat.tumKatman"), `${p2.siteLimiti} ${t("fiyat.site")}`, t("fiyat.kuralGorunmez"), t("fiyat.oncelikDestek")] },
+    { ad: s.ad, fiyat: s.fiyat, period: "", ozet: t("fiyat.scale.ozet"), vurgu: false, ozel: true,
+      ozellikler: [t("fiyat.sinirsizDog"), t("fiyat.ozelSla"), t("fiyat.sinirsizSite"), t("fiyat.adanmisMuh"), t("fiyat.onpremise")] },
   ];
   return (
     <section id="fiyat" className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Fiyatlandırma</Badge>
+          <Badge variant="indigo">{t("fiyat.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Basit, şeffaf, ölçeklenen
+            {t("fiyat.baslik")}
           </h2>
-          <p className="mt-4 text-[16px] text-slate-600">Kredi kartı gerekmez. İstediğin zaman iptal et.</p>
+          <p className="mt-4 text-[16px] text-slate-600">{t("fiyat.aciklama")}</p>
         </Reveal>
         <div className="mt-12 grid gap-5 lg:grid-cols-3">
           {planlar.map((p, i) => (
@@ -578,7 +603,7 @@ function Pricing() {
               >
                 {p.vurgu && (
                   <span className="mb-3 inline-flex w-fit items-center gap-1 rounded-full bg-veylify-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-                    <Sparkles className="size-3" /> En popüler
+                    <Sparkles className="size-3" /> {t("fiyat.populer")}
                   </span>
                 )}
                 <h3 className="text-[15px] font-bold text-veylify-950">{p.ad}</h3>
@@ -602,7 +627,7 @@ function Pricing() {
                       : "border border-veylify-200 bg-white text-veylify-700 hover:bg-veylify-50"
                   }`}
                 >
-                  {p.ozel ? "İletişime geç" : "Başla"} <ArrowRight className="size-4" />
+                  {p.ozel ? t("fiyat.iletisim") : t("fiyat.basla")} <ArrowRight className="size-4" />
                 </Link>
               </div>
             </Reveal>
@@ -614,26 +639,25 @@ function Pricing() {
 }
 
 /* ============================================================ GÜVEN & UYUMLULUK */
-function Guven() {
+function Guven({ t }: { t: T }) {
   const rozetler = [
-    { ikon: ShieldCheck, ad: "KVKK uyumlu", alt: "Veriler Türkiye'de, aydınlatma metni hazır" },
-    { ikon: Lock, ad: "Uçtan uca şifreli", alt: "TLS 1.3 + at-rest AES-256" },
-    { ikon: Server, ad: "SOC 2 hedefli", alt: "Denetim izleri & erişim kontrolü" },
-    { ikon: Globe, ad: "GDPR hazır", alt: "AB veri işleme sözleşmesi" },
-    { ikon: Activity, ad: "%99.9 uptime", alt: "Çok-bölgeli edge dağıtımı" },
-    { ikon: Fingerprint, ad: "Sıfır PII sızıntısı", alt: "Ghost-font istemcide çalışır" },
+    { ikon: ShieldCheck, ad: t("guven.r1.ad"), alt: t("guven.r1.alt") },
+    { ikon: Lock, ad: t("guven.r2.ad"), alt: t("guven.r2.alt") },
+    { ikon: Server, ad: t("guven.r3.ad"), alt: t("guven.r3.alt") },
+    { ikon: Globe, ad: t("guven.r4.ad"), alt: t("guven.r4.alt") },
+    { ikon: Activity, ad: t("guven.r5.ad"), alt: t("guven.r5.alt") },
+    { ikon: Fingerprint, ad: t("guven.r6.ad"), alt: t("guven.r6.alt") },
   ];
   return (
     <section className="px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Güven & uyumluluk</Badge>
+          <Badge variant="indigo">{t("guven.rozet")}</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Kurumsal güvenlik, gün bir&apos;den itibaren
+            {t("guven.baslik")}
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
-            Veriniz sizde kalır. Ghost-font tarayıcıda çalışır — sunucumuza asla
-            piksel gitmez. Uyumluluk ilk günden düşünüldü.
+            {t("guven.aciklama")}
           </p>
         </Reveal>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -657,7 +681,7 @@ function Guven() {
 }
 
 /* ============================================================ ENTEGRASYONLAR */
-function Entegrasyonlar() {
+function Entegrasyonlar({ t }: { t: T }) {
   const araclar = [
     { ad: "WordPress", ikon: Globe },
     { ad: "Shopify", ikon: Server },
@@ -677,22 +701,21 @@ function Entegrasyonlar() {
       <div className="mx-auto max-w-6xl">
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
           <Reveal>
-            <Badge variant="indigo">Entegrasyonlar</Badge>
+            <Badge variant="indigo">{t("enteg.rozet")}</Badge>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-              Yığınınız neyse, {MARKA.ad} oraya oturur
+              {t("enteg.baslik")}
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
-              Script etiketi, reCAPTCHA-uyumlu API veya sunucu-taraflı SDK. WordPress&apos;ten
-              Next.js&apos;e, Shopify&apos;dan kendi backend&apos;inize — dakikalar içinde bağlanır.
+              {t("enteg.aciklama")}
             </p>
             <div className="mt-7 flex flex-col gap-3">
               {[
-                "reCAPTCHA v2/v3 uyumlu — kodu değiştirmeden geçiş",
-                "Her dilde SDK + kapsamlı doküman",
-                "Webhook & Slack ile anlık uyarı",
-              ].map((t) => (
-                <span key={t} className="flex items-center gap-2.5 text-[14px] text-slate-700">
-                  <Check className="size-[18px] shrink-0 text-veylify-600" /> {t}
+                t("enteg.m1"),
+                t("enteg.m2"),
+                t("enteg.m3"),
+              ].map((m) => (
+                <span key={m} className="flex items-center gap-2.5 text-[14px] text-slate-700">
+                  <Check className="size-[18px] shrink-0 text-veylify-600" /> {m}
                 </span>
               ))}
             </div>
@@ -700,7 +723,7 @@ function Entegrasyonlar() {
               href="/nasil-calisir"
               className="mt-7 inline-flex items-center gap-2 text-[14px] font-semibold text-veylify-600 transition hover:gap-3 hover:text-veylify-700"
             >
-              Nasıl çalıştığını gör <ArrowRight className="size-4" />
+              {t("enteg.link")} <ArrowRight className="size-4" />
             </Link>
           </Reveal>
           <Reveal delay={1}>
@@ -725,29 +748,29 @@ function Entegrasyonlar() {
 }
 
 /* ============================================================ FINAL CTA */
-function FinalCta() {
+function FinalCta({ t }: { t: T }) {
   return (
     <section className="px-5 py-24 lg:px-8">
       <Reveal className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-veylify-700 via-veylify-600 to-violet-600 px-8 py-16 text-center shadow-[0_40px_100px_-40px_rgba(79,70,229,0.6)]">
         <div className="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10 blur-2xl" />
         <h2 className="relative text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Sitenizi AI botlarından bugün koruyun
+          {t("cta.baslik")}
         </h2>
         <p className="relative mx-auto mt-4 max-w-lg text-[16px] leading-relaxed text-white/80">
-          10 dakikada kurun, kredi kartı olmadan başlayın. İnsanlar geçer, botlar durur.
+          {t("cta.aciklama")}
         </p>
         <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/kayit"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-veylify-700 transition hover:-translate-y-0.5"
           >
-            Ücretsiz başla <ArrowRight className="size-[18px]" />
+            {t("cta.buton1")} <ArrowRight className="size-[18px]" />
           </Link>
           <Link
             href="/demo"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/20"
           >
-            <Eye className="size-[18px]" /> Önce demoyu gör
+            <Eye className="size-[18px]" /> {t("cta.buton2")}
           </Link>
         </div>
       </Reveal>

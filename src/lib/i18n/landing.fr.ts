@@ -1,0 +1,205 @@
+/** Landing i18n — Fransızca (Français) sözlük. Anahtarlar landing.ts (tr) ile birebir aynı. */
+export const fr: Record<string, string> = {
+  // --- Navbar ---
+  "nav.ozellikler": "Fonctionnalités",
+  "nav.nasil": "Comment ça marche",
+  "nav.cozumler": "Solutions",
+  "nav.fiyat": "Tarifs",
+  "nav.demo": "Démo en direct",
+  "nav.giris": "Connexion",
+  "nav.basla": "Commencer gratuitement",
+
+  // --- Hero ---
+  "hero.rozet": "La protection anti-bots de l'ère de l'IA",
+  "hero.baslik1": "Les bots IA franchissent tous les CAPTCHA.",
+  "hero.baslik2": "la couche qu'ils ne franchissent pas.",
+  "hero.aciklama": "Grâce à la technologie ghost-font, une vérification que l'humain voit et que la machine ne voit pas. Protégez votre site contre GPTBot, ClaudeBot et tous les scrapers d'IA grâce à l'analyse comportementale, au moteur de règles et au mode invisible.",
+  "hero.cta1": "Commencer gratuitement",
+  "hero.cta2": "Démo en direct",
+  "hero.rozet1": "Installé en 10 minutes",
+  "hero.rozet2": "Aucune carte bancaire requise",
+  "hero.rozet3": "API compatible reCAPTCHA",
+  "hero.gorselAlt": "Bouclier Veylify : le trafic humain passe, les bots IA se dispersent en pixels",
+
+  // --- Logo strip ---
+  "logo.baslik": "Fonctionne parfaitement avec la stack que vous utilisez",
+
+  // --- Problem ---
+  "problem.rozet": "Le problème",
+  "problem.baslik": "Le CAPTCHA ne distingue plus l'humain du bot",
+  "problem.aciklama": "L'intelligence artificielle a dépassé l'humain en reconnaissance d'images. Les anciennes couches de vérification se sont effondrées.",
+  "problem.k1.baslik": "Les agents IA résolvent le CAPTCHA",
+  "problem.k1.metin": "GPT-4o et Claude franchissent les CAPTCHA visuels avec une précision de plus de 90 %. La vérification classique ne fonctionne plus.",
+  "problem.k2.baslik": "Votre contenu devient une donnée d'entraînement",
+  "problem.k2.metin": "Les bots scrapers copient votre site en quelques secondes et le transforment en pâture pour les modèles d'IA — sans votre accord.",
+  "problem.k3.baslik": "Les coûts d'infrastructure explosent",
+  "problem.k3.metin": "40 % de votre trafic est constitué de bots. Chaque requête consomme du serveur, de la bande passante et de l'argent.",
+
+  // --- Ghost-font ---
+  "ghost.rozet": "Technologie ghost-font",
+  "ghost.baslik": "L'humain voit. La machine ne voit pas.",
+  "ghost.aciklama": "Grâce au temporal dithering, les caractères se noient dans le bruit sur chaque image ; seul l'œil humain, qui perçoit la cohérence du mouvement, les lit. Même une IA qui fait une capture d'écran ne voit qu'un faux message.",
+  "ghost.gorselAlt": "Ghost-font : les caractères se transforment en statique à chaque image, restant lisibles pour l'humain et illisibles pour la machine",
+  "ghost.dene": "Essayez vous-même",
+  "ghost.deneMetin": "Maintenez appuyé et regardez le texte disparaître",
+
+  // --- How it works ---
+  "nasil.rozet": "Comment ça marche",
+  "nasil.baslik": "De l'installation à la protection en 10 minutes",
+  "nasil.a1.baslik": "Intégration en une seule ligne",
+  "nasil.a1.metin": "Ajoutez la balise de script ou appelez l'API compatible reCAPTCHA. Votre code existant reste inchangé.",
+  "nasil.a2.baslik": "Classez le trafic instantanément",
+  "nasil.a2.metin": "Chaque requête passe par le ghost-font, la biométrie comportementale, l'empreinte TLS et le moteur de règles.",
+  "nasil.a3.baslik": "L'humain passe, le bot s'arrête",
+  "nasil.a3.metin": "Décision en quelques millisecondes : autoriser, vérifier ou bloquer. Le véritable utilisateur ne s'aperçoit de rien.",
+  "nasil.stat1": "temps de décision",
+  "nasil.stat2": "couches de défense",
+  "nasil.stat3": "fuite",
+
+  // --- Features ---
+  "ozellik.rozet": "Fonctionnalités",
+  "ozellik.baslik": "Pas une simple couche, mais une plateforme de défense complète",
+  "ozellik.gorsel1Alt": "Biométrie comportementale : les tracés de souris humains sont marqués en cyan, les lignes droites robotiques en rouge",
+  "ozellik.gorsel2Alt": "Proof-of-work : cube de difficulté cryptographique dédié aux bots",
+  "ozellik.gorsel3Alt": "Défense multicouche : couches de bouclier imbriquées",
+  "ozellik.f1.baslik": "CAPTCHA ghost-font",
+  "ozellik.f1.metin": "Temporal dithering — rend l'OCR aveugle à 100 %, sans jamais fatiguer l'humain.",
+  "ozellik.f2.baslik": "Biométrie comportementale",
+  "ozellik.f2.metin": "Distinction humain-bot à partir de la dynamique de la souris, du clavier et du toucher.",
+  "ozellik.f3.baslik": "Moteur de règles",
+  "ozellik.f3.metin": "Politiques personnalisées par chemin, pays, ASN et classe de bot ; playground en direct.",
+  "ozellik.f4.baslik": "Mode invisible",
+  "ozellik.f4.metin": "Notez en arrière-plan comme reCAPTCHA v3, sans afficher de challenge.",
+  "ozellik.f5.baslik": "Catalogue d'agents IA",
+  "ozellik.f5.metin": "GPTBot, ClaudeBot, Bytespider — vérifiez plus de 15 crawlers via UA + TLS.",
+  "ozellik.f6.baslik": "Renseignement géographique et ASN",
+  "ozellik.f6.metin": "Interceptez à la source le trafic datacenter, VPN et botnet.",
+  "ozellik.f7.baslik": "Réponse en 48ms",
+  "ozellik.f7.metin": "S'exécute en périphérie ; ne ralentit jamais l'expérience utilisateur.",
+  "ozellik.f8.baslik": "Défense multicouche",
+  "ozellik.f8.metin": "Si une couche est franchie, une autre l'intercepte — defense in depth.",
+
+  // --- Ürün önizleme ---
+  "urun.rozet": "Découvrez le produit",
+  "urun.baslik": "Tout votre trafic de bots dans un seul tableau de bord",
+  "urun.aciklama": "Humain ou bot, quel agent IA — tout sur un seul écran, en direct et lisible.",
+  "urun.gorselAlt": "Centre de commande Veylify : flux de menaces en direct, indicateur de score de protection et carte des attaques bloquées",
+  "urun.n1.baslik": "Centre de commande en direct",
+  "urun.n1.metin": "Suivez en temps réel la décision de chaque requête : autoriser, vérifier, bloquer.",
+  "urun.n2.baslik": "Renseignement sur les agents IA",
+  "urun.n2.metin": "Gérez chaque opérateur, de GPTBot à Bytespider, depuis un seul tableau de bord.",
+  "urun.n3.baslik": "Insights à la milliseconde",
+  "urun.n3.metin": "Décision en moins de 48ms, tendances de trafic sur 14 jours, cartes de chaleur.",
+
+  // --- AI koruma ---
+  "aikoruma.rozet": "Catalogue d'agents IA",
+  "aikoruma.baslik": "Une politique distincte pour chaque agent IA",
+  "aikoruma.aciklama": "GPTBot, ClaudeBot, Google-Extended, Bytespider — plus de 15 crawlers IA reconnus, vérifiés par User-Agent et empreinte TLS. Autorisez, vérifiez ou bloquez ; vos décisions se traduisent en un clic en un véritable robots.txt.",
+  "aikoruma.gorselAlt": "Un agent IA est stoppé par la barrière ghost-font tandis que l'utilisateur humain passe sans effort",
+  "aikoruma.m1": "Bloquez les crawlers d'entraînement de modèles, libérez la recherche",
+  "aikoruma.m2": "Arrêtez ACTIVEMENT les agents qui ignorent le robots.txt",
+  "aikoruma.m3": "Profils de politiques prêts à l'emploi en un clic (strict / équilibré / ouvert)",
+
+  // --- Compare ---
+  "compare.rozet": "Comparaison",
+  "compare.baslik": "Là où le CAPTCHA classique échoue",
+  "compare.veylify": "Veylify",
+  "compare.klasik": "CAPTCHA classique",
+  "compare.s1": "Résistant aux modèles de vision IA (ghost-font)",
+  "compare.s2": "Résistant aux captures d'écran (temporal dithering)",
+  "compare.s3": "Biométrie comportementale (souris/clavier/timing)",
+  "compare.s4": "Politique active contre les agents IA (robots.txt + blocage)",
+  "compare.s5": "Mode invisible (vérification sans friction par le comportement)",
+  "compare.s6": "Renseignement géographique et ASN + moteur de règles",
+
+  // --- Testimonials ---
+  "yorum.rozet": "Ce que disent les clients",
+  "yorum.baslik": "Les équipes font confiance à Veylify",
+
+  // --- Stats ---
+  "stat.1": "cécité de l'OCR (prouvée)",
+  "stat.2": "temps de réponse moyen",
+  "stat.3": "crawlers IA reconnus",
+  "stat.4": "taux de passage humain",
+
+  // --- Code ---
+  "kod.rozet": "Pensé pour les développeurs",
+  "kod.baslik": "Ajoutez une ligne, la protection démarre",
+  "kod.aciklama": "Balise de script ou API compatible reCAPTCHA. Fonctionne sans modifier votre backend existant. Un SDK dans chaque langage, une documentation complète.",
+  "kod.m1": "Vérification côté serveur (siteverify)",
+  "kod.m2": "Scoring passif invisible",
+  "kod.m3": "Intégration Webhook et Slack",
+
+  // --- Pricing ---
+  "fiyat.rozet": "Tarification",
+  "fiyat.baslik": "Simple, transparente et évolutive",
+  "fiyat.aciklama": "Aucune carte bancaire requise. Annulez à tout moment.",
+  "fiyat.free.ozet": "Pour les projets personnels",
+  "fiyat.pro.ozet": "Pour les équipes en croissance",
+  "fiyat.scale.ozet": "Fort trafic et SLA",
+  "fiyat.populer": "Le plus populaire",
+  "fiyat.basla": "Commencer",
+  "fiyat.iletisim": "Nous contacter",
+  "fiyat.dogrulamaAy": "vérifications/mois",
+  "fiyat.site": "site",
+  "fiyat.ghostfont": "CAPTCHA ghost-font",
+  "fiyat.toplulukDestek": "Support communautaire",
+  "fiyat.tumKatman": "Toutes les couches de défense",
+  "fiyat.kuralGorunmez": "Moteur de règles + mode invisible",
+  "fiyat.oncelikDestek": "Support prioritaire",
+  "fiyat.sinirsizDog": "Vérifications illimitées",
+  "fiyat.ozelSla": "SLA dédié + SSO",
+  "fiyat.sinirsizSite": "Sites illimités",
+  "fiyat.adanmisMuh": "Ingénieur solution dédié",
+  "fiyat.onpremise": "Option on-premise",
+  "fiyat.sinirsiz": "Illimité",
+
+  // --- Güven ---
+  "guven.rozet": "Confiance et conformité",
+  "guven.baslik": "Une sécurité d'entreprise, dès le premier jour",
+  "guven.aciklama": "Vos données restent chez vous. Le ghost-font s'exécute dans le navigateur — aucun pixel n'atteint jamais notre serveur. La conformité a été pensée dès le premier jour.",
+  "guven.r1.ad": "Conforme KVKK",
+  "guven.r1.alt": "Données hébergées en Türkiye, mention d'information prête",
+  "guven.r2.ad": "Chiffrement de bout en bout",
+  "guven.r2.alt": "TLS 1.3 + AES-256 au repos",
+  "guven.r3.ad": "Objectif SOC 2",
+  "guven.r3.alt": "Journaux d'audit et contrôle d'accès",
+  "guven.r4.ad": "Prêt pour le RGPD",
+  "guven.r4.alt": "Accord de traitement des données UE",
+  "guven.r5.ad": "99,9 % de disponibilité",
+  "guven.r5.alt": "Déploiement edge multi-régions",
+  "guven.r6.ad": "Zéro fuite de PII",
+  "guven.r6.alt": "Le ghost-font s'exécute côté client",
+
+  // --- Entegrasyonlar ---
+  "enteg.rozet": "Intégrations",
+  "enteg.baslik": "Quelle que soit votre stack, il s'y intègre",
+  "enteg.aciklama": "Balise de script, API compatible reCAPTCHA ou SDK côté serveur. De WordPress à Next.js, de Shopify à votre propre backend — il se connecte en quelques minutes.",
+  "enteg.m1": "Compatible reCAPTCHA v2/v3 — migration sans changer de code",
+  "enteg.m2": "Un SDK dans chaque langage + une documentation complète",
+  "enteg.m3": "Alertes en temps réel via Webhook et Slack",
+  "enteg.link": "Voir comment ça marche",
+
+  // --- Final CTA ---
+  "cta.baslik": "Protégez votre site des bots IA dès aujourd'hui",
+  "cta.aciklama": "Commencez gratuitement, aucune carte bancaire requise. Installez en 10 minutes, bloquez votre premier bot dès aujourd'hui.",
+  "cta.buton1": "Commencer gratuitement",
+  "cta.buton2": "Parler aux ventes",
+
+  // --- FAQ ---
+  "faq.rozet": "Foire aux questions",
+  "faq.baslik": "Questions fréquentes",
+
+  // --- Footer ---
+  "footer.slogan": "La protection anti-bots de l'ère de l'IA. Une vérification que l'humain voit et que la machine ne voit pas.",
+  "footer.urun": "Produit",
+  "footer.sirket": "Entreprise",
+  "footer.kaynaklar": "Ressources",
+  "footer.yasal": "Mentions légales",
+  "footer.haklar": "Tous droits réservés.",
+  "footer.sistemler": "Tous les systèmes opérationnels",
+
+  // --- Ortak ---
+  "ortak.evet": "oui",
+  "ortak.hayir": "non",
+};

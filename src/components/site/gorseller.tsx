@@ -1,6 +1,53 @@
 "use client";
 
+import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
+
+/**
+ * Pazarlama görseli — Gemini ile üretilen gerçek WebP görseller (public/pazarlama).
+ * Kalite korunur (quality=95), koyu premium çerçeve + ışıma ile beyaz temaya
+ * sinematik biçimde oturur. `oran` ile kırpma aspect'i ayarlanır.
+ */
+export function Gorsel({
+  ad,
+  alt,
+  oran = "16/10",
+  className = "",
+  cerceve = true,
+  oncelik = false,
+}: {
+  ad: string;
+  alt: string;
+  /** CSS aspect-ratio (ör. "16/10", "1/1", "16/9"). Görsel kaynak 1:1. */
+  oran?: string;
+  className?: string;
+  /** Koyu çerçeve + ışıma. false → çıplak görsel (arka plan olarak). */
+  cerceve?: boolean;
+  oncelik?: boolean;
+}) {
+  const img = (
+    <Image
+      src={`/pazarlama/${ad}.webp`}
+      alt={alt}
+      width={1024}
+      height={1024}
+      quality={95}
+      priority={oncelik}
+      sizes="(max-width: 768px) 100vw, 640px"
+      className="h-full w-full object-cover"
+      style={{ aspectRatio: oran }}
+    />
+  );
+  if (!cerceve) return <div className={className} style={{ aspectRatio: oran }}>{img}</div>;
+  return (
+    <div className={`relative ${className}`}>
+      <div className="pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] bg-gradient-to-br from-veylify-300/40 via-violet-300/30 to-transparent blur-2xl" />
+      <div className="overflow-hidden rounded-3xl border border-veylify-200/60 bg-veylify-950 shadow-[0_30px_80px_-30px_rgba(79,70,229,0.5)]">
+        {img}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Landing görselleri — hepsi elle çizilmiş, offline, keskin SVG.

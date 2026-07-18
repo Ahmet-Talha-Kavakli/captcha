@@ -5,16 +5,19 @@ import { useEffect, useState } from "react";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
+import { DilDegistirici } from "./DilDegistirici";
+import { landingCeviri, LANDING_VARSAYILAN, type LandingDil } from "@/lib/i18n/landing";
 
 const LINKS = [
-  { href: "/ozellikler", label: "Özellikler" },
-  { href: "/nasil-calisir", label: "Nasıl çalışır" },
-  { href: "/cozumler", label: "Çözümler" },
-  { href: "/fiyatlandirma", label: "Fiyatlar" },
-  { href: "/demo", label: "Canlı demo" },
+  { href: "/ozellikler", anahtar: "nav.ozellikler" },
+  { href: "/nasil-calisir", anahtar: "nav.nasil" },
+  { href: "/cozumler", anahtar: "nav.cozumler" },
+  { href: "/fiyatlandirma", anahtar: "nav.fiyat" },
+  { href: "/demo", anahtar: "nav.demo" },
 ];
 
-export function Navbar() {
+export function Navbar({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
+  const t = (k: string) => landingCeviri(k, dil);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -60,23 +63,24 @@ export function Navbar() {
               href={l.href}
               className="rounded-xl px-3.5 py-2.5 text-[15px] font-medium text-slate-600 transition hover:bg-veylify-50 hover:text-veylify-700"
             >
-              {l.label}
+              {t(l.anahtar)}
             </Link>
           ))}
         </div>
 
         <div className="hidden items-center gap-2.5 md:flex">
+          <DilDegistirici dil={dil} />
           <Link
             href="/giris"
             className="rounded-xl px-3.5 py-2.5 text-[15px] font-medium text-slate-600 transition hover:text-veylify-700"
           >
-            Giriş
+            {t("nav.giris")}
           </Link>
           <Link
             href="/kayit"
             className="inline-flex items-center gap-1.5 rounded-full bg-veylify-600 px-5 py-2.5 text-[15px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(79,70,229,0.6)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
           >
-            Ücretsiz başla <ArrowRight className="h-4 w-4" />
+            {t("nav.basla")} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -101,21 +105,22 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-veylify-50"
               >
-                {l.label}
+                {t(l.anahtar)}
               </Link>
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-veylify-100 pt-3">
+              <div className="px-1 pb-1"><DilDegistirici dil={dil} /></div>
               <Link
                 href="/giris"
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-veylify-50"
               >
-                Giriş
+                {t("nav.giris")}
               </Link>
               <Link
                 href="/kayit"
                 className="rounded-full bg-veylify-600 px-5 py-2.5 text-center text-sm font-semibold text-white"
               >
-                Ücretsiz başla
+                {t("nav.basla")}
               </Link>
             </div>
           </div>

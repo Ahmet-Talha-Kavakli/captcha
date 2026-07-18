@@ -1,15 +1,27 @@
+import { Suspense } from "react";
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { AuthMixfont } from "../../AuthMixfont";
+import { clerkYapili } from "@/lib/clerk-durum";
 
 export const metadata = { title: "Giriş" };
 
 /**
- * Giriş — Clerk <SignIn> (gerçek kimlik doğrulama). Marka temalı.
- * Demo hesabı ayrı bir cookie-auth akışıyla `/demo-giris` üzerinden denenebilir
- * (test + vitrin için korunur).
+ * Giriş sayfası. Clerk GERÇEKTEN yapılandırılmışsa (geçerli publishable key)
+ * Clerk <SignIn> kullanılır; aksi halde (üretimde env yok/placeholder ise
+ * <SignIn> BOŞ render eder → kullanıcı formu göremez, panele giremez) kendi
+ * e-posta/şifre formumuza (AuthMixfont → /api/auth/login) DÜŞÜLÜR. Böylece
+ * Clerk kurulu olsun olmasın giriş her zaman çalışır.
  */
 export default function GirisPage() {
+  if (!clerkYapili()) {
+    return (
+      <Suspense>
+        <AuthMixfont mode="sign-in" />
+      </Suspense>
+    );
+  }
   return (
     <div className="flex flex-col items-center gap-6">
       <Link href="/" aria-label="Ana sayfa">

@@ -462,7 +462,7 @@ export function GenelBakisIstemci({
       {/* BOT AĞI & İLİŞKİ GRAFİĞİ — aynı fingerprint/ASN paylaşan IP'ler → botnet kümeleri */}
       {iliskiGraf.kumeler.length > 0 && (
         <motion.div {...bolum((bolumSira++) * 0.06)}>
-          <IliskiGrafigiBolumu graf={iliskiGraf} azHareket={!!azHareket} />
+          <IliskiGrafigiBolumu graf={iliskiGraf} azHareket={!!azHareket} siteId={otoSiteId} engelliIpler={engelliIpler} />
         </motion.div>
       )}
 

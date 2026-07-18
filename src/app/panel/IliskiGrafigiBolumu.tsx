@@ -35,6 +35,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { KumeEngelleButonu } from "@/components/panel/KumeEngelleButonu";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
 import type {
   GrafSonuc,
@@ -370,11 +371,15 @@ function KumeKart({
   azHareket,
   acik,
   onToggle,
+  siteId,
+  engelliSet,
 }: {
   kume: Kume;
   azHareket: boolean;
   acik: boolean;
   onToggle: () => void;
+  siteId: string | null;
+  engelliSet: Set<string>;
 }) {
   const boyut = BOYUT_TANIM[kume.boyut];
   const tehdit = tehditRenk(kume.tehditSkoru);
@@ -547,6 +552,18 @@ function KumeKart({
           </div>
         </div>
       )}
+
+      {/* GERÇEK AKSİYON: tüm botnet kümesini tek tıkla engelle (her IP'ye kural) */}
+      {siteId && kume.ipler.length > 0 && (
+        <div className="mt-3.5 border-t border-line/70 pt-3">
+          <KumeEngelleButonu
+            ipler={kume.ipler}
+            siteId={siteId}
+            engelliSet={engelliSet}
+            aciklama={`Botnet kümesi (${kume.dominantBotClass}, ${sayi(kume.ipler.length)} IP) — İlişki grafiğinden toplu engellendi`}
+          />
+        </div>
+      )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -556,7 +573,8 @@ function KumeKart({
 
 /* ================================================================== Ana bileşen */
 
-export function IliskiGrafigiBolumu({ graf, azHareket }: { graf: GrafSonuc; azHareket: boolean }) {
+export function IliskiGrafigiBolumu({ graf, azHareket, siteId = null, engelliIpler = [] }: { graf: GrafSonuc; azHareket: boolean; siteId?: string | null; engelliIpler?: string[] }) {
+  const engelliSet = new Set(engelliIpler);
   const { kumeler, odakGraf, ozet } = graf;
   // Açık drill-down kümesi (id) — tıklanınca adım-adım küme detayı açılır.
   const [acikId, setAcikId] = useState<string | null>(null);
@@ -622,6 +640,8 @@ export function IliskiGrafigiBolumu({ graf, azHareket }: { graf: GrafSonuc; azHa
                   azHareket={azHareket}
                   acik={acikId === k.id}
                   onToggle={() => setAcikId(acikId === k.id ? null : k.id)}
+                  siteId={siteId}
+                  engelliSet={engelliSet}
                 />
               </Bolum>
             ))}

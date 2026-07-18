@@ -8,10 +8,16 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { Users, Audit, Promo } from "@/lib/db/db";
-import { planTanim } from "@/lib/specter/plans";
+import { planTanim, ODEME_HAZIR } from "@/lib/specter/plans";
 import type { Plan } from "@/lib/db/schema";
 
 const PLANLAR: Plan[] = ["free", "pro", "scale"];
+
+/** Bir plan geçişi para tahsil eder mi? (Ücretli plana YÜKSELTME.) */
+function ucretliGecis(eski: Plan, yeni: Plan): boolean {
+  const seviye: Record<Plan, number> = { free: 0, pro: 1, scale: 2 };
+  return yeni !== "free" && seviye[yeni] > seviye[eski];
+}
 
 export async function POST(req: Request) {
   const user = await currentUser();
@@ -29,6 +35,21 @@ export async function POST(req: Request) {
   }
 
   const eskiPlan = user.plan;
+
+  // Ödeme altyapısı canlı değilken ücretli YÜKSELTME tahsilatı yapılmaz —
+  // UI'ı bypass eden doğrudan istekler de burada 402 ile durur. Düşürme (→free)
+  // ve aynı seviyede kalma serbesttir (para tahsil etmez).
+  if (!ODEME_HAZIR && ucretliGecis(eskiPlan as Plan, plan as Plan)) {
+    return NextResponse.json(
+      {
+        error: "payment-not-ready",
+        yakinda: true,
+        mesaj: "Ücretli abonelikler yakında. Ödeme altyapısı yayına alınınca planınızı yükseltebileceksiniz.",
+      },
+      { status: 402 },
+    );
+  }
+
   const updated = Users.setPlan(user.id, plan as Plan);
   if (!updated) return NextResponse.json({ error: "not-found" }, { status: 404 });
 

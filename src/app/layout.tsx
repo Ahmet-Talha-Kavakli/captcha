@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { trTR } from "@clerk/localizations";
 import "./globals.css";
 import { MARKA } from "@/lib/marka";
+import { clerkYapili } from "@/lib/clerk-durum";
 
 const GA_ID = "G-35MZVLZKX2";
 
@@ -83,6 +84,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const govde = (
+    <html
+      lang="tr"
+      className={`${inter.variable} ${jbMono.variable} h-full`}
+    >
+      <body className="min-h-full">
+        {children}
+        {/* Google Analytics (gtag.js) — sayfa etkileşimden sonra yüklenir. */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
+      </body>
+    </html>
+  );
+
+  // Clerk YALNIZCA gerçekten yapılandırılmışsa sarar. Aksi halde ClerkProvider
+  // yüklenmez — böylece geçersiz/yanlış-domain Clerk anahtarı tüm sayfayı
+  // browser-JS hatasıyla çökertmez (kullanıcının giriş formu boş kalmaz).
+  if (!clerkYapili()) return govde;
   return (
     <ClerkProvider
       localization={trTR}
@@ -90,25 +117,7 @@ export default function RootLayout({
       signInUrl="/giris"
       signUpUrl="/kayit"
     >
-      <html
-        lang="tr"
-        className={`${inter.variable} ${jbMono.variable} h-full`}
-      >
-        <body className="min-h-full">
-          {children}
-          {/* Google Analytics (gtag.js) — sayfa etkileşimden sonra yüklenir. */}
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-            strategy="afterInteractive"
-          />
-          <Script id="ga-init" strategy="afterInteractive">
-            {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', '${GA_ID}');`}
-          </Script>
-        </body>
-      </html>
+      {govde}
     </ClerkProvider>
   );
 }

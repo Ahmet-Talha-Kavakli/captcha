@@ -4,13 +4,19 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check, X, CreditCard, Download, TrendingUp, Zap, Globe, Users, ArrowUpRight, Sparkles, Ticket, Loader2,
-  Coins, Plus, Minus, Wallet,
+  Coins, Plus, Minus, Wallet, Clock3,
 } from "lucide-react";
 import { Panel, Badge, Ilerleme, Modal, NotKutusu, useToast, Girdi } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { Plan } from "@/lib/db/schema";
-import { PLANLAR as PLAN_KAYNAK } from "@/lib/specter/plans";
+import { PLANLAR as PLAN_KAYNAK, ODEME_HAZIR } from "@/lib/specter/plans";
+
+/** Bir plan geçişi ücretli yükseltme mi? (Ödeme gerektirir.) */
+function ucretliYukseltme(eski: Plan, yeni: Plan): boolean {
+  const s: Record<Plan, number> = { free: 0, pro: 1, scale: 2 };
+  return yeni !== "free" && s[yeni] > s[eski];
+}
 
 /* ------------------------------------------------------------------ plan tanımları */
 
@@ -119,6 +125,15 @@ export function PlanIstemci({
 
   async function krediSatinAl(paket: KrediPaketVM) {
     if (alinanPaket) return;
+    // Ödeme altyapısı canlı değil — tahsilat yapılmaz, kullanıcı bilgilendirilir.
+    if (!ODEME_HAZIR) {
+      goster({
+        tip: "bilgi",
+        baslik: "Kredi satın alma yakında",
+        aciklama: "Ödeme altyapısı yayına alınınca kredi paketlerini buradan yükleyebileceksiniz.",
+      });
+      return;
+    }
     setAlinanPaket(paket.id);
     try {
       const res = await fetch("/api/account/kredi", {
@@ -294,7 +309,21 @@ export function PlanIstemci({
 
         {/* Kredi satın al — paket kartları */}
         <div className="mt-6 border-t border-line pt-5">
-          <div className="mb-3 text-[13px] font-semibold text-slate-ink">Kredi satın al</div>
+          <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            Kredi satın al
+            {!ODEME_HAZIR && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                <Clock3 className="size-3" /> Yakında
+              </span>
+            )}
+          </div>
+          {!ODEME_HAZIR && (
+            <div className="mb-4">
+              <NotKutusu ton="bilgi">
+                Ödeme altyapımız yayına alınıyor. Kredi paketleri çok yakında satın alınabilir olacak — bu sırada tüm koruma özellikleri planınızın kotası dahilinde tam çalışır.
+              </NotKutusu>
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-3">
             {kredi.paketler.map((p) => {
               const yukleniyor = alinanPaket === p.id;
@@ -318,13 +347,20 @@ export function PlanIstemci({
                     <span className="text-[11.5px] font-normal text-slate-faint"> · {(p.fiyat / (p.kredi / 1000)).toFixed(2).replace(".", ",")}₺/bin</span>
                   </div>
                   <Button
-                    variant={p.populer ? "accent" : "outline"}
+                    variant={p.populer && ODEME_HAZIR ? "accent" : "outline"}
                     size="sm"
                     className="mt-4 w-full"
-                    disabled={!!alinanPaket}
+                    disabled={!!alinanPaket || !ODEME_HAZIR}
                     onClick={() => krediSatinAl(p)}
+                    title={ODEME_HAZIR ? undefined : "Ödeme altyapısı yakında"}
                   >
-                    {yukleniyor ? <Loader2 className="size-4 animate-spin" /> : <><Coins className="size-4" /> Satın al</>}
+                    {!ODEME_HAZIR ? (
+                      <><Clock3 className="size-4" /> Yakında</>
+                    ) : yukleniyor ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <><Coins className="size-4" /> Satın al</>
+                    )}
                   </Button>
                 </div>
               );
@@ -387,19 +423,40 @@ export function PlanIstemci({
 
       {/* ---------------- Ödeme yöntemi ---------------- */}
       <Panel baslik="Ödeme yöntemi">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-xl bg-ink-900 text-white"><CreditCard className="size-5" /></span>
-            <div>
-              <div className="num text-sm font-semibold text-slate-ink">•••• •••• •••• 4242</div>
-              <div className="text-[12px] text-slate-muted">Son kullanma 08/28 · Visa</div>
+        {ODEME_HAZIR ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="grid size-11 place-items-center rounded-xl bg-ink-900 text-white"><CreditCard className="size-5" /></span>
+              <div>
+                <div className="num text-sm font-semibold text-slate-ink">•••• •••• •••• 4242</div>
+                <div className="text-[12px] text-slate-muted">Son kullanma 08/28 · Visa</div>
+              </div>
             </div>
+            <Button variant="outline" size="sm" onClick={() => setKartModal(true)}>Değiştir</Button>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setKartModal(true)}>Değiştir</Button>
-        </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="grid size-11 place-items-center rounded-xl bg-amber-100 text-amber-700"><CreditCard className="size-5" /></span>
+              <div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-ink">
+                  Ödeme yöntemi
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                    <Clock3 className="size-3" /> Yakında
+                  </span>
+                </div>
+                <div className="text-[12px] text-slate-muted">Kart ekleme, ödeme altyapımız yayına alınınca açılacak.</div>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" disabled title="Ödeme altyapısı yakında">Kart ekle</Button>
+          </div>
+        )}
       </Panel>
 
       {/* ---------------- Fatura geçmişi ---------------- */}
+      {/* Ödeme altyapısı canlı olmadan gerçek fatura oluşmaz — sahte fatura
+          göstermek yerine bölüm gizlenir (altyapı açılınca gerçek kayıtlar gelir). */}
+      {ODEME_HAZIR && (
       <Panel baslik="Fatura geçmişi" padding={false}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -430,6 +487,7 @@ export function PlanIstemci({
           </table>
         </div>
       </Panel>
+      )}
 
       {/* ================= Modaller ================= */}
       <YukseltModal tanim={yukseltModal} mevcut={mevcut} kapat={() => setYukseltModal(null)} />
@@ -526,9 +584,24 @@ function YukseltModal({
     }
   }
 
+  // Bu geçiş para tahsil eder mi? (Ücretli plana yükseltme.) Scale = satış talebi
+  // (para tahsil etmez), düşürme = ücretsiz — ikisi de ödeme kapısına takılmaz.
+  const odemeGerektirir = !scaleMi && ucretliYukseltme(mevcut.key, tanim.key);
+  const odemeKilitli = odemeGerektirir && !ODEME_HAZIR;
+
   const [islemVar, setIslemVar] = useState(false);
   async function satinAl() {
     if (islemVar) return;
+    // Ödeme altyapısı hazır değilken ücretli yükseltme yapılmaz — bilgilendir.
+    if (odemeKilitli) {
+      goster({
+        tip: "bilgi",
+        baslik: "Ücretli abonelikler yakında",
+        aciklama: "Ödeme altyapımız yayına alınınca planınızı buradan yükseltebileceksiniz.",
+      });
+      kapatVeTemizle();
+      return;
+    }
     setIslemVar(true);
     try {
       // Planı GERÇEKTEN değiştir (DB'de user.plan güncellenir). Scale → satış talebi.
@@ -609,8 +682,8 @@ function YukseltModal({
           </div>
         </div>
 
-        {/* Promo kod alanı — yalnızca ücretli yükseltmede */}
-        {promoUygun && (
+        {/* Promo kod alanı — yalnızca ücretli yükseltmede VE ödeme açıkken */}
+        {promoUygun && !odemeKilitli && (
           <div className="rounded-2xl border border-line p-4">
             <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-slate-ink">
               <Ticket className="size-4 text-brand-600" /> İndirim kodun var mı?
@@ -662,15 +735,23 @@ function YukseltModal({
           </div>
         )}
 
-        {scaleMi ? (
+        {odemeKilitli ? (
+          <NotKutusu ton="bilgi" baslik="Ücretli abonelikler yakında">
+            Ödeme altyapımız yayına alınıyor. {tanim.ad} planına geçiş çok yakında açılacak. Bu sırada mevcut planınızın tüm koruma özellikleri kesintisiz çalışır.
+          </NotKutusu>
+        ) : scaleMi ? (
           <NotKutusu ton="bilgi">Scale planı özel fiyatlandırılır. Satış ekibimiz gereksinimlerinize göre teklif hazırlar.</NotKutusu>
         ) : !yukseltme ? (
           <NotKutusu ton="sari" baslik="Plan düşürülüyor">Kotanız düşecek; mevcut kullanımınız yeni limiti aşarsa bazı özellikler kısıtlanabilir.</NotKutusu>
         ) : null}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="outline" onClick={kapatVeTemizle}>Vazgeç</Button>
-          <Button variant={yukseltme ? "accent" : "outline"} onClick={satinAl}>
-            {scaleMi ? <><ArrowUpRight className="size-4" /> İletişime geç</> : yukseltme ? `${tanim.ad}'a geç` : `${tanim.ad}'a düş`}
+          <Button variant={yukseltme && !odemeKilitli ? "accent" : "outline"} onClick={satinAl}>
+            {odemeKilitli ? (
+              <><Clock3 className="size-4" /> Yakında</>
+            ) : scaleMi ? (
+              <><ArrowUpRight className="size-4" /> İletişime geç</>
+            ) : yukseltme ? `${tanim.ad}'a geç` : `${tanim.ad}'a düş`}
           </Button>
         </div>
       </div>

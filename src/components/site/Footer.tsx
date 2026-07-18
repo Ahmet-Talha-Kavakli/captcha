@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { MARKA } from "@/lib/marka";
+import { landingCeviri, LANDING_VARSAYILAN, type LandingDil } from "@/lib/i18n/landing";
 
-export function Footer() {
+export function Footer({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
+  const t = (k: string) => landingCeviri(k, dil);
   return (
     <footer className="border-t border-veylify-100 bg-veylify-50/40 px-5 py-14 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -10,22 +12,22 @@ export function Footer() {
           <div>
             <Logo size={28} tone="dark" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
-              Ghost-font teknolojisiyle geliştiricilerin sitelerini yapay zeka botlarından koruyan doğrulama katmanı.
+              {t("footer.slogan")}
             </p>
           </div>
           <FooterCol
-            title="Ürün"
+            title={t("footer.urun")}
             links={[
-              ["Özellikler", "/ozellikler"],
-              ["Nasıl çalışır", "/nasil-calisir"],
-              ["Çözümler", "/cozumler"],
-              ["Fiyatlandırma", "/fiyatlandirma"],
-              ["Canlı demo", "/demo"],
-              ["Sistem durumu", "/durum"],
+              [t("nav.ozellikler"), "/ozellikler"],
+              [t("nav.nasil"), "/nasil-calisir"],
+              [t("nav.cozumler"), "/cozumler"],
+              [t("fiyat.rozet"), "/fiyatlandirma"],
+              [t("nav.demo"), "/demo"],
+              ["Status", "/durum"],
             ]}
           />
           <FooterCol
-            title="Şirket"
+            title={t("footer.sirket")}
             links={[
               ["Hakkımızda", "/hakkimizda"],
               ["Blog", "/blog"],
@@ -34,7 +36,7 @@ export function Footer() {
             ]}
           />
           <FooterCol
-            title="Yasal & Geliştirici"
+            title={t("footer.yasal")}
             links={[
               ["Gizlilik", "/gizlilik"],
               ["KVKK", "/kvkk"],
@@ -45,10 +47,10 @@ export function Footer() {
           />
         </div>
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-veylify-100 pt-6 text-sm text-slate-400 sm:flex-row">
-          <span>© 2026 {MARKA.ad}. Tüm hakları saklıdır.</span>
+          <span>© 2026 {MARKA.ad}. {t("footer.haklar")}</span>
           <Link href="/durum" className="flex items-center gap-2 transition hover:text-veylify-600">
             <span className="pulse-ring h-2 w-2 rounded-full bg-emerald-500" />
-            Tüm sistemler çalışıyor
+            {t("footer.sistemler")}
           </Link>
         </div>
       </div>
