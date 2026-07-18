@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   ShieldCheck, Check, X, AlertTriangle, Monitor, Smartphone, Server,
   KeyRound, Clock, RefreshCw, Repeat, LockKeyhole, MapPin, Info, Ban,
+  Activity, Globe,
 } from "lucide-react";
 import { Panel, StatKart, Badge, DurumRozeti, useToast, Ulke, KodBlok } from "@/components/panel/kit";
 import { Toggle } from "@/components/panel/Toggle";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { Gauge, IsiMatris } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { oturumGuvenlikCeviri } from "./oturum-guvenlik.i18n";
@@ -211,6 +215,36 @@ export function OturumGuvenlikIstemci(p: Props) {
 
   const skorRenk = (s: number) => (s >= 90 ? "#16a34a" : s >= 70 ? "#2f6fed" : s >= 45 ? "#d97706" : "#dc2626");
 
+  /* --- görsel türetimler (yalnızca gösterim; mantık/CRUD değişmez) --- */
+  // Cihaz türü dağılımı (aktif oturumlardan).
+  const cihazDagilim = useMemo(() => {
+    const say = { masaustu: 0, mobil: 0, sunucu: 0 };
+    aktifOturumlar.forEach((o) => { say[o.tur] += 1; });
+    return [
+      { etiket: t("og.gorsel.masaustu"), deger: say.masaustu, renk: "#2f6fed" },
+      { etiket: t("og.gorsel.mobil"), deger: say.mobil, renk: "#16a34a" },
+      { etiket: t("og.gorsel.sunucu"), deger: say.sunucu, renk: "#d97706" },
+    ].filter((s) => s.deger > 0);
+  }, [aktifOturumlar, p.dil]);
+  // Konum dağılımı (ülke koduna göre).
+  const konumDagilim = useMemo(() => {
+    const say = new Map<string, number>();
+    aktifOturumlar.forEach((o) => say.set(o.kod, (say.get(o.kod) ?? 0) + 1));
+    const paleti = ["#2f6fed", "#16a34a", "#d97706", "#8b5cf6", "#dc2626"];
+    return [...say.entries()].map(([kod, deger], i) => ({ etiket: kod, deger, renk: paleti[i % paleti.length] }));
+  }, [aktifOturumlar]);
+  // Anomali ısı-matrisi: risk sinyali × oturum (deterministik, girdiden türetilir).
+  const anomaliSatir = [t("og.gorsel.anomKonum"), t("og.gorsel.anomCihaz"), t("og.gorsel.anomYas")];
+  const anomaliSutun = aktifOturumlar.map((o) => o.cihaz.split(" ")[0]);
+  const anomaliDeger = useMemo(
+    () => [
+      aktifOturumlar.map((o) => (o.buCihaz ? 0 : o.bilinenKonum ? 8 : 92)),
+      aktifOturumlar.map((o) => (o.buCihaz ? 0 : o.bilinenCihaz ? 8 : 88)),
+      aktifOturumlar.map((o) => (o.buCihaz ? 0 : Math.min(100, Math.round((o.yasGun / 45) * 100)))),
+    ],
+    [aktifOturumlar],
+  );
+
   /* --- oturum sonlandırma (kalıcı) --- */
   function kapaliKaydet(kapali: string[]) {
     if (typeof window === "undefined") return;
@@ -271,6 +305,71 @@ sig = HMAC_SHA256(secretKey, base64url(payload))
         <StatKart sayi={yd.verilen.toLocaleString("tr-TR")} etiket={t("og.ozet.verilenToken")} ikon={<KeyRound className="size-5" />} />
         <StatKart sayi={yd.replayEngellenen.toLocaleString("tr-TR")} etiket={t("og.ozet.replayEngellendi")} ikon={<Ban className="size-5" />} tone="ok" />
       </div>
+
+      {/* ===================== Görsel özet: dağılım + gauge + anomali ısı-matris ===================== */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* oturum güvenlik gauge */}
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4 }}>
+          <Panel baslik={<span className="flex items-center gap-2"><ShieldCheck className="size-4 text-brand-600" /> {t("og.gorsel.gaugeBaslik")}</span>}>
+            <div className="flex flex-col items-center gap-3 py-2">
+              <Gauge deger={durus.skor} etiket={t(SEVIYE_ANAHTAR[durus.seviye])} boyut={190} renk={skorRenk(durus.skor)} />
+              <div className="grid w-full grid-cols-2 gap-2 text-center">
+                <div className="rounded-xl bg-ok-soft/60 px-3 py-2">
+                  <div className="num text-[18px] font-bold text-ok">{durus.gecen}</div>
+                  <div className="text-[11px] text-slate-muted">{t("og.gorsel.gecenKontrol")}</div>
+                </div>
+                <div className="rounded-xl bg-canvas px-3 py-2">
+                  <div className="num text-[18px] font-bold text-slate-ink">{durus.toplam}</div>
+                  <div className="text-[11px] text-slate-muted">{t("og.gorsel.toplamKontrol")}</div>
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </motion.div>
+
+        {/* cihaz + konum dağılım donut */}
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4, delay: 0.05 }} className="lg:col-span-2">
+          <Panel baslik={<span className="flex items-center gap-2"><Globe className="size-4 text-brand-600" /> {t("og.gorsel.dagilimBaslik")}</span>}>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-slate-faint">
+                  <Monitor className="size-3.5" /> {t("og.gorsel.cihazTuru")}
+                </div>
+                <DonutDagilim segmentler={cihazDagilim} merkezEtiket={t("og.gorsel.oturumMerkez")} />
+              </div>
+              <div>
+                <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-slate-faint">
+                  <MapPin className="size-3.5" /> {t("og.gorsel.konum")}
+                </div>
+                <div className="space-y-2 pt-1">
+                  {konumDagilim.map((k) => (
+                    <div key={k.etiket} className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-[13px]">
+                      <Ulke kod={k.etiket} />
+                      <span className="min-w-0 truncate font-medium text-slate-ink">{k.etiket}</span>
+                      <div className="ml-auto flex items-center gap-2">
+                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-canvas">
+                          <div className="h-full rounded-full" style={{ width: `${(k.deger / Math.max(1, aktifOturumlar.length)) * 100}%`, background: k.renk }} />
+                        </div>
+                        <span className="num w-4 text-right font-semibold text-slate-muted">{k.deger}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </motion.div>
+      </div>
+
+      {/* anomali ısı-matrisi */}
+      {anomaliSutun.length > 0 && (
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4, delay: 0.08 }}>
+          <Panel baslik={<span className="flex items-center gap-2"><Activity className="size-4 text-brand-600" /> {t("og.gorsel.anomaliBaslik")}</span>}>
+            <p className="mb-4 text-[13px] text-slate-muted">{t("og.gorsel.anomaliMetin")}</p>
+            <IsiMatris satirlar={anomaliSatir} sutunlar={anomaliSutun} degerler={anomaliDeger} />
+          </Panel>
+        </motion.div>
+      )}
 
       {/* ===================== Güvenlik duruşu ===================== */}
       <Panel baslik={t("og.durus.baslik")}>

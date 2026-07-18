@@ -18,6 +18,23 @@ const sozluk: Record<Dil, Record<string, string>> = {
     // --- Başlık ---
     "og.baslik": "Oturum Güvenliği & Token Yaşam Döngüsü",
 
+    // --- Görsel özet (dağılım / gauge / anomali ısı-matris) ---
+    "og.gorsel.gaugeBaslik": "Duruş göstergesi",
+    "og.gorsel.gecenKontrol": "Karşılanan kontrol",
+    "og.gorsel.toplamKontrol": "Toplam kontrol",
+    "og.gorsel.dagilimBaslik": "Cihaz & konum dağılımı",
+    "og.gorsel.cihazTuru": "Cihaz türü",
+    "og.gorsel.konum": "Konum",
+    "og.gorsel.oturumMerkez": "oturum",
+    "og.gorsel.masaustu": "Masaüstü",
+    "og.gorsel.mobil": "Mobil",
+    "og.gorsel.sunucu": "Sunucu",
+    "og.gorsel.anomaliBaslik": "Anomali ısı-matrisi",
+    "og.gorsel.anomaliMetin": "Her aktif oturum için risk sinyallerinin yoğunluğu; koyu hücre daha yüksek anomali demektir.",
+    "og.gorsel.anomKonum": "Tanınmayan konum",
+    "og.gorsel.anomCihaz": "Tanınmayan cihaz",
+    "og.gorsel.anomYas": "Oturum yaşı",
+
     // --- Açıklama şeridi ---
     "og.giris.baslik": "Auth & token katmanının güvenlik-operasyon konsolu.",
     "og.giris.metin":
@@ -153,6 +170,23 @@ const sozluk: Record<Dil, Record<string, string>> = {
   en: {
     "og.baslik": "Session Security & Token Lifecycle",
 
+    // --- Visual summary ---
+    "og.gorsel.gaugeBaslik": "Posture gauge",
+    "og.gorsel.gecenKontrol": "Passing checks",
+    "og.gorsel.toplamKontrol": "Total checks",
+    "og.gorsel.dagilimBaslik": "Device & location distribution",
+    "og.gorsel.cihazTuru": "Device type",
+    "og.gorsel.konum": "Location",
+    "og.gorsel.oturumMerkez": "sessions",
+    "og.gorsel.masaustu": "Desktop",
+    "og.gorsel.mobil": "Mobile",
+    "og.gorsel.sunucu": "Server",
+    "og.gorsel.anomaliBaslik": "Anomaly heat-matrix",
+    "og.gorsel.anomaliMetin": "Intensity of risk signals per active session; darker cells mean higher anomaly.",
+    "og.gorsel.anomKonum": "Unknown location",
+    "og.gorsel.anomCihaz": "Unknown device",
+    "og.gorsel.anomYas": "Session age",
+
     "og.giris.baslik": "The security-operations console for the auth & token layer.",
     "og.giris.metin":
       "Manage active device sessions, track the verification-token lifecycle (issued → verified → expired → replay-blocked), and view nonce/replay protection and session security posture in one place. This console complements the basic 2FA/password screen in account settings.",
@@ -273,6 +307,23 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
   de: {
     "og.baslik": "Sitzungssicherheit & Token-Lebenszyklus",
+
+    // --- Visuelle Zusammenfassung ---
+    "og.gorsel.gaugeBaslik": "Status-Anzeige",
+    "og.gorsel.gecenKontrol": "Bestandene Prüfungen",
+    "og.gorsel.toplamKontrol": "Prüfungen gesamt",
+    "og.gorsel.dagilimBaslik": "Geräte- & Standortverteilung",
+    "og.gorsel.cihazTuru": "Gerätetyp",
+    "og.gorsel.konum": "Standort",
+    "og.gorsel.oturumMerkez": "Sitzungen",
+    "og.gorsel.masaustu": "Desktop",
+    "og.gorsel.mobil": "Mobil",
+    "og.gorsel.sunucu": "Server",
+    "og.gorsel.anomaliBaslik": "Anomalie-Heatmap",
+    "og.gorsel.anomaliMetin": "Intensität der Risikosignale je aktiver Sitzung; dunklere Zellen bedeuten höhere Anomalie.",
+    "og.gorsel.anomKonum": "Unbekannter Standort",
+    "og.gorsel.anomCihaz": "Unbekanntes Gerät",
+    "og.gorsel.anomYas": "Sitzungsalter",
 
     "og.giris.baslik": "Die Sicherheits-Operations-Konsole für die Auth- & Token-Schicht.",
     "og.giris.metin":
@@ -395,6 +446,23 @@ const sozluk: Record<Dil, Record<string, string>> = {
   fr: {
     "og.baslik": "Sécurité de session & cycle de vie des tokens",
 
+    // --- Résumé visuel ---
+    "og.gorsel.gaugeBaslik": "Jauge de posture",
+    "og.gorsel.gecenKontrol": "Contrôles réussis",
+    "og.gorsel.toplamKontrol": "Contrôles totaux",
+    "og.gorsel.dagilimBaslik": "Répartition appareils & localisation",
+    "og.gorsel.cihazTuru": "Type d'appareil",
+    "og.gorsel.konum": "Localisation",
+    "og.gorsel.oturumMerkez": "sessions",
+    "og.gorsel.masaustu": "Bureau",
+    "og.gorsel.mobil": "Mobile",
+    "og.gorsel.sunucu": "Serveur",
+    "og.gorsel.anomaliBaslik": "Matrice thermique d'anomalies",
+    "og.gorsel.anomaliMetin": "Intensité des signaux de risque par session active ; les cellules foncées indiquent une anomalie plus élevée.",
+    "og.gorsel.anomKonum": "Localisation inconnue",
+    "og.gorsel.anomCihaz": "Appareil inconnu",
+    "og.gorsel.anomYas": "Ancienneté de session",
+
     "og.giris.baslik": "La console d'opérations de sécurité de la couche auth & token.",
     "og.giris.metin":
       "Gérez les sessions d'appareils actives, suivez le cycle de vie des tokens de vérification (émis → vérifié → expiré → replay-bloqué) et visualisez la protection nonce/replay ainsi que la posture de sécurité de session en un seul endroit. Cette console complète l'écran 2FA/mot de passe de base des paramètres du compte.",
@@ -515,6 +583,23 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
   es: {
     "og.baslik": "Seguridad de sesión & ciclo de vida de tokens",
+
+    // --- Resumen visual ---
+    "og.gorsel.gaugeBaslik": "Indicador de postura",
+    "og.gorsel.gecenKontrol": "Controles superados",
+    "og.gorsel.toplamKontrol": "Controles totales",
+    "og.gorsel.dagilimBaslik": "Distribución de dispositivos y ubicación",
+    "og.gorsel.cihazTuru": "Tipo de dispositivo",
+    "og.gorsel.konum": "Ubicación",
+    "og.gorsel.oturumMerkez": "sesiones",
+    "og.gorsel.masaustu": "Escritorio",
+    "og.gorsel.mobil": "Móvil",
+    "og.gorsel.sunucu": "Servidor",
+    "og.gorsel.anomaliBaslik": "Matriz de calor de anomalías",
+    "og.gorsel.anomaliMetin": "Intensidad de las señales de riesgo por sesión activa; las celdas más oscuras indican mayor anomalía.",
+    "og.gorsel.anomKonum": "Ubicación desconocida",
+    "og.gorsel.anomCihaz": "Dispositivo desconocido",
+    "og.gorsel.anomYas": "Antigüedad de sesión",
 
     "og.giris.baslik": "La consola de operaciones de seguridad de la capa de auth & tokens.",
     "og.giris.metin":

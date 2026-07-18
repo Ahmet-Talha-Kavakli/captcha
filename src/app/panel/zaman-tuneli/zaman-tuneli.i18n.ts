@@ -101,6 +101,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     // --- Yeniden-kurgu paneli ---
     "zt.kurgu.baslik": "Olay yeniden-kurgu",
     "zt.kurgu.adliAnlati": "Adli anlatı",
+    "zt.kurgu.fazProfil": "Faz yoğunluk profili",
+    "zt.sav.mitigasyonKisa": "mitigasyon",
+    "zt.sav.olayEki": "olay",
     "zt.kurgu.killchain": "Kill-chain zaman tüneli",
     "zt.kurgu.sifirla": "Sıfırla",
     "zt.kurgu.sifirlaTitle": "Baştan sona göster",
@@ -231,6 +234,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "zt.kurgu.baslik": "Incident reconstruction",
     "zt.kurgu.adliAnlati": "Forensic narrative",
+    "zt.kurgu.fazProfil": "Phase intensity profile",
+    "zt.sav.mitigasyonKisa": "mitigated",
+    "zt.sav.olayEki": "events",
     "zt.kurgu.killchain": "Kill-chain timeline",
     "zt.kurgu.sifirla": "Reset",
     "zt.kurgu.sifirlaTitle": "Show start to finish",
@@ -354,6 +360,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "zt.kurgu.baslik": "Vorfallrekonstruktion",
     "zt.kurgu.adliAnlati": "Forensische Erzählung",
+    "zt.kurgu.fazProfil": "Phasen-Intensitätsprofil",
+    "zt.sav.mitigasyonKisa": "mitigiert",
+    "zt.sav.olayEki": "Ereignisse",
     "zt.kurgu.killchain": "Kill-Chain-Zeitachse",
     "zt.kurgu.sifirla": "Zurücksetzen",
     "zt.kurgu.sifirlaTitle": "Von Anfang bis Ende zeigen",
@@ -477,6 +486,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "zt.kurgu.baslik": "Reconstruction d'incident",
     "zt.kurgu.adliAnlati": "Récit forensique",
+    "zt.kurgu.fazProfil": "Profil d'intensité des phases",
+    "zt.sav.mitigasyonKisa": "atténué",
+    "zt.sav.olayEki": "événements",
     "zt.kurgu.killchain": "Chronologie kill-chain",
     "zt.kurgu.sifirla": "Réinitialiser",
     "zt.kurgu.sifirlaTitle": "Afficher du début à la fin",
@@ -600,6 +612,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "zt.kurgu.baslik": "Reconstrucción de incidentes",
     "zt.kurgu.adliAnlati": "Relato forense",
+    "zt.kurgu.fazProfil": "Perfil de intensidad de fases",
+    "zt.sav.mitigasyonKisa": "mitigado",
+    "zt.sav.olayEki": "eventos",
     "zt.kurgu.killchain": "Cronología kill-chain",
     "zt.kurgu.sifirla": "Restablecer",
     "zt.kurgu.sifirlaTitle": "Mostrar de principio a fin",

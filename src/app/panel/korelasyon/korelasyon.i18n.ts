@@ -35,6 +35,16 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     // En yaygın tür şeridi
     "ko.enYaygin": "En yaygın saldırı türü:",
+    "ko.gorsel.turDagilim": "Saldırı türü dağılımı",
+    "ko.gorsel.siddetDagilim": "Şiddet dağılımı",
+    "ko.gorsel.olay": "olay",
+    "ko.gorsel.ortGuven": "ort. güven",
+    "ko.profil.baslik": "Tehdit profili",
+    "ko.profil.hacim": "Hacim",
+    "ko.profil.yayilim": "IP yayılımı",
+    "ko.profil.engel": "Engel",
+    "ko.profil.guven": "Güven",
+    "ko.profil.yuzey": "Yüzey",
     "ko.aktifRozet": "{n} aktif saldırı sürüyor",
 
     // Panel + araç çubuğu
@@ -171,6 +181,16 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ko.kpi.aktif": "Active attacks",
 
     "ko.enYaygin": "Most common attack type:",
+    "ko.gorsel.turDagilim": "Attack type distribution",
+    "ko.gorsel.siddetDagilim": "Severity distribution",
+    "ko.gorsel.olay": "events",
+    "ko.gorsel.ortGuven": "avg. confidence",
+    "ko.profil.baslik": "Threat profile",
+    "ko.profil.hacim": "Volume",
+    "ko.profil.yayilim": "IP spread",
+    "ko.profil.engel": "Blocked",
+    "ko.profil.guven": "Confidence",
+    "ko.profil.yuzey": "Surface",
     "ko.aktifRozet": "{n} active attacks in progress",
 
     "ko.panel.baslik": "Related Incidents",
@@ -292,6 +312,16 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ko.kpi.aktif": "Aktive Angriffe",
 
     "ko.enYaygin": "Häufigster Angriffstyp:",
+    "ko.gorsel.turDagilim": "Verteilung der Angriffstypen",
+    "ko.gorsel.siddetDagilim": "Schweregrad-Verteilung",
+    "ko.gorsel.olay": "Ereignisse",
+    "ko.gorsel.ortGuven": "Ø Konfidenz",
+    "ko.profil.baslik": "Bedrohungsprofil",
+    "ko.profil.hacim": "Volumen",
+    "ko.profil.yayilim": "IP-Streuung",
+    "ko.profil.engel": "Blockiert",
+    "ko.profil.guven": "Konfidenz",
+    "ko.profil.yuzey": "Fläche",
     "ko.aktifRozet": "{n} aktive Angriffe laufen",
 
     "ko.panel.baslik": "Zusammenhängende Vorfälle",
@@ -413,6 +443,16 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ko.kpi.aktif": "Attaques actives",
 
     "ko.enYaygin": "Type d'attaque le plus fréquent :",
+    "ko.gorsel.turDagilim": "Répartition des types d'attaque",
+    "ko.gorsel.siddetDagilim": "Répartition de la gravité",
+    "ko.gorsel.olay": "événements",
+    "ko.gorsel.ortGuven": "confiance moy.",
+    "ko.profil.baslik": "Profil de menace",
+    "ko.profil.hacim": "Volume",
+    "ko.profil.yayilim": "Dispersion IP",
+    "ko.profil.engel": "Bloqué",
+    "ko.profil.guven": "Confiance",
+    "ko.profil.yuzey": "Surface",
     "ko.aktifRozet": "{n} attaques actives en cours",
 
     "ko.panel.baslik": "Incidents liés",
@@ -534,6 +574,16 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ko.kpi.aktif": "Ataques activos",
 
     "ko.enYaygin": "Tipo de ataque más común:",
+    "ko.gorsel.turDagilim": "Distribución de tipos de ataque",
+    "ko.gorsel.siddetDagilim": "Distribución de gravedad",
+    "ko.gorsel.olay": "eventos",
+    "ko.gorsel.ortGuven": "confianza prom.",
+    "ko.profil.baslik": "Perfil de amenaza",
+    "ko.profil.hacim": "Volumen",
+    "ko.profil.yayilim": "Dispersión IP",
+    "ko.profil.engel": "Bloqueado",
+    "ko.profil.guven": "Confianza",
+    "ko.profil.yuzey": "Superficie",
     "ko.aktifRozet": "{n} ataques activos en curso",
 
     "ko.panel.baslik": "Incidentes relacionados",

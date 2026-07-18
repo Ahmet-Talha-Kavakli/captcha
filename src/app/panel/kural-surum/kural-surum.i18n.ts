@@ -54,6 +54,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ozet.toplamKayit": "Toplam sürüm kaydı",
     "ozet.enCokDuzenlenen": "En çok düzenlenen",
     "ozet.enCokDuzenlenenAd": "En çok düzenlenen: {ad}",
+    "ozet.ortDerinlik": "Kural başına ort. sürüm",
+    "ozet.derinlikBaslik": "Sürüm derinliği dağılımı",
+    "ozet.derinlikAlt": "Kaç kuralın kaç sürümü var",
+    "diff.ozet.alan": "alan değişti",
 
     // sol liste
     "liste.ara": "Kural ya da site ara…",
@@ -128,6 +132,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ozet.toplamKayit": "Total version records",
     "ozet.enCokDuzenlenen": "Most edited",
     "ozet.enCokDuzenlenenAd": "Most edited: {ad}",
+    "ozet.ortDerinlik": "Avg. versions per rule",
+    "ozet.derinlikBaslik": "Version depth distribution",
+    "ozet.derinlikAlt": "How many rules have how many versions",
+    "diff.ozet.alan": "fields changed",
 
     "liste.ara": "Search rule or site…",
     "liste.araLabel": "Search rule",
@@ -196,6 +204,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ozet.toplamKayit": "Versionseinträge gesamt",
     "ozet.enCokDuzenlenen": "Am häufigsten bearbeitet",
     "ozet.enCokDuzenlenenAd": "Am häufigsten bearbeitet: {ad}",
+    "ozet.ortDerinlik": "Ø Versionen pro Regel",
+    "ozet.derinlikBaslik": "Verteilung der Versionstiefe",
+    "ozet.derinlikAlt": "Wie viele Regeln wie viele Versionen haben",
+    "diff.ozet.alan": "Felder geändert",
 
     "liste.ara": "Regel oder Site suchen…",
     "liste.araLabel": "Regel suchen",
@@ -264,6 +276,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ozet.toplamKayit": "Total des enregistrements de version",
     "ozet.enCokDuzenlenen": "La plus modifiée",
     "ozet.enCokDuzenlenenAd": "La plus modifiée : {ad}",
+    "ozet.ortDerinlik": "Versions moy. par règle",
+    "ozet.derinlikBaslik": "Répartition de la profondeur des versions",
+    "ozet.derinlikAlt": "Combien de règles ont combien de versions",
+    "diff.ozet.alan": "champs modifiés",
 
     "liste.ara": "Rechercher une règle ou un site…",
     "liste.araLabel": "Rechercher une règle",
@@ -332,6 +348,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ozet.toplamKayit": "Total de registros de versión",
     "ozet.enCokDuzenlenen": "Más editada",
     "ozet.enCokDuzenlenenAd": "Más editada: {ad}",
+    "ozet.ortDerinlik": "Versiones prom. por regla",
+    "ozet.derinlikBaslik": "Distribución de profundidad de versiones",
+    "ozet.derinlikAlt": "Cuántas reglas tienen cuántas versiones",
+    "diff.ozet.alan": "campos cambiados",
 
     "liste.ara": "Buscar regla o sitio…",
     "liste.araLabel": "Buscar regla",

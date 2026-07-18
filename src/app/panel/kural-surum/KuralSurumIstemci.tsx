@@ -10,11 +10,15 @@
  * "Bu sürüme geri dön" → POST /api/rules/:id/revert.
  */
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   History, GitCommit, Search, RotateCcw, AlertTriangle, Clock,
   User as UserIcon, ArrowRight, Layers, Pencil, ShieldCheck,
+  Activity, GitBranch, CheckCircle2, Sparkles,
 } from "lucide-react";
 import { Panel, StatKart, Badge, BosDurum, useToast } from "@/components/panel/kit";
+import { Histogram, Gauge } from "@/components/panel/grafikler-ek";
+import { MiniSpark } from "@/components/panel/grafikler";
 import { Button } from "@/components/ui/Button";
 import { FIELD_ETIKET, OP_ETIKET, grupOzet } from "@/lib/specter/rule-engine";
 import type { RuleVersion, RuleField, RuleOp, RuleAction, RuleKosulGrup } from "@/lib/db/schema";
@@ -154,6 +158,21 @@ export function KuralSurumIstemci({ dil, kurallar }: { dil: Dil; kurallar: Kural
     return en;
   }, [surumluKurallar]);
 
+  // Kural başına sürüm-derinlik dağılımı (histogram): 1 / 2 / 3 / 4 / 5+ sürüm.
+  const derinlikDagilim = useMemo(() => {
+    const kova = [0, 0, 0, 0, 0]; // 1,2,3,4,5+
+    for (const k of surumluKurallar) {
+      const n = k.history.length;
+      const i = n >= 5 ? 4 : Math.max(0, n - 1);
+      kova[i]++;
+    }
+    return kova.map((deger, i) => ({ etiket: i === 4 ? "5+" : String(i + 1), deger }));
+  }, [surumluKurallar]);
+
+  // Ortalama sürüm derinliği (kural başına kaç sürüm) — gauge için 0-100'e ölçekle.
+  const ortDerinlik = toplamSurumluKural ? toplamSurumKaydi / toplamSurumluKural : 0;
+  const ortDerinlikYuzde = Math.min(100, Math.round((ortDerinlik / 8) * 100));
+
   /* --- arama --- */
   const filtreli = useMemo(() => {
     const q = sorgu.trim().toLowerCase();
@@ -276,16 +295,54 @@ export function KuralSurumIstemci({ dil, kurallar }: { dil: Dil; kurallar: Kural
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
       <TanitimBandi t={t} />
 
-      {/* özet istatistikleri */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatKart sayi={toplamSurumluKural} etiket={t("ozet.surumluKural")} ikon={<GitCommit className="size-5" />} />
-        <StatKart sayi={toplamSurumKaydi} etiket={t("ozet.toplamKayit")} ikon={<Layers className="size-5" />} tone="brand" />
-        <StatKart
-          sayi={enCokDuzenlenen ? enCokDuzenlenen.history.length : 0}
-          etiket={enCokDuzenlenen ? t("ozet.enCokDuzenlenenAd").replace("{ad}", enCokDuzenlenen.guncel.name) : t("ozet.enCokDuzenlenen")}
-          ikon={<Pencil className="size-5" />}
-          tone="warn"
-        />
+      {/* özet istatistikleri — ferah KPI şeridi + görsel dağılım */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_1.4fr]">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-2">
+          <StatKart sayi={toplamSurumluKural} etiket={t("ozet.surumluKural")} ikon={<GitCommit className="size-5" />} />
+          <StatKart sayi={toplamSurumKaydi} etiket={t("ozet.toplamKayit")} ikon={<Layers className="size-5" />} tone="brand" />
+          <StatKart
+            sayi={enCokDuzenlenen ? enCokDuzenlenen.history.length : 0}
+            etiket={enCokDuzenlenen ? t("ozet.enCokDuzenlenenAd").replace("{ad}", enCokDuzenlenen.guncel.name) : t("ozet.enCokDuzenlenen")}
+            ikon={<Pencil className="size-5" />}
+            tone="warn"
+          />
+          {/* ortalama sürüm derinliği — yarım-daire gauge */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-center gap-4 rounded-3xl border border-line bg-surface p-6 shadow-card"
+          >
+            <Gauge deger={ortDerinlikYuzde} boyut={128} renk="#2f6fed" />
+            <div className="min-w-0">
+              <div className="num text-2xl font-bold leading-none text-slate-ink">{ortDerinlik.toFixed(1)}</div>
+              <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-slate-muted">
+                <Activity className="size-3.5 text-brand-600" /> {t("ozet.ortDerinlik")}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* sürüm-derinlik dağılımı — histogram (kaç kuralın kaç sürümü var) */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col rounded-3xl border border-line bg-surface p-6 shadow-card"
+        >
+          <div className="mb-1 flex items-center gap-2">
+            <span className="grid size-8 place-items-center rounded-xl bg-brand-50 text-brand-600">
+              <GitBranch className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-[13px] font-semibold text-slate-ink">{t("ozet.derinlikBaslik")}</div>
+              <div className="text-[11px] text-slate-faint">{t("ozet.derinlikAlt")}</div>
+            </div>
+          </div>
+          <div className="mt-auto pt-3">
+            <Histogram kovalar={derinlikDagilim} yukseklik={72} renk="#2f6fed" />
+          </div>
+        </motion.div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -332,6 +389,10 @@ export function KuralSurumIstemci({ dil, kurallar }: { dil: Dil; kurallar: Kural
                     </div>
                     <div className="mt-1 flex items-center gap-2 text-[12px] text-slate-muted">
                       <span className="truncate">{k.siteAdi}</span>
+                    </div>
+                    {/* sürüm-aktivite izi — kural id tohumlu mini sparkline */}
+                    <div className="mt-2 h-6 opacity-80">
+                      <MiniSpark tohum={k.id + k.history.length} renk={aktifMi ? "#2f6fed" : "#93b4f0"} yukseklik={24} />
                     </div>
                     <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-faint">
                       <Clock className="size-3" /> {t("liste.sonDegisim").replace("{zaman}", goreliZaman(sonDegisim, t, dil))}
@@ -392,6 +453,31 @@ export function KuralSurumIstemci({ dil, kurallar }: { dil: Dil; kurallar: Kural
                     </Badge>
                   }
                 >
+                  {/* görsel diff özeti — değişen/aynı alan oranı şeridi */}
+                  <div className="mb-4 flex items-center gap-4 rounded-2xl border border-line bg-canvas/40 px-4 py-3">
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className={cn("grid size-9 place-items-center rounded-xl", degisenSayisi > 0 ? "bg-warn-soft text-amber-700" : "bg-ok-soft text-ok")}>
+                        {degisenSayisi > 0 ? <Sparkles className="size-[18px]" /> : <CheckCircle2 className="size-[18px]" />}
+                      </span>
+                      <div>
+                        <div className="num text-[17px] font-bold leading-none text-slate-ink">
+                          {degisenSayisi}<span className="text-[13px] font-medium text-slate-faint">/{diff.length}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-muted">{t("diff.ozet.alan")}</div>
+                      </div>
+                    </div>
+                    {/* alan-alan segment şeridi: değişen amber, aynı yeşil-ince */}
+                    <div className="flex flex-1 gap-1">
+                      {diff.map((d) => (
+                        <span
+                          key={d.etiket}
+                          title={d.etiket}
+                          className={cn("h-2.5 flex-1 rounded-full transition-all", d.degisti ? "bg-amber-400" : "bg-emerald-200")}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     {diff.map((d) => (
                       <div

@@ -5,17 +5,20 @@
  * Genel zaman çizelgesi + incident seçimi + kill-chain yeniden-kurgu +
  * katılımcılar + anlatı + kronolojik oynatma.
  */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { motion } from "framer-motion";
 import {
   Play, Pause, RotateCcw, SkipForward, Clock, ShieldCheck, Bot, Activity,
   Search, GitCommitHorizontal, Crosshair, Radar, Users, AlertTriangle,
-  ScanSearch, KeyRound, Network, Database, Siren,
+  ScanSearch, KeyRound, Network, Database, Siren, Layers,
 } from "lucide-react";
 import { Panel, StatKart, Badge, Ulke, DurumRozeti } from "@/components/panel/kit";
+import { RadarGrafik, Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import {
-  FAZ_RENK,
+  FAZ_RENK, FAZ_SIRA,
   type TunelOlayi, type TunelOzet, type ZamanKovasi, type Faz, type FazKaydi,
 } from "@/lib/specter/zaman-tuneli";
 import type { Dil } from "@/lib/i18n/panel";
@@ -362,6 +365,16 @@ function OlayYenidenKurgu({ inc, t, dil, yerel }: { inc: TunelOlayi; t: Ceviri; 
 
   const sav = inc.savunmaYaniti;
 
+  // Kill-chain faz profili (radar): her kanonik fazın olay sayısını, en yoğun
+  // faza göre 0-100'e ölçekle. Boş faz = 0 (kill-chain'in şeklini gösterir).
+  const fazProfil = useMemo(() => {
+    const say: Record<Faz, number> = { kesif: 0, erisim_denemesi: 0, yayilma: 0, veri_cikarma: 0, etki: 0 };
+    for (const f of inc.fazlar) say[f.faz] += f.olaySayisi;
+    const enCok = Math.max(1, ...FAZ_SIRA.map((f) => say[f]));
+    return FAZ_SIRA.map((f) => ({ etiket: fazEtiket(f, t), deger: Math.round((say[f] / enCok) * 100) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inc, dil]);
+
   return (
     <div className="space-y-6">
       {/* başlık + anlatı */}
@@ -383,12 +396,21 @@ function OlayYenidenKurgu({ inc, t, dil, yerel }: { inc: TunelOlayi; t: Ceviri; 
           </div>
         </div>
 
-        {/* anlatı özeti */}
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-line bg-canvas/40 px-4 py-3.5">
-          <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-brand-600 text-white"><ScanSearch className="size-4" /></span>
-          <div>
-            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">{t("zt.kurgu.adliAnlati")}</div>
-            <p className="text-[13.5px] leading-relaxed text-slate-ink">{anlati}</p>
+        {/* anlatı özeti + kill-chain faz profili radar (yan yana) */}
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
+          <div className="flex items-start gap-3 rounded-2xl border border-line bg-canvas/40 px-4 py-3.5">
+            <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-brand-600 text-white"><ScanSearch className="size-4" /></span>
+            <div>
+              <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">{t("zt.kurgu.adliAnlati")}</div>
+              <p className="text-[13.5px] leading-relaxed text-slate-ink">{anlati}</p>
+            </div>
+          </div>
+          {/* faz-yoğunluk profili — kill-chain'in şeklini radar olarak */}
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-canvas/40 px-2 py-3 lg:w-[240px]">
+            <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-faint">
+              <Layers className="size-3.5" /> {t("zt.kurgu.fazProfil")}
+            </div>
+            <RadarGrafik eksenler={fazProfil} boyut={200} renk="#7c3aed" />
           </div>
         </div>
       </Panel>
@@ -474,7 +496,7 @@ function OlayYenidenKurgu({ inc, t, dil, yerel }: { inc: TunelOlayi; t: Ceviri; 
           })}
         </div>
 
-        {/* savunma yanıtı bandı (overlay) */}
+        {/* savunma yanıtı bandı (overlay) — gauge + verdict donut ile görselleştirilmiş */}
         <div className="mt-2 rounded-2xl border border-line bg-canvas/30 p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink"><ShieldCheck className="size-4 text-brand-600" /> {t("zt.sav.baslik")}</span>
@@ -484,20 +506,29 @@ function OlayYenidenKurgu({ inc, t, dil, yerel }: { inc: TunelOlayi; t: Ceviri; 
               <DurumRozeti ton="gri" etiket={t("zt.sav.tetiklenmedi")} />
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <SavKutu etiket={t("zt.sav.engellendi")} deger={sav.engellenen} renk="#dc2626" />
-            <SavKutu etiket={t("zt.sav.dogrulama")} deger={sav.dogrulanan} renk="#d97706" />
-            <SavKutu etiket={t("zt.sav.isaretlendi")} deger={sav.isaretlenen} renk="#7c3aed" />
-            <SavKutu etiket={t("zt.sav.izin")} deger={sav.izin} renk="#16a34a" />
-          </div>
-          {/* mitigasyon çubuğu */}
-          <div className="mt-3">
-            <div className="mb-1 flex items-center justify-between text-[11px]">
-              <span className="text-slate-muted">{t("zt.sav.mitigasyonOrani")}</span>
-              <span className="num font-semibold text-slate-ink">%{Math.round(sav.mitigasyonOrani * 100)}</span>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            {/* mitigasyon gauge */}
+            <div className="flex shrink-0 flex-col items-center rounded-2xl border border-line bg-surface px-5 py-3">
+              <GaugeGost deger={Math.round(sav.mitigasyonOrani * 100)} etiket={t("zt.sav.mitigasyonKisa")} boyut={132} />
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-canvas">
-              <div className="h-full rounded-full transition-all" style={{ width: `${sav.mitigasyonOrani * 100}%`, background: sav.mitigasyonOrani >= 0.6 ? "#16a34a" : sav.mitigasyonOrani >= 0.3 ? "#d97706" : "#dc2626" }} />
+            {/* verdict kırılım kutuları — 2×2 */}
+            <div className="grid flex-1 grid-cols-2 gap-3">
+              <SavKutu etiket={t("zt.sav.engellendi")} deger={sav.engellenen} renk="#dc2626" />
+              <SavKutu etiket={t("zt.sav.dogrulama")} deger={sav.dogrulanan} renk="#d97706" />
+              <SavKutu etiket={t("zt.sav.isaretlendi")} deger={sav.isaretlenen} renk="#7c3aed" />
+              <SavKutu etiket={t("zt.sav.izin")} deger={sav.izin} renk="#16a34a" />
+            </div>
+            {/* verdict dağılım donut */}
+            <div className="shrink-0 rounded-2xl border border-line bg-surface px-4 py-3">
+              <DonutDagilim
+                merkezEtiket={t("zt.sav.olayEki")}
+                segmentler={[
+                  { etiket: t("zt.sav.engellendi"), deger: sav.engellenen, renk: "#dc2626" },
+                  { etiket: t("zt.sav.dogrulama"), deger: sav.dogrulanan, renk: "#d97706" },
+                  { etiket: t("zt.sav.isaretlendi"), deger: sav.isaretlenen, renk: "#7c3aed" },
+                  { etiket: t("zt.sav.izin"), deger: sav.izin, renk: "#16a34a" },
+                ]}
+              />
             </div>
           </div>
         </div>

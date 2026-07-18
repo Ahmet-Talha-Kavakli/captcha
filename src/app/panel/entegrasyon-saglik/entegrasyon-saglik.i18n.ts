@@ -43,6 +43,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.filo.baslik": "Filo sağlık özeti",
     "es.filo.ortSkor": "Ortalama sağlık skoru",
     "es.filo.toplamGonderi": "{n} toplam bildirim gönderildi",
+    "es.filo.dagilimBaslik": "Durum dağılımı & gecikme profili",
+    "es.filo.donutMerkez": "kanal",
+    "es.filo.gecikmeBaslik": "Kanal başına tahmini gecikme",
+    "es.filo.gecikmeNot": "Sağlık skoru ve son durum kodundan türetilen gösterim değeri (ms).",
     "es.filo.kurulumHataBaslik": "Kurulum hatası var",
     "es.filo.kurulumHataMetin":
       "Bir veya daha fazla entegrasyonun kritik kurulum kontrolü (geçerli hedef / seçili olay) başarısız. Aşağıdaki matriste kırmızı işaretli kontrolleri düzelt.",
@@ -52,6 +56,18 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.durum.uyari": "Uyarı",
     "es.durum.bozuk": "Bozuk",
     "es.durum.pasif": "Pasif",
+
+    // --- entegrasyon × metrik ısı-matris ---
+    "es.isi.baslik": "Entegrasyon × metrik ısı haritası",
+    "es.isi.metin":
+      "Her entegrasyonu dört boyutta karşılaştır. Koyu hücre yüksek değer; açık hücre iyileştirme alanı demektir.",
+    "es.isi.saglik": "Sağlık",
+    "es.isi.gecikme": "Gecikme",
+    "es.isi.kurulum": "Kurulum",
+    "es.isi.hacim": "Hacim",
+    "es.isi.dusuk": "Düşük",
+    "es.isi.yuksek": "Yüksek",
+    "es.isi.not": "Gecikme sütunu ters ölçek: yüksek = daha hızlı.",
 
     // --- olay tipi kapsaması ---
     "es.kapsama.baslik": "Olay tipi kapsaması",
@@ -87,6 +103,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.metrik.durumKodu": "Durum kodu",
     "es.metrik.baglantiHatasi": "Bağlantı hatası",
     "es.metrik.gonderilen": "Gönderilen",
+    "es.metrik.gecikme": "Tahmini gecikme",
+    "es.metrik.gecikmeTrend": "Gecikme trendi",
     "es.metrik.kurulum": "Kurulum",
     "es.metrik.gecti": "{gecen}/{toplam} geçti",
 
@@ -165,6 +183,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.filo.baslik": "Fleet health summary",
     "es.filo.ortSkor": "Average health score",
     "es.filo.toplamGonderi": "{n} total notifications sent",
+    "es.filo.dagilimBaslik": "Status distribution & latency profile",
+    "es.filo.donutMerkez": "channels",
+    "es.filo.gecikmeBaslik": "Estimated latency per channel",
+    "es.filo.gecikmeNot": "Display value (ms) derived from health score and last status code.",
     "es.filo.kurulumHataBaslik": "Setup error present",
     "es.filo.kurulumHataMetin":
       "One or more integrations failed a critical setup check (valid target / selected event). Fix the checks flagged red in the matrix below.",
@@ -173,6 +195,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.durum.uyari": "Warning",
     "es.durum.bozuk": "Broken",
     "es.durum.pasif": "Inactive",
+
+    "es.isi.baslik": "Integration × metric heatmap",
+    "es.isi.metin":
+      "Compare each integration across four dimensions. A dark cell means a high value; a light cell marks room to improve.",
+    "es.isi.saglik": "Health",
+    "es.isi.gecikme": "Latency",
+    "es.isi.kurulum": "Setup",
+    "es.isi.hacim": "Volume",
+    "es.isi.dusuk": "Low",
+    "es.isi.yuksek": "High",
+    "es.isi.not": "Latency column is inverted: higher = faster.",
 
     "es.kapsama.baslik": "Event type coverage",
     "es.kapsama.metin":
@@ -203,6 +236,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.metrik.durumKodu": "Status code",
     "es.metrik.baglantiHatasi": "Connection error",
     "es.metrik.gonderilen": "Sent",
+    "es.metrik.gecikme": "Est. latency",
+    "es.metrik.gecikmeTrend": "Latency trend",
     "es.metrik.kurulum": "Setup",
     "es.metrik.gecti": "{gecen}/{toplam} passed",
 
@@ -274,6 +309,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.filo.baslik": "Flottenzustands-Übersicht",
     "es.filo.ortSkor": "Durchschnittlicher Zustands-Score",
     "es.filo.toplamGonderi": "{n} Benachrichtigungen insgesamt gesendet",
+    "es.filo.dagilimBaslik": "Statusverteilung & Latenzprofil",
+    "es.filo.donutMerkez": "Kanäle",
+    "es.filo.gecikmeBaslik": "Geschätzte Latenz pro Kanal",
+    "es.filo.gecikmeNot": "Anzeigewert (ms), abgeleitet aus Health-Score und letztem Statuscode.",
     "es.filo.kurulumHataBaslik": "Einrichtungsfehler vorhanden",
     "es.filo.kurulumHataMetin":
       "Eine oder mehrere Integrationen haben eine kritische Einrichtungsprüfung (gültiges Ziel / ausgewähltes Ereignis) nicht bestanden. Behebe die rot markierten Prüfungen in der Matrix unten.",
@@ -282,6 +321,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.durum.uyari": "Warnung",
     "es.durum.bozuk": "Defekt",
     "es.durum.pasif": "Inaktiv",
+
+    "es.isi.baslik": "Integration × Metrik Heatmap",
+    "es.isi.metin":
+      "Vergleiche jede Integration über vier Dimensionen. Eine dunkle Zelle bedeutet einen hohen Wert; eine helle Zelle zeigt Verbesserungspotenzial.",
+    "es.isi.saglik": "Gesundheit",
+    "es.isi.gecikme": "Latenz",
+    "es.isi.kurulum": "Einrichtung",
+    "es.isi.hacim": "Volumen",
+    "es.isi.dusuk": "Niedrig",
+    "es.isi.yuksek": "Hoch",
+    "es.isi.not": "Latenzspalte ist invertiert: höher = schneller.",
 
     "es.kapsama.baslik": "Ereignistyp-Abdeckung",
     "es.kapsama.metin":
@@ -312,6 +362,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.metrik.durumKodu": "Statuscode",
     "es.metrik.baglantiHatasi": "Verbindungsfehler",
     "es.metrik.gonderilen": "Gesendet",
+    "es.metrik.gecikme": "Gesch. Latenz",
+    "es.metrik.gecikmeTrend": "Latenztrend",
     "es.metrik.kurulum": "Einrichtung",
     "es.metrik.gecti": "{gecen}/{toplam} bestanden",
 
@@ -383,6 +435,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.filo.baslik": "Résumé de santé du parc",
     "es.filo.ortSkor": "Score de santé moyen",
     "es.filo.toplamGonderi": "{n} notifications envoyées au total",
+    "es.filo.dagilimBaslik": "Répartition des statuts & profil de latence",
+    "es.filo.donutMerkez": "canaux",
+    "es.filo.gecikmeBaslik": "Latence estimée par canal",
+    "es.filo.gecikmeNot": "Valeur d'affichage (ms) dérivée du score de santé et du dernier code de statut.",
     "es.filo.kurulumHataBaslik": "Erreur de configuration présente",
     "es.filo.kurulumHataMetin":
       "Une ou plusieurs intégrations ont échoué à une vérification de configuration critique (cible valide / événement sélectionné). Corrigez les vérifications signalées en rouge dans la matrice ci-dessous.",
@@ -391,6 +447,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.durum.uyari": "Avertissement",
     "es.durum.bozuk": "Défaillante",
     "es.durum.pasif": "Inactive",
+
+    "es.isi.baslik": "Carte de chaleur intégration × métrique",
+    "es.isi.metin":
+      "Comparez chaque intégration sur quatre dimensions. Une cellule sombre indique une valeur élevée ; une cellule claire signale une marge de progression.",
+    "es.isi.saglik": "Santé",
+    "es.isi.gecikme": "Latence",
+    "es.isi.kurulum": "Configuration",
+    "es.isi.hacim": "Volume",
+    "es.isi.dusuk": "Faible",
+    "es.isi.yuksek": "Élevé",
+    "es.isi.not": "La colonne latence est inversée : plus élevé = plus rapide.",
 
     "es.kapsama.baslik": "Couverture par type d'événement",
     "es.kapsama.metin":
@@ -421,6 +488,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.metrik.durumKodu": "Code de statut",
     "es.metrik.baglantiHatasi": "Erreur de connexion",
     "es.metrik.gonderilen": "Envoyées",
+    "es.metrik.gecikme": "Latence est.",
+    "es.metrik.gecikmeTrend": "Tendance de latence",
     "es.metrik.kurulum": "Configuration",
     "es.metrik.gecti": "{gecen}/{toplam} réussies",
 
@@ -492,6 +561,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.filo.baslik": "Resumen de estado de la flota",
     "es.filo.ortSkor": "Puntuación de estado media",
     "es.filo.toplamGonderi": "{n} notificaciones enviadas en total",
+    "es.filo.dagilimBaslik": "Distribución de estado y perfil de latencia",
+    "es.filo.donutMerkez": "canales",
+    "es.filo.gecikmeBaslik": "Latencia estimada por canal",
+    "es.filo.gecikmeNot": "Valor de visualización (ms) derivado del puntaje de salud y el último código de estado.",
     "es.filo.kurulumHataBaslik": "Hay un error de configuración",
     "es.filo.kurulumHataMetin":
       "Una o más integraciones fallaron una comprobación de configuración crítica (destino válido / evento seleccionado). Corrige las comprobaciones marcadas en rojo en la matriz de abajo.",
@@ -500,6 +573,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.durum.uyari": "Advertencia",
     "es.durum.bozuk": "Averiada",
     "es.durum.pasif": "Inactiva",
+
+    "es.isi.baslik": "Mapa de calor integración × métrica",
+    "es.isi.metin":
+      "Compara cada integración en cuatro dimensiones. Una celda oscura indica un valor alto; una celda clara señala margen de mejora.",
+    "es.isi.saglik": "Salud",
+    "es.isi.gecikme": "Latencia",
+    "es.isi.kurulum": "Configuración",
+    "es.isi.hacim": "Volumen",
+    "es.isi.dusuk": "Bajo",
+    "es.isi.yuksek": "Alto",
+    "es.isi.not": "La columna de latencia está invertida: más alto = más rápido.",
 
     "es.kapsama.baslik": "Cobertura por tipo de evento",
     "es.kapsama.metin":
@@ -530,6 +614,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "es.metrik.durumKodu": "Código de estado",
     "es.metrik.baglantiHatasi": "Error de conexión",
     "es.metrik.gonderilen": "Enviadas",
+    "es.metrik.gecikme": "Latencia est.",
+    "es.metrik.gecikmeTrend": "Tendencia de latencia",
     "es.metrik.kurulum": "Configuración",
     "es.metrik.gecti": "{gecen}/{toplam} superadas",
 

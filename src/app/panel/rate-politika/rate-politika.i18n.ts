@@ -32,6 +32,15 @@ const sozluk: Record<Dil, Record<string, string>> = {
       "Kritik/az-trafikli uçlar. Limit aşan her istek doğrudan engellenir.",
     // --- giriş bandı ---
     "rp.giris.baslik": "Kapasite ve kötüye kullanım koruması, tek konsolda.",
+
+    // --- Görsel: kapasite gauge + limit dağılım ---
+    "rp.kapasite.baslik": "Kademe kapasite kullanımı",
+    "rp.kapasite.metin": "Gözlemlenen tepe trafik ({rps}/sn ≈ {dk}/dk) her kademe limitinin ne kadarını dolduruyor.",
+    "rp.kapasite.dolu": "dolu",
+    "rp.dagilim.baslik": "Limit dağılımı",
+    "rp.dagilim.metin": "Kademeler arası dakikalık istek limitinin görece büyüklüğü.",
+    "rp.dagilim.onerilen": "Önerilen",
+    "rp.dagilim.diger": "Diğer",
     "rp.giris.metin":
       "Hız-limiti kademelerini simüle et, meşru zirveyi boğmadan seli durduran ayarı seç; kotanın ne zaman biteceğini ve dolduğunda ne olacağını (red mi, fazla-kullanım mı) önceden gör.",
     // --- özet istatistikler ---
@@ -147,6 +156,15 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rp.kademeAciklama.cok-siki":
       "Critical/low-traffic endpoints. Every request over the limit is blocked outright.",
     "rp.giris.baslik": "Capacity and abuse protection, in one console.",
+
+    // --- Visual: capacity gauge + limit distribution ---
+    "rp.kapasite.baslik": "Tier capacity usage",
+    "rp.kapasite.metin": "How much of each tier limit the observed peak traffic ({rps}/s ≈ {dk}/min) fills.",
+    "rp.kapasite.dolu": "full",
+    "rp.dagilim.baslik": "Limit distribution",
+    "rp.dagilim.metin": "Relative size of per-minute request limits across tiers.",
+    "rp.dagilim.onerilen": "Recommended",
+    "rp.dagilim.diger": "Other",
     "rp.giris.metin":
       "Simulate rate-limit tiers and pick the setting that stops the flood without choking legitimate peaks; see in advance when your quota will run out and what happens when it does (rejection or overage).",
     "rp.birim.sn": "s",
@@ -253,6 +271,15 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rp.kademeAciklama.cok-siki":
       "Kritische/traffic-arme Endpunkte. Jede Anfrage über dem Limit wird direkt blockiert.",
     "rp.giris.baslik": "Kapazitäts- und Missbrauchsschutz in einer Konsole.",
+
+    // --- Visuell: Kapazitätsanzeige + Limitverteilung ---
+    "rp.kapasite.baslik": "Stufen-Kapazitätsauslastung",
+    "rp.kapasite.metin": "Wie viel des jeweiligen Stufenlimits der beobachtete Spitzenverkehr ({rps}/s ≈ {dk}/Min.) ausfüllt.",
+    "rp.kapasite.dolu": "voll",
+    "rp.dagilim.baslik": "Limitverteilung",
+    "rp.dagilim.metin": "Relative Größe der Anfragelimits pro Minute über die Stufen hinweg.",
+    "rp.dagilim.onerilen": "Empfohlen",
+    "rp.dagilim.diger": "Andere",
     "rp.giris.metin":
       "Simuliere Rate-Limit-Stufen und wähle die Einstellung, die die Flut stoppt, ohne legitime Spitzen zu ersticken; sieh im Voraus, wann dein Kontingent erschöpft ist und was dann passiert (Ablehnung oder Überschreitung).",
     "rp.birim.sn": "s",
@@ -359,6 +386,15 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rp.kademeAciklama.cok-siki":
       "Points d'accès critiques/à faible trafic. Chaque requête dépassant la limite est bloquée directement.",
     "rp.giris.baslik": "Capacité et protection contre l'abus, dans une seule console.",
+
+    // --- Visuel : jauge de capacité + distribution des limites ---
+    "rp.kapasite.baslik": "Utilisation de la capacité par palier",
+    "rp.kapasite.metin": "Part de chaque limite de palier remplie par le trafic de pointe observé ({rps}/s ≈ {dk}/min).",
+    "rp.kapasite.dolu": "plein",
+    "rp.dagilim.baslik": "Distribution des limites",
+    "rp.dagilim.metin": "Taille relative des limites de requêtes par minute entre les paliers.",
+    "rp.dagilim.onerilen": "Recommandé",
+    "rp.dagilim.diger": "Autre",
     "rp.giris.metin":
       "Simulez les paliers de limitation de débit et choisissez le réglage qui arrête l'inondation sans étouffer les pics légitimes ; voyez à l'avance quand votre quota s'épuisera et ce qui se passe alors (rejet ou dépassement).",
     "rp.birim.sn": "s",
@@ -465,6 +501,15 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rp.kademeAciklama.cok-siki":
       "Puntos de acceso críticos/de bajo tráfico. Cada solicitud que supera el límite se bloquea directamente.",
     "rp.giris.baslik": "Capacidad y protección contra el abuso, en una sola consola.",
+
+    // --- Visual: indicador de capacidad + distribución de límites ---
+    "rp.kapasite.baslik": "Uso de capacidad por nivel",
+    "rp.kapasite.metin": "Cuánto llena de cada límite de nivel el tráfico pico observado ({rps}/s ≈ {dk}/min).",
+    "rp.kapasite.dolu": "lleno",
+    "rp.dagilim.baslik": "Distribución de límites",
+    "rp.dagilim.metin": "Tamaño relativo de los límites de solicitudes por minuto entre niveles.",
+    "rp.dagilim.onerilen": "Recomendado",
+    "rp.dagilim.diger": "Otro",
     "rp.giris.metin":
       "Simula los niveles de límite de tasa y elige el ajuste que detiene la avalancha sin ahogar los picos legítimos; ve con antelación cuándo se agotará tu cuota y qué ocurre cuando lo hace (rechazo o exceso).",
     "rp.birim.sn": "s",

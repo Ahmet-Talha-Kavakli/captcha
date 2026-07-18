@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   ShieldAlert,
   Radar,
@@ -20,8 +21,11 @@ import {
   Siren,
   Check,
   Layers,
+  Gauge as GaugeGost,
 } from "lucide-react";
 import { Panel, StatKart, Badge, DurumRozeti, BosDurum, Ulke, useToast } from "@/components/panel/kit";
+import { RadarGrafik, Histogram } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type {
@@ -194,6 +198,20 @@ function KorelasyonKart({ kor, dil, t }: { kor: Korelasyon; dil: Dil; t: Ceviri 
   const { goster } = useToast();
   const m = SIDDET_META[kor.siddet];
 
+  // Tehdit profili (radar): kartın 5 boyutunu 0-100'e ölçekle. Salt-görsel
+  // türev — kartın MEVCUT alanlarından hesaplanır, yeni veri EKLENMEZ.
+  const tehditProfil = useMemo(
+    () => [
+      { etiket: t("ko.profil.hacim"), deger: Math.min(100, Math.round((kor.olaySayisi / 40) * 100)) },
+      { etiket: t("ko.profil.yayilim"), deger: Math.min(100, Math.round((kor.benzersizIp / 12) * 100)) },
+      { etiket: t("ko.profil.engel"), deger: Math.round(kor.engelOrani * 100) },
+      { etiket: t("ko.profil.guven"), deger: kor.guvenSkoru },
+      { etiket: t("ko.profil.yuzey"), deger: Math.min(100, Math.round((kor.pathler.length / 8) * 100)) },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kor, dil],
+  );
+
   async function olayOlustur() {
     if (olayDurum !== "bos") return;
     setOlayDurum("yukleniyor");
@@ -247,20 +265,28 @@ function KorelasyonKart({ kor, dil, t }: { kor: Korelasyon; dil: Dil; t: Ceviri 
       {/* genişleyen detay */}
       {acik && (
         <div className="space-y-5 border-t border-line bg-canvas/20 px-5 py-5">
-          {/* kill-chain */}
-          <div>
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
-              <Crosshair className="size-3.5" /> {t("ko.detay.killchain")}
+          {/* kill-chain + tehdit profili radar (yan yana) */}
+          <div className="grid gap-5 lg:grid-cols-[1fr_auto]">
+            <div>
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
+                <Crosshair className="size-3.5" /> {t("ko.detay.killchain")}
+              </div>
+              <KillChain taktikler={kor.taktikler} siddet={kor.siddet} dil={dil} />
+              {/* meta kutucukları — radar ile aynı satırda, altında */}
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <MetaKutu ikon={<Fingerprint className="size-4" />} etiket={t("ko.detay.benzersizIp")} deger={String(kor.benzersizIp)} />
+                <MetaKutu ikon={<Globe className="size-4" />} etiket={t("ko.detay.ulke")} deger={kor.ulkeler.map((u) => u).join(", ")} />
+                <MetaKutu ikon={<Server className="size-4" />} etiket={t("ko.detay.asn")} deger={kor.asnler.length === 1 ? kor.asnler[0] : t("ko.detay.asnAg").replace("{n}", String(kor.asnler.length))} />
+                <MetaKutu ikon={<Clock className="size-4" />} etiket={t("ko.detay.sure")} deger={sure(kor.sonGorulme - kor.ilkGorulme, t)} />
+              </div>
             </div>
-            <KillChain taktikler={kor.taktikler} siddet={kor.siddet} dil={dil} />
-          </div>
-
-          {/* meta kutucukları */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MetaKutu ikon={<Fingerprint className="size-4" />} etiket={t("ko.detay.benzersizIp")} deger={String(kor.benzersizIp)} />
-            <MetaKutu ikon={<Globe className="size-4" />} etiket={t("ko.detay.ulke")} deger={kor.ulkeler.map((u) => u).join(", ")} />
-            <MetaKutu ikon={<Server className="size-4" />} etiket={t("ko.detay.asn")} deger={kor.asnler.length === 1 ? kor.asnler[0] : t("ko.detay.asnAg").replace("{n}", String(kor.asnler.length))} />
-            <MetaKutu ikon={<Clock className="size-4" />} etiket={t("ko.detay.sure")} deger={sure(kor.sonGorulme - kor.ilkGorulme, t)} />
+            {/* tehdit-profili radar */}
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-surface px-3 py-3 lg:w-[236px]">
+              <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-faint">
+                <Crosshair className="size-3.5" /> {t("ko.profil.baslik")}
+              </div>
+              <RadarGrafik eksenler={tehditProfil} boyut={196} renk={m.ring} />
+            </div>
           </div>
 
           {/* güven + zaman aralığı */}
@@ -398,6 +424,37 @@ export function KorelasyonIstemci({
     return m;
   }, [korelasyonlar]);
 
+  // Tür dağılımı (donut) — korelasyon türlerine göre sayım + kanonik renk.
+  const turDagilim = useMemo(() => {
+    const TUR_RENK: Record<KorelasyonTur, string> = {
+      kimlik_dogrulama_saldirisi: "#db2777",
+      kazima_kampanyasi: "#d97706",
+      dagitik_bot_agi: "#7c3aed",
+      hedefli_endpoint_saldirisi: "#dc2626",
+      ip_patlamasi: "#2f6fed",
+    };
+    return (Object.keys(TUR_RENK) as KorelasyonTur[])
+      .map((tur) => ({
+        etiket: t(TUR_ANAHTAR[tur]),
+        deger: korelasyonlar.filter((k) => k.tur === tur).length,
+        renk: TUR_RENK[tur],
+      }))
+      .filter((s) => s.deger > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [korelasyonlar, dil]);
+
+  // Şiddet dağılımı (histogram) — kritik→düşük, tonlu.
+  const siddetDagilim = useMemo(
+    () => SIDDET_SIRA.map((s) => ({ etiket: t(SIDDET_ANAHTAR[s]), deger: siddetSayim[s] ?? 0 })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [siddetSayim, dil],
+  );
+
+  // Ortalama güven skoru (üst KPI'da mini gösterge).
+  const ortGuven = korelasyonlar.length
+    ? Math.round(korelasyonlar.reduce((a, k) => a + k.guvenSkoru, 0) / korelasyonlar.length)
+    : 0;
+
   function raporIndir() {
     const satirlar: string[] = [];
     satirlar.push("=".repeat(76));
@@ -478,6 +535,47 @@ export function KorelasyonIstemci({
               <DurumRozeti ton="danger" etiket={t("ko.aktifRozet").replace("{n}", String(ozet.aktifSaldiri))} nabiz />
             </span>
           )}
+        </div>
+      )}
+
+      {/* görsel dağılım şeridi — tür donut + şiddet histogram (monoton listeyi kırar) */}
+      {korelasyonlar.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Panel baslik={<span className="flex items-center gap-2"><Network className="size-4 text-brand-600" /> {t("ko.gorsel.turDagilim")}</span>}>
+              <DonutDagilim merkezEtiket={t("ko.gorsel.olay")} segmentler={turDagilim} />
+            </Panel>
+          </motion.div>
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Panel
+              baslik={<span className="flex items-center gap-2"><ShieldAlert className="size-4 text-brand-600" /> {t("ko.gorsel.siddetDagilim")}</span>}
+              sagUst={
+                <span className="flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700">
+                  <GaugeGost className="size-3.5" /> {t("ko.gorsel.ortGuven")} %{ortGuven}
+                </span>
+              }
+            >
+              <div className="pt-2">
+                <Histogram
+                  kovalar={siddetDagilim.map((d, i) => ({
+                    etiket: d.etiket,
+                    deger: d.deger,
+                    ton: (i === 0 ? "bot" : i === SIDDET_SIRA.length - 1 ? "insan" : "nötr") as "bot" | "insan" | "nötr",
+                  }))}
+                  yukseklik={104}
+                  renk="#d97706"
+                />
+              </div>
+            </Panel>
+          </motion.div>
         </div>
       )}
 

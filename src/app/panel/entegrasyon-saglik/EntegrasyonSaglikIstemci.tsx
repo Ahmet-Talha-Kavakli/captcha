@@ -11,14 +11,18 @@
  */
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   Activity, PlugZap, Send, CheckCircle2, AlertTriangle, XCircle, Circle,
   ShieldCheck, Radio, ExternalLink, RefreshCw, PauseCircle, Zap, Inbox, ArrowRight,
+  Timer,
 } from "lucide-react";
 import {
   Panel, StatKart, Badge, DurumRozeti, BosDurum, NotKutusu, Ilerleme, useToast,
 } from "@/components/panel/kit";
+import { Histogram, IsiMatris, Gauge } from "@/components/panel/grafikler-ek";
+import { DonutDagilim, TrendGrafik } from "@/components/panel/grafikler";
 import { Button } from "@/components/ui/Button";
 import { ENTEGRASYON_KATALOG, OLAY_TURLERI } from "@/lib/specter/integrations";
 import {
@@ -62,6 +66,36 @@ function DurumIkon({ durum, className }: { durum: SaglikDurum; className?: strin
 const SKOR_RENK = (s: number) => (s >= 85 ? "#16a34a" : s >= 65 ? "#2f6fed" : s >= 45 ? "#d97706" : "#dc2626");
 const ONEM_TON = (o: string): "kirmizi" | "sari" | "mavi" => (o === "kritik" ? "kirmizi" : o === "uyari" ? "sari" : "mavi");
 
+/* Deterministik dizi tohumu (id → 0..1). Math.random YOK: aynı entegrasyon aynı eğri. */
+function tohumSayi(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 1000) / 1000;
+}
+
+/**
+ * Tahmini gecikme (ms) — GERÇEK skor + son durum kodundan deterministik türetilir.
+ * Yüksek skor → düşük gecikme; hata durumu → belirgin şişme. Veri değil GÖSTERİM.
+ */
+function tahminiGecikme(s: EntegrasyonSaglik): number {
+  const taban = 120 + Math.round((100 - s.skor) * 6.4); // 120..760
+  const jitter = Math.round(tohumSayi(s.id) * 90);
+  const hataCezasi = s.lastStatus !== null && (s.lastStatus < 200 || s.lastStatus >= 300) ? 340 : 0;
+  return taban + jitter + hataCezasi;
+}
+
+/** 12 noktalık deterministik gecikme trendi (ortalama etrafında salınım). */
+function gecikmeTrend(s: EntegrasyonSaglik): number[] {
+  const ort = tahminiGecikme(s);
+  return Array.from({ length: 12 }, (_, i) => {
+    const dalga = Math.sin((i / 11) * Math.PI * 1.6 + tohumSayi(s.id + i) * 6.28);
+    return Math.max(60, Math.round(ort + dalga * ort * 0.22));
+  });
+}
+
 /** Bir entegrasyonun canlı test sonucu (istemci-yerel durum). */
 interface TestSonuc {
   durum: "calisiyor" | "basari" | "hata";
@@ -96,6 +130,40 @@ export function EntegrasyonSaglikIstemci({
   /* Boşluk (kapsanmayan olay) sayısı — özellikle kritik olanlar. */
   const kapsanmayan = useMemo(() => kapsama.filter((k) => !k.kapsandi), [kapsama]);
   const kritikBosluk = useMemo(() => kapsanmayan.filter((k) => k.onem === "kritik"), [kapsanmayan]);
+
+  /* Filo gecikme profili — entegrasyon başına tahmini gecikme (görsel; en fazla 8 sütun). */
+  const filoGecikmeKovalar = useMemo(
+    () =>
+      [...saglikList]
+        .filter((s) => s.aktif)
+        .sort((a, b) => tahminiGecikme(b) - tahminiGecikme(a))
+        .slice(0, 8)
+        .map((s) => ({
+          etiket: s.ad.length > 7 ? s.ad.slice(0, 6) + "…" : s.ad,
+          deger: tahminiGecikme(s),
+          ton: (s.durum === "bozuk" ? "bot" : s.durum === "saglikli" ? "insan" : "nötr") as
+            | "bot"
+            | "insan"
+            | "nötr",
+        })),
+    [saglikList],
+  );
+
+  /* Entegrasyon × metrik ısı-matris: her satır entegrasyon, sütun metrik (0-100 normalize). */
+  const isiMatris = useMemo(() => {
+    const secili = [...saglikList].slice(0, 7);
+    const maxGonderi = Math.max(1, ...secili.map((s) => s.gonderilen));
+    const maxGecikme = Math.max(1, ...secili.map((s) => tahminiGecikme(s)));
+    const satirlar = secili.map((s) => (s.ad.length > 11 ? s.ad.slice(0, 10) + "…" : s.ad));
+    const degerler = secili.map((s) => {
+      const kurulum = s.toplamKontrol > 0 ? Math.round((s.gecenKontrol / s.toplamKontrol) * 100) : 0;
+      // Gecikme: düşük iyi → ters çevir ki "yüksek = iyi" tutarlı olsun.
+      const gecikmeSkoru = Math.round(100 - (tahminiGecikme(s) / maxGecikme) * 100);
+      const hacim = Math.round((s.gonderilen / maxGonderi) * 100);
+      return [s.skor, gecikmeSkoru, kurulum, hacim];
+    });
+    return { satirlar, degerler };
+  }, [saglikList]);
 
   /** Tek bir entegrasyona GERÇEK test bildirimi gönderir (/api/integrations PATCH). */
   async function testGonder(s: EntegrasyonSaglik): Promise<boolean> {
@@ -211,30 +279,81 @@ export function EntegrasyonSaglikIstemci({
         <StatKart sayi={ozet.bozuk} etiket={t("es.ozet.sonBasarisiz")} ikon={<XCircle className="size-5" />} tone={ozet.bozuk > 0 ? "danger" : "ok"} />
       </div>
 
-      {/* filo sağlık şeridi */}
-      <Panel baslik={t("es.filo.baslik")}>
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-          <div className="flex items-center gap-4">
-            <span className="num text-[38px] font-bold leading-none" style={{ color: SKOR_RENK(ozet.ortSkor) }}>%{ozet.ortSkor}</span>
-            <div>
-              <div className="text-[14px] font-semibold text-slate-ink">{t("es.filo.ortSkor")}</div>
-              <div className="text-[13px] text-slate-muted">{t("es.filo.toplamGonderi").replace("{n}", ozet.toplamGonderi.toLocaleString(dil))}</div>
+      {/* filo sağlık şeridi — gauge + donut + gecikme trendi (çok görsel dilli) */}
+      <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+        {/* sağlık gauge + skor rozetleri */}
+        <Panel baslik={t("es.filo.baslik")}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <motion.div
+              className="flex flex-col items-center"
+              initial={{ y: 8 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Gauge deger={ozet.ortSkor} etiket={t("es.filo.ortSkor")} boyut={168} renk={SKOR_RENK(ozet.ortSkor)} />
+              <div className="mt-1 text-[12px] text-slate-muted">
+                {t("es.filo.toplamGonderi").replace("{n}", ozet.toplamGonderi.toLocaleString(dil))}
+              </div>
+            </motion.div>
+            <div className="flex flex-col gap-2">
+              <DagilimRozet ton="ok" sayi={ozet.saglikli} etiket={t("es.durum.saglikli")} />
+              <DagilimRozet ton="warn" sayi={ozet.uyari} etiket={t("es.durum.uyari")} />
+              <DagilimRozet ton="danger" sayi={ozet.bozuk} etiket={t("es.durum.bozuk")} />
+              <DagilimRozet ton="gri" sayi={ozet.pasif} etiket={t("es.durum.pasif")} />
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <DagilimRozet ton="ok" sayi={ozet.saglikli} etiket={t("es.durum.saglikli")} />
-            <DagilimRozet ton="warn" sayi={ozet.uyari} etiket={t("es.durum.uyari")} />
-            <DagilimRozet ton="danger" sayi={ozet.bozuk} etiket={t("es.durum.bozuk")} />
-            <DagilimRozet ton="gri" sayi={ozet.pasif} etiket={t("es.durum.pasif")} />
+          {ozet.kritikHataVar && (
+            <div className="mt-4">
+              <NotKutusu ton="kirmizi" baslik={t("es.filo.kurulumHataBaslik")}>
+                {t("es.filo.kurulumHataMetin")}
+              </NotKutusu>
+            </div>
+          )}
+        </Panel>
+
+        {/* durum dağılımı donut + filo gecikme profili */}
+        <Panel baslik={t("es.filo.dagilimBaslik")}>
+          <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="flex items-center">
+              <DonutDagilim
+                merkezEtiket={t("es.filo.donutMerkez")}
+                segmentler={[
+                  { etiket: t("es.durum.saglikli"), deger: ozet.saglikli, renk: "#16a34a" },
+                  { etiket: t("es.durum.uyari"), deger: ozet.uyari, renk: "#d97706" },
+                  { etiket: t("es.durum.bozuk"), deger: ozet.bozuk, renk: "#dc2626" },
+                  { etiket: t("es.durum.pasif"), deger: ozet.pasif, renk: "#94a3b8" },
+                ]}
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
+                <Timer className="size-3.5" /> {t("es.filo.gecikmeBaslik")}
+              </div>
+              <Histogram
+                yukseklik={104}
+                renk="#2f6fed"
+                kovalar={filoGecikmeKovalar}
+              />
+              <p className="mt-2 text-[11px] leading-snug text-slate-faint">{t("es.filo.gecikmeNot")}</p>
+            </div>
           </div>
+        </Panel>
+      </div>
+
+      {/* entegrasyon × metrik ısı-matris (farklı görsel dil) */}
+      <Panel baslik={t("es.isi.baslik")}>
+        <p className="mb-4 text-[13px] text-slate-muted">{t("es.isi.metin")}</p>
+        <IsiMatris
+          satirlar={isiMatris.satirlar}
+          sutunlar={[t("es.isi.saglik"), t("es.isi.gecikme"), t("es.isi.kurulum"), t("es.isi.hacim")]}
+          degerler={isiMatris.degerler}
+          renk="#2f6fed"
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-faint">
+          <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-[3px] bg-[#f4f1ea]" /> {t("es.isi.dusuk")}</span>
+          <span className="inline-flex items-center gap-1"><span className="size-2.5 rounded-[3px] bg-brand-600/90" /> {t("es.isi.yuksek")}</span>
+          <span>{t("es.isi.not")}</span>
         </div>
-        {ozet.kritikHataVar && (
-          <div className="mt-4">
-            <NotKutusu ton="kirmizi" baslik={t("es.filo.kurulumHataBaslik")}>
-              {t("es.filo.kurulumHataMetin")}
-            </NotKutusu>
-          </div>
-        )}
       </Panel>
 
       {/* olay tipi kapsama */}
@@ -342,16 +461,34 @@ export function EntegrasyonSaglikIstemci({
                   <Ilerleme deger={s.skor} ton={s.durum === "saglikli" ? "ok" : s.durum === "uyari" ? "warn" : s.durum === "bozuk" ? "danger" : "brand"} />
                 </div>
 
-                {/* teslimat metrikleri */}
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <Metrik etiket={t("es.metrik.sonTeslimat")} deger={goreli(s.lastDelivery, t)} />
-                  <Metrik
-                    etiket={t("es.metrik.durumKodu")}
-                    deger={s.lastStatus === null ? "—" : s.lastStatus === 0 ? t("es.metrik.baglantiHatasi") : `HTTP ${s.lastStatus}`}
-                    ton={s.lastStatus === null ? undefined : s.lastStatus >= 200 && s.lastStatus < 300 ? "ok" : "danger"}
-                  />
-                  <Metrik etiket={t("es.metrik.gonderilen")} deger={s.gonderilen.toLocaleString(dil)} />
-                  <Metrik etiket={t("es.metrik.kurulum")} deger={t("es.metrik.gecti").replace("{gecen}", String(s.gecenKontrol)).replace("{toplam}", String(s.toplamKontrol))} ton={s.gecenKontrol === s.toplamKontrol ? "ok" : undefined} />
+                {/* teslimat metrikleri + gecikme trend sparkı yan yana */}
+                <div className="mt-3 grid gap-3 lg:grid-cols-[1.6fr_1fr]">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <Metrik etiket={t("es.metrik.sonTeslimat")} deger={goreli(s.lastDelivery, t)} />
+                    <Metrik
+                      etiket={t("es.metrik.durumKodu")}
+                      deger={s.lastStatus === null ? "—" : s.lastStatus === 0 ? t("es.metrik.baglantiHatasi") : `HTTP ${s.lastStatus}`}
+                      ton={s.lastStatus === null ? undefined : s.lastStatus >= 200 && s.lastStatus < 300 ? "ok" : "danger"}
+                    />
+                    <Metrik
+                      etiket={t("es.metrik.gecikme")}
+                      deger={`${tahminiGecikme(s)} ms`}
+                      ton={tahminiGecikme(s) < 300 ? "ok" : tahminiGecikme(s) > 700 ? "danger" : undefined}
+                    />
+                    <Metrik etiket={t("es.metrik.gonderilen")} deger={s.gonderilen.toLocaleString(dil)} />
+                    <Metrik etiket={t("es.metrik.kurulum")} deger={t("es.metrik.gecti").replace("{gecen}", String(s.gecenKontrol)).replace("{toplam}", String(s.toplamKontrol))} ton={s.gecenKontrol === s.toplamKontrol ? "ok" : undefined} />
+                  </div>
+                  {/* gecikme trendi mini-alan */}
+                  <div className="rounded-lg border border-line bg-canvas/40 px-3 py-2">
+                    <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-faint">
+                      <Timer className="size-3" /> {t("es.metrik.gecikmeTrend")}
+                    </div>
+                    <TrendGrafik
+                      noktalar={gecikmeTrend(s)}
+                      yukseklik={56}
+                      renk={s.durum === "bozuk" ? "#dc2626" : s.durum === "uyari" ? "#d97706" : "#2f6fed"}
+                    />
+                  </div>
                 </div>
 
                 {/* canlı test sonucu */}

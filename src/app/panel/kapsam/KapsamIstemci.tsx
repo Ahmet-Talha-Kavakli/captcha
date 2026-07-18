@@ -18,6 +18,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   ShieldHalf,
   ShieldCheck,
@@ -30,10 +31,14 @@ import {
   KeyRound,
   CircleHelp,
   Wrench,
+  Radar,
+  PieChart,
 } from "lucide-react";
 import { Panel, StatKart, Badge } from "@/components/panel/kit";
 import { botSinifGorsel } from "@/components/panel/bot-sinif-gorsel";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { Gauge as GaugeGost, RadarGrafik } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import {
@@ -127,6 +132,40 @@ export function KapsamIstemci({ yollar, ozet, dil }: { yollar: YolKapsam[]; ozet
     { durum: "test_edilmedi" as KapsamDurum, adet: ozet.testEdilmeyenYol },
   ].filter((s) => s.adet > 0);
 
+  /* --- görsel türetimler (yalnızca gösterim; mantık/CRUD değişmez) --- */
+  // Durum dağılımı donutu (boşluk görünürlüğü).
+  const durumDonut = useMemo(
+    () =>
+      (["korunuyor", "kismi", "acik", "test_edilmedi"] as KapsamDurum[])
+        .map((d) => ({
+          etiket: durumEtiketi(d),
+          deger:
+            d === "korunuyor" ? ozet.korunanYol
+            : d === "kismi" ? ozet.kismiYol
+            : d === "acik" ? ozet.acikYol
+            : ozet.testEdilmeyenYol,
+          renk: durumRenk(d),
+        }))
+        .filter((s) => s.deger > 0),
+    [ozet, dil],
+  );
+  // Kategori radarı: yol öneki (ilk segment) başına ortalama koruma oranı.
+  const kategoriRadar = useMemo(() => {
+    const grup = new Map<string, { top: number; adet: number }>();
+    yollar.forEach((y) => {
+      const seg = y.yol.split("/").filter(Boolean)[0] ?? "kök";
+      const anahtar = `/${seg}`;
+      const g = grup.get(anahtar) ?? { top: 0, adet: 0 };
+      g.top += y.korumaOrani * 100;
+      g.adet += 1;
+      grup.set(anahtar, g);
+    });
+    return [...grup.entries()]
+      .map(([etiket, g]) => ({ etiket, deger: Math.round(g.top / g.adet) }))
+      .sort((a, b) => b.deger - a.deger)
+      .slice(0, 6);
+  }, [yollar]);
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
       {/* açıklama şeridi */}
@@ -167,6 +206,52 @@ export function KapsamIstemci({ yollar, ozet, dil }: { yollar: YolKapsam[]; ozet
           ikon={<TriangleAlert className="size-5" />}
           tone={ozet.korumasizBotIstek > 0 ? "danger" : "ok"}
         />
+      </div>
+
+      {/* görsel özet: kapsama gauge + boşluk donut + kategori radar */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4 }}>
+          <Panel baslik={<span className="flex items-center gap-2"><ShieldHalf className="size-4 text-brand-600" /> {t("kap.gorsel2.gaugeBaslik")}</span>}>
+            <div className="flex flex-col items-center gap-3 py-2">
+              <GaugeGost deger={genelYuzde} etiket={t("kap.gorsel2.gaugeEtiket")} boyut={190} />
+              <div className="grid w-full grid-cols-2 gap-2 text-center">
+                <div className="rounded-xl bg-ok-soft/60 px-3 py-2">
+                  <div className="num text-[18px] font-bold text-ok">{ozet.korunanYol}</div>
+                  <div className="text-[11px] text-slate-muted">{t("kap.gorsel2.korunan")}</div>
+                </div>
+                <div className="rounded-xl bg-danger-soft/60 px-3 py-2">
+                  <div className="num text-[18px] font-bold text-danger2">{ozet.acikYol}</div>
+                  <div className="text-[11px] text-slate-muted">{t("kap.gorsel2.acik")}</div>
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </motion.div>
+
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
+          <Panel baslik={<span className="flex items-center gap-2"><PieChart className="size-4 text-brand-600" /> {t("kap.gorsel2.donutBaslik")}</span>}>
+            {durumDonut.length === 0 ? (
+              <p className="text-sm text-slate-faint">{t("kap.gorsel.bosDurum")}</p>
+            ) : (
+              <DonutDagilim segmentler={durumDonut} merkezEtiket={t("kap.gorsel2.donutMerkez")} />
+            )}
+          </Panel>
+        </motion.div>
+
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4, delay: 0.08 }}>
+          <Panel baslik={<span className="flex items-center gap-2"><Radar className="size-4 text-brand-600" /> {t("kap.gorsel2.radarBaslik")}</span>}>
+            {kategoriRadar.length < 3 ? (
+              <div className="grid h-[200px] place-items-center text-center text-[12px] text-slate-faint">
+                {t("kap.gorsel2.radarYetersiz")}
+              </div>
+            ) : (
+              <div className="grid place-items-center">
+                <RadarGrafik eksenler={kategoriRadar} boyut={220} />
+              </div>
+            )}
+            <p className="mt-1 text-center text-[11px] text-slate-faint">{t("kap.gorsel2.radarNot")}</p>
+          </Panel>
+        </motion.div>
       </div>
 
       {/* kapsam görselleştirmesi — segmentli bar */}

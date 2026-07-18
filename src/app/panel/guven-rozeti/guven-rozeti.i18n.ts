@@ -66,6 +66,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gr.seviye.altın": "Altın Koruma",
 
     // Neden güven rozeti?
+    "gr.analitik.baslik": "Rozet gösterim analitiği",
+    "gr.analitik.aciklama":
+      "Rozetinin ziyaretçilere ne kadar gösterildiğini, tıklanma oranını ve güven skorunu izle. Değerler gerçek koruma hacminden türetilir.",
+    "gr.analitik.guvenSkoru": "Güven skoru",
+    "gr.analitik.seviye": "Rozet seviyesi: {ad}",
+    "gr.analitik.gosterim": "Gösterim",
+    "gr.analitik.tiklama": "Tıklama",
+    "gr.analitik.ctr": "Tıklama oranı",
+    "gr.analitik.uptime": "Çalışma süresi",
+    "gr.analitik.trendBaslik": "Son 14 gün · gösterim & tıklama",
+    "gr.analitik.stilBaslik": "Rozet stili dağılımı (gösterim payı)",
+    "gr.analitik.stilMerkez": "pay %",
+
     "gr.neden.baslik": "Neden güven rozeti?",
     "gr.neden.guven.baslik": "Ziyaretçi güveni",
     "gr.neden.guven.metin": "Aktif koruma sinyali gören kullanıcılarda dönüşüm ve tamamlama oranı belirgin şekilde artar — tıpkı SSL kilidi gibi.",
@@ -142,6 +155,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gr.seviye.gümüş": "Silver Protection",
     "gr.seviye.altın": "Gold Protection",
 
+    "gr.analitik.baslik": "Badge display analytics",
+    "gr.analitik.aciklama":
+      "Track how often your badge is shown to visitors, its click-through rate and trust score. Values are derived from real protection volume.",
+    "gr.analitik.guvenSkoru": "Trust score",
+    "gr.analitik.seviye": "Badge level: {ad}",
+    "gr.analitik.gosterim": "Impressions",
+    "gr.analitik.tiklama": "Clicks",
+    "gr.analitik.ctr": "Click-through rate",
+    "gr.analitik.uptime": "Uptime",
+    "gr.analitik.trendBaslik": "Last 14 days · impressions & clicks",
+    "gr.analitik.stilBaslik": "Badge style distribution (impression share)",
+    "gr.analitik.stilMerkez": "share %",
+
     "gr.neden.baslik": "Why a trust badge?",
     "gr.neden.guven.baslik": "Visitor trust",
     "gr.neden.guven.metin": "Users who see an active protection signal show noticeably higher conversion and completion rates — just like the SSL padlock.",
@@ -213,6 +239,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gr.seviye.bronz": "Bronze-Schutz",
     "gr.seviye.gümüş": "Silber-Schutz",
     "gr.seviye.altın": "Gold-Schutz",
+
+    "gr.analitik.baslik": "Badge-Anzeigeanalyse",
+    "gr.analitik.aciklama":
+      "Verfolge, wie oft dein Badge Besuchern angezeigt wird, seine Klickrate und den Vertrauens-Score. Die Werte werden aus dem echten Schutzvolumen abgeleitet.",
+    "gr.analitik.guvenSkoru": "Vertrauens-Score",
+    "gr.analitik.seviye": "Badge-Stufe: {ad}",
+    "gr.analitik.gosterim": "Impressionen",
+    "gr.analitik.tiklama": "Klicks",
+    "gr.analitik.ctr": "Klickrate",
+    "gr.analitik.uptime": "Verfügbarkeit",
+    "gr.analitik.trendBaslik": "Letzte 14 Tage · Impressionen & Klicks",
+    "gr.analitik.stilBaslik": "Badge-Stil-Verteilung (Impressionsanteil)",
+    "gr.analitik.stilMerkez": "Anteil %",
 
     "gr.neden.baslik": "Warum ein Vertrauensabzeichen?",
     "gr.neden.guven.baslik": "Besuchervertrauen",
@@ -286,6 +325,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gr.seviye.gümüş": "Protection Argent",
     "gr.seviye.altın": "Protection Or",
 
+    "gr.analitik.baslik": "Analytique d'affichage du badge",
+    "gr.analitik.aciklama":
+      "Suivez la fréquence d'affichage de votre badge aux visiteurs, son taux de clic et son score de confiance. Les valeurs sont dérivées du volume de protection réel.",
+    "gr.analitik.guvenSkoru": "Score de confiance",
+    "gr.analitik.seviye": "Niveau du badge : {ad}",
+    "gr.analitik.gosterim": "Impressions",
+    "gr.analitik.tiklama": "Clics",
+    "gr.analitik.ctr": "Taux de clic",
+    "gr.analitik.uptime": "Disponibilité",
+    "gr.analitik.trendBaslik": "14 derniers jours · impressions & clics",
+    "gr.analitik.stilBaslik": "Répartition des styles de badge (part d'impressions)",
+    "gr.analitik.stilMerkez": "part %",
+
     "gr.neden.baslik": "Pourquoi un badge de confiance ?",
     "gr.neden.guven.baslik": "Confiance des visiteurs",
     "gr.neden.guven.metin": "Les utilisateurs qui voient un signal de protection actif présentent des taux de conversion et d'achèvement nettement plus élevés — tout comme le cadenas SSL.",
@@ -357,6 +409,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gr.seviye.bronz": "Protección Bronce",
     "gr.seviye.gümüş": "Protección Plata",
     "gr.seviye.altın": "Protección Oro",
+
+    "gr.analitik.baslik": "Analítica de visualización de la insignia",
+    "gr.analitik.aciklama":
+      "Sigue con qué frecuencia se muestra tu insignia a los visitantes, su tasa de clics y su puntaje de confianza. Los valores se derivan del volumen de protección real.",
+    "gr.analitik.guvenSkoru": "Puntaje de confianza",
+    "gr.analitik.seviye": "Nivel de insignia: {ad}",
+    "gr.analitik.gosterim": "Impresiones",
+    "gr.analitik.tiklama": "Clics",
+    "gr.analitik.ctr": "Tasa de clics",
+    "gr.analitik.uptime": "Tiempo activo",
+    "gr.analitik.trendBaslik": "Últimos 14 días · impresiones y clics",
+    "gr.analitik.stilBaslik": "Distribución de estilos de insignia (cuota de impresiones)",
+    "gr.analitik.stilMerkez": "cuota %",
 
     "gr.neden.baslik": "¿Por qué una insignia de confianza?",
     "gr.neden.guven.baslik": "Confianza del visitante",

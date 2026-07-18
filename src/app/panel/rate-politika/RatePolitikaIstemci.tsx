@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Gauge,
   TimerReset,
@@ -15,10 +16,13 @@ import {
   CircleDollarSign,
   CalendarClock,
   Sliders,
+  Activity,
+  BarChart3,
 } from "lucide-react";
 import { Panel, StatKart, Badge, NotKutusu } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
 import { TrendGrafik } from "@/components/panel/grafikler";
+import { Gauge as GaugeGost, Histogram } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { rpCeviri } from "./rate-politika.i18n";
@@ -158,6 +162,28 @@ export function RatePolitikaIstemci({
   const kotaYuzde = Math.round(kota.oran * 100);
   const kotaRenk = kota.asildi ? "#dc2626" : kota.uyari ? "#d97706" : "#16a34a";
 
+  /* --- görsel türetimler (yalnızca gösterim; mantık/CRUD değişmez) --- */
+  // Kademe kapasite kullanımı: gözlemlenen tepe dk-trafiği kademe limitine oran.
+  const tepeDk = Math.round(gozlemlenenTepeRps * 60);
+  const kademeKapasite = useMemo(
+    () =>
+      kademeler.map((k) => ({
+        kademe: k,
+        yuzde: k.istekDk > 0 ? Math.min(100, Math.round((tepeDk / k.istekDk) * 100)) : 0,
+      })),
+    [kademeler, tepeDk],
+  );
+  // Limit dağılımı histogramı: her kademenin dk-limiti (görece büyüklük).
+  const limitKovalar = useMemo(
+    () =>
+      kademeler.map((k) => ({
+        etiket: kademeAd(k.key),
+        deger: k.istekDk,
+        ton: (k.key === oneriKey ? "insan" : "nötr") as "insan" | "nötr",
+      })),
+    [kademeler, oneriKey, dil],
+  );
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
       {/* giriş bandı */}
@@ -248,6 +274,62 @@ export function RatePolitikaIstemci({
           </NotKutusu>
         </div>
       </Panel>
+
+      {/* =============================================== Görsel: kademe kapasite gauge + limit dağılım */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4 }} className="lg:col-span-3">
+          <Panel
+            baslik={
+              <span className="flex items-center gap-2">
+                <Activity className="size-4 text-brand-600" /> {t("rp.kapasite.baslik")}
+              </span>
+            }
+          >
+            <p className="mb-4 text-[13px] text-slate-muted">
+              {t("rp.kapasite.metin").replace("{rps}", gozlemlenenTepeRps.toFixed(1)).replace("{dk}", sayi(tepeDk))}
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {kademeKapasite.map(({ kademe, yuzde }) => {
+                const onerilen = kademe.key === oneriKey;
+                return (
+                  <div
+                    key={kademe.key}
+                    className={cn(
+                      "flex flex-col items-center gap-1 rounded-2xl border p-3",
+                      onerilen ? "border-brand-300 bg-brand-50/40" : "border-line bg-surface",
+                    )}
+                  >
+                    <GaugeGost deger={yuzde} etiket={t("rp.kapasite.dolu")} boyut={120} />
+                    <span className="text-center text-[12px] font-semibold text-slate-ink">{kademeAd(kademe.key)}</span>
+                    <span className="num text-[11px] text-slate-faint">{sayi(kademe.istekDk)} {t("rp.kademeler.istekDk")}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        </motion.div>
+
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4, delay: 0.05 }} className="lg:col-span-2">
+          <Panel
+            baslik={
+              <span className="flex items-center gap-2">
+                <BarChart3 className="size-4 text-brand-600" /> {t("rp.dagilim.baslik")}
+              </span>
+            }
+          >
+            <p className="mb-4 text-[13px] text-slate-muted">{t("rp.dagilim.metin")}</p>
+            <Histogram kovalar={limitKovalar} yukseklik={140} />
+            <div className="mt-4 flex items-center gap-4 text-[11.5px] text-slate-muted">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm" style={{ background: "#16a34a" }} /> {t("rp.dagilim.onerilen")}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm" style={{ background: "#2f6fed" }} /> {t("rp.dagilim.diger")}
+              </span>
+            </div>
+          </Panel>
+        </motion.div>
+      </div>
 
       {/* =============================================== Simülatör */}
       <Panel

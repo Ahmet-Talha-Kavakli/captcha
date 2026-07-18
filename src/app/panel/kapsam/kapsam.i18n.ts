@@ -40,6 +40,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     // Kapsam görselleştirmesi paneli
     "kap.gorsel.baslik": "Kapsam görselleştirmesi — korunan vs açık yüzey",
+
+    // --- Görsel özet: gauge + donut + radar ---
+    "kap.gorsel2.gaugeBaslik": "Genel kapsam",
+    "kap.gorsel2.gaugeEtiket": "kapsam",
+    "kap.gorsel2.korunan": "Korunan uç nokta",
+    "kap.gorsel2.acik": "Açık uç nokta",
+    "kap.gorsel2.donutBaslik": "Boşluk dağılımı",
+    "kap.gorsel2.donutMerkez": "yol",
+    "kap.gorsel2.radarBaslik": "Kategori profili",
+    "kap.gorsel2.radarNot": "Yol öneki başına ortalama koruma oranı (%)",
+    "kap.gorsel2.radarYetersiz": "Radar için en az 3 yol kategorisi gerekir.",
     "kap.gorsel.aciklama":
       "İzlenen endpoint'lerin kapsam durumuna göre dağılımı. Kırmızı dilim, botların korumasız geçtiği maruziyet yüzeyini temsil eder.",
     "kap.gorsel.bosDurum": "Henüz sınıflandırılacak endpoint yok.",
@@ -160,6 +171,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kap.ozet.korumasizIstek": "Bot requests passing unprotected",
 
     "kap.gorsel.baslik": "Coverage visualization — protected vs open surface",
+
+    // --- Visual summary: gauge + donut + radar ---
+    "kap.gorsel2.gaugeBaslik": "Overall coverage",
+    "kap.gorsel2.gaugeEtiket": "coverage",
+    "kap.gorsel2.korunan": "Protected endpoints",
+    "kap.gorsel2.acik": "Open endpoints",
+    "kap.gorsel2.donutBaslik": "Gap distribution",
+    "kap.gorsel2.donutMerkez": "paths",
+    "kap.gorsel2.radarBaslik": "Category profile",
+    "kap.gorsel2.radarNot": "Average protection rate per path prefix (%)",
+    "kap.gorsel2.radarYetersiz": "Radar needs at least 3 path categories.",
     "kap.gorsel.aciklama":
       "Distribution of monitored endpoints by coverage status. The red segment represents the exposure surface where bots pass unprotected.",
     "kap.gorsel.bosDurum": "No endpoints to classify yet.",
@@ -270,6 +292,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kap.ozet.korumasizIstek": "Ungeschützt durchgelassene Bot-Anfragen",
 
     "kap.gorsel.baslik": "Abdeckungs-Visualisierung — geschützte vs. offene Oberfläche",
+
+    // --- Visuelle Zusammenfassung: Anzeige + Donut + Radar ---
+    "kap.gorsel2.gaugeBaslik": "Gesamtabdeckung",
+    "kap.gorsel2.gaugeEtiket": "Abdeckung",
+    "kap.gorsel2.korunan": "Geschützte Endpunkte",
+    "kap.gorsel2.acik": "Offene Endpunkte",
+    "kap.gorsel2.donutBaslik": "Lückenverteilung",
+    "kap.gorsel2.donutMerkez": "Pfade",
+    "kap.gorsel2.radarBaslik": "Kategorieprofil",
+    "kap.gorsel2.radarNot": "Durchschnittliche Schutzrate je Pfadpräfix (%)",
+    "kap.gorsel2.radarYetersiz": "Radar benötigt mindestens 3 Pfadkategorien.",
     "kap.gorsel.aciklama":
       "Verteilung der überwachten Endpunkte nach Abdeckungsstatus. Das rote Segment stellt die Expositionsfläche dar, an der Bots ungeschützt durchkommen.",
     "kap.gorsel.bosDurum": "Noch keine Endpunkte zu klassifizieren.",
@@ -381,6 +414,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kap.ozet.korumasizIstek": "Requêtes de bots passant sans protection",
 
     "kap.gorsel.baslik": "Visualisation de la couverture — surface protégée vs ouverte",
+
+    // --- Résumé visuel : jauge + donut + radar ---
+    "kap.gorsel2.gaugeBaslik": "Couverture globale",
+    "kap.gorsel2.gaugeEtiket": "couverture",
+    "kap.gorsel2.korunan": "Points de terminaison protégés",
+    "kap.gorsel2.acik": "Points de terminaison ouverts",
+    "kap.gorsel2.donutBaslik": "Répartition des lacunes",
+    "kap.gorsel2.donutMerkez": "chemins",
+    "kap.gorsel2.radarBaslik": "Profil par catégorie",
+    "kap.gorsel2.radarNot": "Taux de protection moyen par préfixe de chemin (%)",
+    "kap.gorsel2.radarYetersiz": "Le radar nécessite au moins 3 catégories de chemins.",
     "kap.gorsel.aciklama":
       "Répartition des endpoints surveillés selon l'état de couverture. Le segment rouge représente la surface d'exposition où les bots passent sans protection.",
     "kap.gorsel.bosDurum": "Aucun endpoint à classer pour le moment.",
@@ -492,6 +536,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kap.ozet.korumasizIstek": "Solicitudes de bots que pasan sin protección",
 
     "kap.gorsel.baslik": "Visualización de cobertura — superficie protegida vs abierta",
+
+    // --- Resumen visual: indicador + donut + radar ---
+    "kap.gorsel2.gaugeBaslik": "Cobertura general",
+    "kap.gorsel2.gaugeEtiket": "cobertura",
+    "kap.gorsel2.korunan": "Endpoints protegidos",
+    "kap.gorsel2.acik": "Endpoints abiertos",
+    "kap.gorsel2.donutBaslik": "Distribución de brechas",
+    "kap.gorsel2.donutMerkez": "rutas",
+    "kap.gorsel2.radarBaslik": "Perfil por categoría",
+    "kap.gorsel2.radarNot": "Tasa media de protección por prefijo de ruta (%)",
+    "kap.gorsel2.radarYetersiz": "El radar requiere al menos 3 categorías de rutas.",
     "kap.gorsel.aciklama":
       "Distribución de los endpoints monitoreados según el estado de cobertura. El segmento rojo representa la superficie de exposición donde los bots pasan sin protección.",
     "kap.gorsel.bosDurum": "Aún no hay endpoints que clasificar.",
