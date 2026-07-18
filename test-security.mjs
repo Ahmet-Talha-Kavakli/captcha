@@ -172,6 +172,24 @@ async function main() {
   const zayif = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: `z${Date.now()}@x.dev`, name: "U", password: "123" }) });
   check("Zayıf şifre kaydı → reddedilir (400)", zayif.status === 400);
 
+  // PLAN LİMİTLERİ — free plan (site 1, ekip 1) aşımı reddedilmeli; aksi halde
+  // plan farkı anlamsız olurdu (gelir kaçağı). Pro yükseltince limit açılmalı.
+  const planEmail = `plan${Date.now()}@x.dev`;
+  const planJar = await kayit(planEmail);
+  const site1 = await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ name: "s1.com", domains: "localhost" }) });
+  check("Free plan ilk site → oluşur (200)", site1.status === 200);
+  const site2 = await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ name: "s2.com", domains: "localhost" }) });
+  check("Free plan ikinci site → 403 site_limit (plan limiti dayatılır)", site2.status === 403);
+
+  const invite1 = await fetch(`${BASE}/api/team`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ email: "u1@x.dev", role: "viewer" }) });
+  check("Free plan ekip daveti → 403 team_limit (solo plan)", invite1.status === 403);
+
+  await fetch(`${BASE}/api/account/plan`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ plan: "pro" }) });
+  const site2Pro = await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ name: "s2pro.com", domains: "localhost" }) });
+  check("Pro yükseltince ikinci site → oluşur (limit açıldı)", site2Pro.status === 200);
+  const invitePro = await fetch(`${BASE}/api/team`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ email: "u2@x.dev", role: "admin" }) });
+  check("Pro yükseltince ekip daveti → oluşur", invitePro.status === 200);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

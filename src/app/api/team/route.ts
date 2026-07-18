@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { Team, Audit } from "@/lib/db/db";
+import { planTanim } from "@/lib/specter/plans";
 import type { Role } from "@/lib/db/schema";
 
 const GECERLI_ROLLER: Role[] = ["admin", "analyst", "viewer"];
@@ -16,6 +17,19 @@ export async function POST(req: Request) {
   // Aynı e-posta zaten ekipteyse tekrar davet etme.
   if (Team.forOwner(user.id).some((m) => m.email.toLowerCase() === email.toLowerCase())) {
     return NextResponse.json({ error: "bu e-posta zaten ekipte" }, { status: 409 });
+  }
+  // PLAN LİMİTİ: ekip üye sayısı (owner dahil) planın ekip-limitine ulaştıysa
+  // yeni davet reddedilir (403). Site limiti gibi, daha önce kontrol YOKTU.
+  const ekipLimiti = planTanim(user.plan).ekipLimiti;
+  if (Team.forOwner(user.id).length >= ekipLimiti) {
+    return NextResponse.json(
+      {
+        error: "team_limit",
+        message: `Planınızın ekip limiti (${ekipLimiti}) doldu. Daha fazla üye için planınızı yükseltin.`,
+        limit: ekipLimiti,
+      },
+      { status: 403 },
+    );
   }
   const secilenRol: Role = GECERLI_ROLLER.includes(role) ? role : "viewer";
   const m = Team.invite(user.id, name?.trim() || email.split("@")[0], email.trim(), secilenRol, {
