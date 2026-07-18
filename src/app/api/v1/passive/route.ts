@@ -34,6 +34,8 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+  // İşleme başlangıcı — event'e GERÇEK sunucu gecikmesi yazmak için.
+  const t0 = performance.now();
   const origin = req.headers.get("origin");
   const headers = cors(origin);
   const body = await req.json().catch(() => ({}));
@@ -110,7 +112,7 @@ export async function POST(req: Request) {
     siteId: site.id, ts: now, ip: m.ip, country: m.country, asn: m.asn, ua: m.ua, path: m.path,
     botClass, verdict, score: behavior.score,
     triggeredRules: evalRes.matched.map((x) => x.ruleName), fingerprint: fp.ja3.slice(0, 8),
-    method: m.method, latency: 5 + Math.floor(Math.random() * 20),
+    method: m.method, latency: Math.max(0, Math.round(performance.now() - t0)),
     ja3: fp.ja3, ja4: fp.ja4, httpVersion: fp.httpVersion, headless: fp.headless,
     automationFlags: fp.automationFlags, tlsUaUyumsuz: fp.tlsUaUyumsuz, engine: fp.engine,
     headerAnomali: fp.headerAnomali, sinyaller: fp.sinyaller,

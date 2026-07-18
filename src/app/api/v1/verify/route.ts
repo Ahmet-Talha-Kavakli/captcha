@@ -30,8 +30,18 @@ function logEvent(
   score: number,
   rules: string[],
   katmanHitler?: string[],
+  // GERÇEK parmak izi (JA3-türevi) — verilmezse UA+IP'den deterministik türet.
+  // Botnet korelasyonu / ilişki grafiği / TLS istihbaratı bu alana bağlı;
+  // rastgele değer bu motorları çöp veriyle besler, o yüzden asla Math.random().
+  fingerprint?: string,
+  // İsteğin işleme başlangıcı (performance.now()) — GERÇEK gecikme ölçümü için.
+  basladi?: number,
 ) {
   const m = extractMeta(req);
+  const botClass = verdict === "allowed" ? "human" : classifyUA(m.ua);
+  const fp = fingerprint ?? fingerprintUret(m.ua, botClass, m.ip).ja3.slice(0, 8);
+  // GERÇEK sunucu işleme gecikmesi (ms) — başlangıç verildiyse ölç, yoksa 0.
+  const latency = basladi !== undefined ? Math.max(0, Math.round(performance.now() - basladi)) : 0;
   Events.add({
     siteId,
     ts: Date.now(),
@@ -40,13 +50,13 @@ function logEvent(
     asn: m.asn,
     ua: m.ua,
     path: m.path,
-    botClass: verdict === "allowed" ? "human" : classifyUA(m.ua),
+    botClass,
     verdict,
     score,
     triggeredRules: rules,
-    fingerprint: Math.random().toString(16).slice(2, 10),
+    fingerprint: fp,
     method: m.method,
-    latency: 10 + Math.floor(Math.random() * 40),
+    latency,
     ...(katmanHitler && katmanHitler.length ? { katmanHitler } : {}),
   });
   // Gerçek kullanım ölçümü — karara göre sayaç.
@@ -70,6 +80,8 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+  // İsteğin işleme başlangıcı — event'lere GERÇEK sunucu gecikmesi yazmak için.
+  const t0 = performance.now();
   const origin = req.headers.get("origin");
   const headers = cors(origin);
   const body = await req.json().catch(() => ({}));
@@ -102,7 +114,7 @@ export async function POST(req: Request) {
   if (peek.ok) {
     const fresh = Nonces.useOnce(peek.payload.nonce, peek.payload.exp);
     if (!fresh) {
-      logEvent(site.id, req, "flagged", 0, ["Replay (nonce tekrar)"]);
+      logEvent(site.id, req, "flagged", 0, ["Replay (nonce tekrar)"], undefined, undefined, t0);
       return NextResponse.json(
         { success: false, reason: "replay" },
         { status: 200, headers },
@@ -138,6 +150,8 @@ export async function POST(req: Request) {
         : powFail ? ["İşlem-kanıtı (PoW) doğrulanamadı"]
         : botlike ? ["Düşük davranış skoru"] : [outcome.reason],
       hitler,
+      undefined,
+      t0,
     );
     // Webhook tetikle (fire-and-forget — kullanıcıyı bekletme).
     if (botlike) {
@@ -212,14 +226,14 @@ export async function POST(req: Request) {
   if (tutarlilik.karar === "sahte") basariliHitler.push("tutarlilik");
 
   if (evalRes.action === "block") {
-    logEvent(site.id, req, "blocked", outcome.score, evalRes.matched.map((m) => m.ruleName), basariliHitler);
+    logEvent(site.id, req, "blocked", outcome.score, evalRes.matched.map((m) => m.ruleName), basariliHitler, fp.ja3.slice(0, 8), t0);
     return NextResponse.json(
       { success: false, reason: "rule_block", rule: evalRes.decidedBy?.ruleName, score: outcome.score },
       { status: 200, headers },
     );
   }
 
-  logEvent(site.id, req, "allowed", outcome.score, evalRes.matched.map((m) => m.ruleName), basariliHitler);
+  logEvent(site.id, req, "allowed", outcome.score, evalRes.matched.map((m) => m.ruleName), basariliHitler, fp.ja3.slice(0, 8), t0);
 
   return NextResponse.json(
     { success: true, token: outcome.verification, score: outcome.score, appliedRules: evalRes.matched.map((m) => m.ruleName) },
