@@ -89,6 +89,14 @@ async function main() {
   const r17 = await post("/api/v1/challenge", { siteKey: "pk_" + String.fromCodePoint(0x1f525) });
   check("Emoji/unicode siteKey → çökmez (403)", r17.status === 403);
 
+  // 18) BİLGİ İFŞASI — public challenge yanıtı iş-istihbaratı sızdırmamalı.
+  const cbody = await (await post("/api/v1/challenge", { siteKey: "pk_demo_veylify_public" })).json();
+  check("Challenge yanıtı iç bilgi (siteId/ownerId/secret) sızdırmaz",
+    !Object.keys(cbody).some((k) => /siteId|ownerId|secret|secretKey/.test(k)));
+  const qw = cbody.quotaWarning || {};
+  check("Challenge quotaWarning kesin kota sayısı (used/limit) sızdırmaz — sadece overage boolean",
+    !("used" in qw) && !("limit" in qw));
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

@@ -95,12 +95,12 @@ export async function POST(req: Request) {
     if (krediSonuc) {
       krediKullanildi = true;
     } else {
+      // Kesin used/limit SIZDIRILMAZ (public endpoint — iş-istihbaratı ifşası).
+      // Site sahibi kesin sayıları panelde/kimlik-doğrulamalı API'de görür.
       return NextResponse.json(
         {
           error: "Aylık doğrulama kotası doldu",
           code: "quota_exceeded",
-          used: durum.kullanilan,
-          limit: durum.kota,
           hint: "Planı yükseltin veya kredi yükleyin.",
         },
         { status: 429, headers: { ...headers, "X-Veylify-Quota": "exceeded" } },
@@ -185,7 +185,12 @@ export async function POST(req: Request) {
       ...(powBit > TABAN_ZORLUK_BIT && { pow: { hedefBit: powBit, seed } }),
       ttl: Math.floor(CHALLENGE_TTL_MS / 1000),
       invisibleMode: site.invisibleMode,
-      ...(durum.uyari && { quotaWarning: { used: durum.kullanilan, limit: durum.kota, overage: durum.asildi } }),
+      // BİLGİ İFŞASI ÖNLEMİ: challenge PUBLIC'tir (herkes site-key ile çağırır).
+      // Kesin kota sayıları (used/limit) sızdırmak = iş-istihbaratı ifşası —
+      // rakip/saldırgan sitenin AYLIK TRAFİK HACMİNİ öğrenir. Widget'ın davranışı
+      // için yalnızca boolean overage yeterli; kesin sayılar panelde/kimlik-
+      // doğrulamalı API'de kalır.
+      ...(durum.uyari && { quotaWarning: { overage: durum.asildi } }),
     },
     { headers: durum.uyari ? { ...headers, "X-Veylify-Quota": durum.asildi ? "overage" : "warning" } : headers },
   );
