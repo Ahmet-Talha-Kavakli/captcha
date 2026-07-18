@@ -21,7 +21,8 @@
  * rise (azHareket → sade). whileInView / viewport / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Target,
   Gauge,
@@ -34,6 +35,7 @@ import {
   Ban,
   Ruler,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge } from "@/components/panel/kit";
@@ -511,20 +513,60 @@ function GuvenilirlikGauge({ ece }: { ece: number }) {
 
 /* ================================================================== Bin satırı */
 
-function BinSatir({ bin }: { bin: KalibrasyonBin }) {
+/** Bir kovanın sapma yönü ve büyüklüğüne göre insan-okur yorum. */
+function binYorum(bin: KalibrasyonBin): { baslik: string; aciklama: string } {
+  const fark = bin.ortTahmin - bin.gercekOran; // + = fazla güven, - = az güven
+  const buyuk = Math.abs(fark);
+  if (buyuk < 0.05) {
+    return {
+      baslik: "İyi kalibre kova",
+      aciklama: "Bu skor aralığında Veylify'ın tahmini gerçeği neredeyse birebir tutuyor — kararlar güvenilir.",
+    };
+  }
+  if (fark > 0) {
+    return {
+      baslik: "Fazla güvenmiş (aşırı-tahmin)",
+      aciklama: "Veylify bu kovada olduğundan daha yüksek bot olasılığı biçmiş; gerçek bot oranı daha düşük. Yanlış-pozitif riski — eşik gevşetilebilir.",
+    };
+  }
+  return {
+    baslik: "Az güvenmiş (eksik-tahmin)",
+    aciklama: "Veylify bu kovada gerçekte olan bot oranını hafife almış. Kaçırılan bot riski — eşik sıkılaştırılabilir.",
+  };
+}
+
+function BinSatir({
+  bin,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  bin: KalibrasyonBin;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const fark = Math.abs(bin.ortTahmin - bin.gercekOran);
   const renk = hataRenk(fark);
+  const yorum = binYorum(bin);
   // Sayı barı — bin popülasyonu (görsel ağırlık).
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 py-2.5">
-      {/* Skor aralığı */}
-      <span className="rounded-md bg-canvas px-2 py-1 font-mono text-[11.5px] font-medium text-slate-ink ring-1 ring-inset ring-line tabular-nums">
-        {bin.aralik}
-      </span>
+    <div className={cn("py-2.5", acik && "-mx-4 rounded-xl bg-canvas/40 px-4")}>
+      {/* Üst şerit: özet — TIKLANABİLİR (kova detayını aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${bin.aralik} skor kovası detayını ${acik ? "kapat" : "aç"}`}
+        className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
+        {/* Skor aralığı */}
+        <span className="rounded-md bg-canvas px-2 py-1 font-mono text-[11.5px] font-medium text-slate-ink ring-1 ring-inset ring-line tabular-nums">
+          {bin.aralik}
+        </span>
 
-      {/* Tahmin vs gerçek karşılaştırması */}
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px]">
+        {/* Tahmin vs gerçek karşılaştırması (özet) */}
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px]">
           <span className="inline-flex items-center gap-1 text-slate-muted">
             <span className="text-[10.5px] uppercase tracking-wide text-slate-faint">Tahmin</span>
             <span className="font-semibold tabular-nums text-slate-ink">{yuzde(bin.ortTahmin)}</span>
@@ -541,22 +583,76 @@ function BinSatir({ bin }: { bin: KalibrasyonBin }) {
             ±{yuzde(fark, 1)}
           </span>
         </div>
-        {/* Tahmin (üst) vs gerçek (alt) mini çift-bar — doğrudan görsel kıyas */}
-        <div className="mt-1.5 space-y-1">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas">
-            <div className="h-full rounded-full bg-slate-300" style={{ width: `${Math.max(0, Math.min(100, bin.ortTahmin * 100))}%` }} />
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas">
-            <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, bin.gercekOran * 100))}%`, background: renk }} />
-          </div>
-        </div>
-      </div>
 
-      {/* Örnek sayısı */}
-      <div className="flex flex-col items-end">
-        <span className="text-[13px] font-semibold tabular-nums text-slate-ink">{sayi(bin.sayi)}</span>
-        <span className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">örnek</span>
-      </div>
+        {/* Örnek sayısı + chevron */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex flex-col items-end">
+            <span className="text-[13px] font-semibold tabular-nums text-slate-ink">{sayi(bin.sayi)}</span>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">örnek</span>
+          </div>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
+        </div>
+      </button>
+
+      {/* Drill-down detay — tahmin/gerçek çift-bar + kova yorumu */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 grid gap-4 border-t border-line pt-3 lg:grid-cols-2">
+              {/* Tahmin (üst) vs gerçek (alt) mini çift-bar — doğrudan görsel kıyas */}
+              <div>
+                <div className="mb-2 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                  Tahmin vs gerçek
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-12 shrink-0 text-[10.5px] text-slate-faint">Tahmin</span>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas">
+                      <div className="h-full rounded-full bg-slate-300" style={{ width: `${Math.max(0, Math.min(100, bin.ortTahmin * 100))}%` }} />
+                    </div>
+                    <span className="w-10 shrink-0 text-right text-[11px] font-semibold tabular-nums text-slate-ink">{yuzde(bin.ortTahmin)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-12 shrink-0 text-[10.5px] text-slate-faint">Gerçek</span>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas">
+                      <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, bin.gercekOran * 100))}%`, background: renk }} />
+                    </div>
+                    <span className="w-10 shrink-0 text-right text-[11px] font-semibold tabular-nums text-slate-ink">{yuzde(bin.gercekOran)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kova yorumu — sapma yönü */}
+              <div className="rounded-xl border p-3" style={{ borderColor: `${renk}33`, background: `${renk}0d` }}>
+                <div className="mb-1 flex items-center gap-1.5 text-[12px] font-bold" style={{ color: renk }}>
+                  {fark < 0.05 ? <CheckCircle2 className="size-3.5" /> : <AlertTriangle className="size-3.5" />}
+                  {yorum.baslik}
+                </div>
+                <p className="text-[11.5px] leading-relaxed text-slate-muted">{yorum.aciklama}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
+      )}
     </div>
   );
 }
@@ -571,6 +667,8 @@ export function KalibrasyonBolumu({
   azHareket: boolean;
 }) {
   const { binler, ece, durum, toplam } = kalibrasyon;
+  // Açık drill-down kovası (aralık kararlı anahtar) — null = hepsi kapalı.
+  const [acikBin, setAcikBin] = useState<string | null>(null);
   const tanim = DURUM_TANIM[durum] ?? DURUM_TANIM.orta;
   const DurumIkon = tanim.ikon;
   const doluBinler = binler.filter((b) => b.sayi > 0);
@@ -658,7 +756,12 @@ export function KalibrasyonBolumu({
               <div className="rounded-2xl border border-line bg-canvas/30 px-4 divide-y divide-line/70">
                 {doluBinler.map((b, i) => (
                   <Bolum key={b.aralik} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                    <BinSatir bin={b} />
+                    <BinSatir
+                      bin={b}
+                      azHareket={azHareket}
+                      acik={acikBin === b.aralik}
+                      onToggle={() => setAcikBin(acikBin === b.aralik ? null : b.aralik)}
+                    />
                   </Bolum>
                 ))}
               </div>

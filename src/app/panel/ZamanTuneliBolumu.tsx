@@ -18,7 +18,8 @@
  * (initial y:12 → 0; azHareket → sade).
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   History,
   Search,
@@ -34,6 +35,7 @@ import {
   Ban,
   Radio,
   Bot,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -253,10 +255,14 @@ function IncidentKart({
   incident,
   azHareket,
   gecikme,
+  acik,
+  onToggle,
 }: {
   incident: TunelOlayi;
   azHareket: boolean;
   gecikme: number;
+  acik: boolean;
+  onToggle: () => void;
 }) {
   const s = siddet(incident.siddet);
   const sav = incident.savunmaYaniti;
@@ -269,10 +275,17 @@ function IncidentKart({
       className={cn(
         "rounded-2xl border bg-canvas/40 p-4",
         kritikMi ? "border-red-200 bg-danger-soft/30" : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: kimlik + şiddet + süre */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      {/* Üst şerit: kimlik + şiddet + süre — TIKLANABİLİR (drill-down) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${incident.baslik} olay detayını ${acik ? "kapat" : "aç"}`}
+        className="mb-3 flex w-full flex-wrap items-center justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-8 shrink-0 place-items-center rounded-lg ring-1 ring-inset"
@@ -302,9 +315,20 @@ function IncidentKart({
             <Clock className="size-3.5" />
             {sureBicim(incident.sureMs)}
           </span>
+          <ChevronDown className={cn("size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
         </div>
-      </div>
+      </button>
 
+      {/* Drill-down: adli anlatı + faz tüneli + savunma yanıtı (tıklayınca açılır) */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
       {/* Adli anlatı — vurgu kutusu */}
       <div
         className="mb-4 rounded-xl border-l-2 bg-surface/70 px-3.5 py-2.5"
@@ -392,6 +416,15 @@ function IncidentKart({
           )}
         </div>
       </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {!acik && (
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Adli anlatı, faz tüneli ve savunma yanıtı için tıklayın
+        </p>
+      )}
     </div>
   );
 }
@@ -407,6 +440,7 @@ export function ZamanTuneliBolumu({
   ozet: TunelOzet;
   azHareket: boolean;
 }) {
+  const [acikId, setAcikId] = useState<string | null>(null);
   const gosterilecek = incidentler.slice(0, 6);
   const genelMitigasyon = Math.round(ozet.genelMitigasyon * 100);
   const acilisAd = ozet.baskinAcilisFaz ? FAZ_TANIM[ozet.baskinAcilisFaz].ad : "—";
@@ -475,6 +509,8 @@ export function ZamanTuneliBolumu({
                 incident={inc}
                 azHareket={azHareket}
                 gecikme={azHareket ? 0 : 0.05 + i * 0.04}
+                acik={acikId === inc.id}
+                onToggle={() => setAcikId(acikId === inc.id ? null : inc.id)}
               />
             ))}
           </div>

@@ -17,7 +17,8 @@
  * (azHareket → sade). whileInView / viewport / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Gauge,
   ServerCog,
@@ -36,6 +37,7 @@ import {
   ArrowRight,
   Layers,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ilerleme } from "@/components/panel/kit";
@@ -408,8 +410,17 @@ function RiskIsiMatris({ endpointler }: { endpointler: EndpointAbuse[] }) {
 
 /* ================================================================== Endpoint kartı */
 
-function EndpointKart({ endpoint, azHareket }: { endpoint: EndpointAbuse; azHareket: boolean }) {
-  void azHareket;
+function EndpointKart({
+  endpoint,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  endpoint: EndpointAbuse;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const seviye = SEVIYE_TANIM[endpoint.seviye] ?? SEVIYE_TANIM["düşük"];
   const sRenk = skorRenk(endpoint.abuseSkoru);
   const kritik = endpoint.seviye === "kritik";
@@ -427,10 +438,17 @@ function EndpointKart({ endpoint, azHareket }: { endpoint: EndpointAbuse; azHare
           : vurgulu
             ? "border-red-200 bg-danger-soft/25"
             : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: yol (mono) + hassas kilit + seviye rozeti + abuse skoru */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: yol (mono) + hassas kilit + seviye rozeti + abuse skoru — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${endpoint.yol} endpoint kötüye-kullanım detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -477,88 +495,119 @@ function EndpointKart({ endpoint, azHareket }: { endpoint: EndpointAbuse; azHare
           </div>
         </div>
 
-        {/* Kötüye-kullanım skoru pili */}
-        <div className="flex shrink-0 flex-col items-end">
-          <div className="flex items-baseline gap-1">
-            <span className="text-[18px] font-bold tabular-nums leading-none" style={{ color: sRenk }}>
-              {endpoint.abuseSkoru}
+        {/* Kötüye-kullanım skoru pili + chevron */}
+        <div className="flex shrink-0 items-start gap-2.5">
+          <div className="flex flex-col items-end">
+            <div className="flex items-baseline gap-1">
+              <span className="text-[18px] font-bold tabular-nums leading-none" style={{ color: sRenk }}>
+                {endpoint.abuseSkoru}
+              </span>
+              <span className="text-[11px] font-medium text-slate-faint">/100</span>
+            </div>
+            <span className="mt-0.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+              abuse skoru
             </span>
-            <span className="text-[11px] font-medium text-slate-faint">/100</span>
           </div>
-          <span className="mt-0.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-            abuse skoru
-          </span>
+          <ChevronDown
+            className={cn(
+              "mt-1 size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
         </div>
-      </div>
+      </button>
 
-      {/* Korunmasız hassas uyarısı — hassas yol + yüksek kötüye-kullanım */}
-      {korunmasiz && (
-        <div className="mb-3.5 flex items-center gap-2.5 rounded-xl border border-red-300 bg-danger-soft px-3 py-2.5">
-          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-danger2 text-white">
-            <AlertTriangle className="size-4" />
-          </span>
-          <div className="min-w-0">
-            <span className="text-[12.5px] font-bold uppercase tracking-wide text-red-700">
-              Korunmasız hassas yol
-            </span>
-            <p className="mt-0.5 text-[11.5px] leading-snug text-red-800">
-              Kimlik/ödeme/API sınıfı bir endpoint yoğun bot baskısı altında — aşağıdaki rate-limit
-              önerisi acilen uygulanmalı.
-            </p>
-          </div>
-        </div>
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
       )}
 
-      {/* Bot oranı ilerleme barı */}
-      <div className="mb-3.5">
-        <div className="mb-1.5 flex items-center justify-between text-[11px]">
-          <span className="inline-flex items-center gap-1 font-medium uppercase tracking-wide text-slate-faint">
-            <Bot className="size-3" />
-            Bot oranı
-          </span>
-          <span className="font-semibold tabular-nums text-slate-ink">%{botYuzde}</span>
-        </div>
-        <Ilerleme deger={botYuzde} ton={botTon(endpoint.botOrani)} />
-      </div>
+      {/* AĞIR DETAY — tıklayınca açılır: uyarı + bot barı + metrikler + agresif IP + rate-limit önerisi */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pt-3.5">
+              {/* Korunmasız hassas uyarısı — hassas yol + yüksek kötüye-kullanım */}
+              {korunmasiz && (
+                <div className="mb-3.5 flex items-center gap-2.5 rounded-xl border border-red-300 bg-danger-soft px-3 py-2.5">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-danger2 text-white">
+                    <AlertTriangle className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="text-[12.5px] font-bold uppercase tracking-wide text-red-700">
+                      Korunmasız hassas yol
+                    </span>
+                    <p className="mt-0.5 text-[11.5px] leading-snug text-red-800">
+                      Kimlik/ödeme/API sınıfı bir endpoint yoğun bot baskısı altında — aşağıdaki rate-limit
+                      önerisi acilen uygulanmalı.
+                    </p>
+                  </div>
+                </div>
+              )}
 
-      {/* Metrikler */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-        <Metrik ikon={Activity} etiket="Toplam istek">
-          {sayi(endpoint.toplamIstek)}
-        </Metrik>
-        <Metrik ikon={Server} etiket="Benzersiz IP">
-          {sayi(endpoint.benzersizIp)}
-        </Metrik>
-        <Metrik ikon={Bot} etiket="Bot oranı" ton={endpoint.botOrani >= 0.5 ? "danger" : "ink"}>
-          %{botYuzde}
-        </Metrik>
-        <Metrik ikon={Users} etiket="IP başına istek">
-          {sayi(endpoint.ipBasinaIstek)}
-        </Metrik>
-        <Metrik ikon={TrendingUp} etiket="Patlama katsayısı" ton={endpoint.patlama >= 4 ? "danger" : "ink"}>
-          {sayi(endpoint.patlama)}×
-        </Metrik>
-        <Metrik ikon={Flame} etiket="En agresif IP" ton={endpoint.enAgresifIp >= 20 ? "danger" : "ink"}>
-          {sayi(endpoint.enAgresifIp)}
-          <span className="text-[11px] font-medium text-slate-faint">istek</span>
-        </Metrik>
-      </div>
+              {/* Bot oranı ilerleme barı */}
+              <div className="mb-3.5">
+                <div className="mb-1.5 flex items-center justify-between text-[11px]">
+                  <span className="inline-flex items-center gap-1 font-medium uppercase tracking-wide text-slate-faint">
+                    <Bot className="size-3" />
+                    Bot oranı
+                  </span>
+                  <span className="font-semibold tabular-nums text-slate-ink">%{botYuzde}</span>
+                </div>
+                <Ilerleme deger={botYuzde} ton={botTon(endpoint.botOrani)} />
+              </div>
 
-      {/* En agresif IP adresi — mono */}
-      {endpoint.enAgresifIpDeger && (
-        <div className="mt-3.5 flex min-w-0 items-center gap-1.5 border-t border-line/70 pt-3">
-          <span className="inline-flex shrink-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-            <Flame className="size-3" />
-            En agresif kaynak
-          </span>
-          <code className="truncate rounded bg-canvas px-1.5 py-0.5 font-mono text-[11.5px] text-slate-muted ring-1 ring-inset ring-line">
-            {endpoint.enAgresifIpDeger}
-          </code>
-        </div>
-      )}
+              {/* Metrikler */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+                <Metrik ikon={Activity} etiket="Toplam istek">
+                  {sayi(endpoint.toplamIstek)}
+                </Metrik>
+                <Metrik ikon={Server} etiket="Benzersiz IP">
+                  {sayi(endpoint.benzersizIp)}
+                </Metrik>
+                <Metrik ikon={Bot} etiket="Bot oranı" ton={endpoint.botOrani >= 0.5 ? "danger" : "ink"}>
+                  %{botYuzde}
+                </Metrik>
+                <Metrik ikon={Users} etiket="IP başına istek">
+                  {sayi(endpoint.ipBasinaIstek)}
+                </Metrik>
+                <Metrik ikon={TrendingUp} etiket="Patlama katsayısı" ton={endpoint.patlama >= 4 ? "danger" : "ink"}>
+                  {sayi(endpoint.patlama)}×
+                </Metrik>
+                <Metrik ikon={Flame} etiket="En agresif IP" ton={endpoint.enAgresifIp >= 20 ? "danger" : "ink"}>
+                  {sayi(endpoint.enAgresifIp)}
+                  <span className="text-[11px] font-medium text-slate-faint">istek</span>
+                </Metrik>
+              </div>
 
-      {/* Önerilen rate-limit kutusu */}
-      <RateOneriKutu oneri={endpoint.oneri} />
+              {/* En agresif IP adresi — mono */}
+              {endpoint.enAgresifIpDeger && (
+                <div className="mt-3.5 flex min-w-0 items-center gap-1.5 border-t border-line/70 pt-3">
+                  <span className="inline-flex shrink-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                    <Flame className="size-3" />
+                    En agresif kaynak
+                  </span>
+                  <code className="truncate rounded bg-canvas px-1.5 py-0.5 font-mono text-[11.5px] text-slate-muted ring-1 ring-inset ring-line">
+                    {endpoint.enAgresifIpDeger}
+                  </code>
+                </div>
+              )}
+
+              {/* Önerilen rate-limit kutusu */}
+              <RateOneriKutu oneri={endpoint.oneri} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -570,6 +619,8 @@ export function ApiAbuseBolumu({ rapor, azHareket }: { rapor: ApiAbuseRapor; azH
   // Motor zaten abuseSkoru'na göre sıralı gönderir; ilk 8'i göster.
   const gosterilecek = endpointler.slice(0, 8);
   const kotuyeVar = ozet.kritikYol > 0 || ozet.korunmasizHassas > 0;
+  // Açık drill-down endpoint (yol) — null = hepsi kapalı.
+  const [acikYol, setAcikYol] = useState<string | null>(null);
 
   return (
     <Bolum azHareket={azHareket}>
@@ -649,7 +700,12 @@ export function ApiAbuseBolumu({ rapor, azHareket }: { rapor: ApiAbuseRapor; azH
           <div className="mt-5 space-y-3">
             {gosterilecek.map((e, i) => (
               <Bolum key={e.yol} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                <EndpointKart endpoint={e} azHareket={azHareket} />
+                <EndpointKart
+                  endpoint={e}
+                  azHareket={azHareket}
+                  acik={acikYol === e.yol}
+                  onToggle={() => setAcikYol(acikYol === e.yol ? null : e.yol)}
+                />
               </Bolum>
             ))}
           </div>

@@ -18,7 +18,8 @@
  *   4) Bot ekonomisi — dikey caydırıcılık sütunları (kâr → 0) + kâr silme akış kartı.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
   TrendingUp,
@@ -32,6 +33,7 @@ import {
   Sparkles,
   PiggyBank,
   Scale,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, NotKutusu } from "@/components/panel/kit";
@@ -316,11 +318,104 @@ function ParaKart({
   );
 }
 
+/* ================================================================== Maliyet kalem satırı (drill-down) */
+
+/** Bir bot sınıfının önlenen-maliyet satırı; tıklanınca hesap kırılımı + açıklama açılır. */
+function MaliyetSatir({
+  kalem,
+  toplam,
+  acik,
+  onToggle,
+  azHareket,
+}: {
+  kalem: RoiSonuc["kalemler"][number];
+  toplam: number;
+  acik: boolean;
+  onToggle: () => void;
+  azHareket: boolean;
+}) {
+  const Ikon = sinifIkon(kalem.botClass);
+  const g = botSinifGorsel(kalem.botClass);
+  const pay = toplam > 0 ? Math.round((kalem.onlenenMaliyet / toplam) * 100) : 0;
+
+  return (
+    <div className={cn("rounded-xl border bg-surface transition", acik ? "border-slate-300 ring-1 ring-inset ring-slate-200" : "border-line")}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${kalem.ad} maliyet kırılımı detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
+        <span
+          className="grid size-8 shrink-0 place-items-center rounded-lg"
+          style={{ background: g.soft, color: g.renk }}
+        >
+          <Ikon className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[13px] font-semibold text-slate-ink">{kalem.ad}</div>
+          <div className="text-[11px] tabular-nums text-slate-faint">
+            {sayi(kalem.engellenen)} olay × {tl(kalem.birim)}
+          </div>
+        </div>
+        <span className="shrink-0 text-[14px] font-bold tabular-nums text-ok">{tl(kalem.onlenenMaliyet)}</span>
+        <ChevronDown className={cn("size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-line px-3.5 py-3">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px] sm:grid-cols-4">
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Engellenen</div>
+                  <div className="tabular-nums font-semibold text-slate-ink">{sayi(kalem.engellenen)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Birim maliyet</div>
+                  <div className="tabular-nums font-semibold text-slate-ink">{tl(kalem.birim)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Önlenen maliyet</div>
+                  <div className="tabular-nums font-semibold text-ok">{tl(kalem.onlenenMaliyet)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Toplam payı</div>
+                  <div className="tabular-nums font-semibold text-brand-700">%{pay}</div>
+                </div>
+              </div>
+              <p className="mt-2.5 text-[11.5px] leading-relaxed text-slate-muted">
+                <span className="font-mono text-slate-ink">{sayi(kalem.engellenen)} × {tl(kalem.birim)} = {tl(kalem.onlenenMaliyet)}</span>
+                {kalem.aciklama && <> — {kalem.aciklama}</>}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!acik && (
+        <p className="flex items-center gap-1.5 px-3.5 pb-2 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
+      )}
+    </div>
+  );
+}
+
 /* ================================================================== 1) ROI Özeti */
 
 function RoiBolum({ roi, azHareket }: { roi: RoiSonuc; azHareket: boolean }) {
   const kalemler = roi.kalemler ?? [];
   const pozitif = roi.netKazanc >= 0;
+  const [acikKalem, setAcikKalem] = useState<string | null>(null);
 
   // Maliyet kırılımı → donut segmentleri (sınıf renkleriyle).
   const segmentler = kalemler
@@ -413,33 +508,19 @@ function RoiBolum({ roi, azHareket }: { roi: RoiSonuc; azHareket: boolean }) {
           </div>
         </div>
 
-        {/* Sınıf başına olay × birim özeti — kompakt satırlar (donut'u destekler) */}
+        {/* Sınıf başına olay × birim özeti — tıklanınca hesap kırılımı açılır */}
         {kalemler.length > 0 && (
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {kalemler.map((k) => {
-              const Ikon = sinifIkon(k.botClass);
-              const g = botSinifGorsel(k.botClass);
-              return (
-                <div
-                  key={k.botClass}
-                  className="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3.5 py-2.5"
-                >
-                  <span
-                    className="grid size-8 shrink-0 place-items-center rounded-lg"
-                    style={{ background: g.soft, color: g.renk }}
-                  >
-                    <Ikon className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px] font-semibold text-slate-ink">{k.ad}</div>
-                    <div className="text-[11px] tabular-nums text-slate-faint">
-                      {sayi(k.engellenen)} olay × {tl(k.birim)}
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-[14px] font-bold tabular-nums text-ok">{tl(k.onlenenMaliyet)}</span>
-                </div>
-              );
-            })}
+            {kalemler.map((k) => (
+              <MaliyetSatir
+                key={k.botClass}
+                kalem={k}
+                toplam={roi.toplamOnlenenMaliyet}
+                acik={acikKalem === k.botClass}
+                onToggle={() => setAcikKalem(acikKalem === k.botClass ? null : k.botClass)}
+                azHareket={azHareket}
+              />
+            ))}
           </div>
         )}
 
@@ -515,6 +596,165 @@ function CaydirmaSutun({
   );
 }
 
+/* ================================================================== Sınıf ekonomi kartı (drill-down) */
+
+/** TL, ondalık korunur (küçük kâr/getiri değerleri için). */
+function tlHassas(n: number): string {
+  const v = Number.isFinite(n) ? n : 0;
+  return `${v.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} ₺`;
+}
+
+/** Bir saldırı sınıfının ekonomi kartı; üst şerit tıklanınca korumasız↔Veylify tam kırılımı açılır. */
+function SinifKart({
+  sinif,
+  acik,
+  onToggle,
+  azHareket,
+}: {
+  sinif: BotEkonomiRaporu["siniflar"][number];
+  acik: boolean;
+  onToggle: () => void;
+  azHareket: boolean;
+}) {
+  const g = botSinifGorsel(sinif.eko.botClass);
+  return (
+    <div className={cn("rounded-xl border bg-surface transition", acik ? "border-slate-300 ring-1 ring-inset ring-slate-200" : "border-line")}>
+      {/* Üst şerit — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${sinif.eko.ad} ekonomi kırılımı detayını ${acik ? "kapat" : "aç"}`}
+        className="w-full rounded-xl px-4 py-3 text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="grid size-7 shrink-0 place-items-center rounded-lg"
+              style={{ background: g.soft, color: g.renk }}
+            >
+              <g.ikon className="size-4" />
+            </span>
+            <span className="truncate text-[13px] font-semibold text-slate-ink">{sinif.eko.ad}</span>
+            <span className="hidden shrink-0 text-[11px] text-slate-faint sm:inline">{sinif.eko.amac}</span>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {sinif.caydirildi ? (
+              <Badge ton="yesil">Caydırıldı</Badge>
+            ) : (
+              <Badge ton="sari">Kısmen kârlı</Badge>
+            )}
+            <ChevronDown className={cn("size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
+          </div>
+        </div>
+        {/* Her zaman görünen kompakt özet metrikleri */}
+        <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px] sm:grid-cols-4">
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">İstek</div>
+            <div className="tabular-nums font-semibold text-slate-ink">{sayi(sinif.istekSayisi)}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Korumasız kâr</div>
+            <div className="tabular-nums font-semibold text-slate-ink">{tl(sinif.hamKar)}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Veylify'la kâr</div>
+            <div className={cn("tabular-nums font-semibold", sinif.korumaKar <= 0 ? "text-ok" : "text-warn")}>
+              {tl(sinif.korumaKar)}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">Maliyet artışı</div>
+            <div className="tabular-nums font-semibold text-brand-700">{carpan(sinif.maliyetArtisCarpani)}</div>
+          </div>
+        </div>
+        {!acik && (
+          <p className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-faint">
+            <ChevronDown className="size-3" />
+            Detay için tıklayın
+          </p>
+        )}
+      </button>
+
+      {/* Ağır detay — korumasız vs Veylify tam ekonomi kırılımı */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-line px-4 py-3.5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {/* Korumasız (Veylify yokken) */}
+                <div className="rounded-lg border border-red-200 bg-danger-soft/30 p-3">
+                  <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-danger2">
+                    <ShieldOff className="size-3.5" />
+                    Veylify yokken
+                  </div>
+                  <dl className="space-y-1.5 text-[12px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-slate-faint">Altyapı maliyeti</dt>
+                      <dd className="tabular-nums font-medium text-slate-ink">{tlHassas(sinif.hamMaliyet)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-slate-faint">Beklenen başarı</dt>
+                      <dd className="tabular-nums font-medium text-slate-ink">{sayi(sinif.hamBasari)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-slate-faint">Beklenen getiri</dt>
+                      <dd className="tabular-nums font-medium text-slate-ink">{tlHassas(sinif.hamGetiri)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-t border-red-200/60 pt-1.5">
+                      <dt className="font-semibold text-slate-ink">Net kâr · ROI</dt>
+                      <dd className="tabular-nums font-bold text-danger2">{tl(sinif.hamKar)} · {carpan(sinif.hamRoi)}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {/* Veylify altında */}
+                <div className="rounded-lg border border-green-200 bg-ok-soft/40 p-3">
+                  <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ok">
+                    <ShieldBan className="size-3.5" />
+                    Veylify altında
+                  </div>
+                  <dl className="space-y-1.5 text-[12px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-slate-faint">Yükseltilmiş maliyet</dt>
+                      <dd className="tabular-nums font-medium text-slate-ink">{tlHassas(sinif.korumaMaliyet)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-slate-faint">Düşürülmüş başarı</dt>
+                      <dd className="tabular-nums font-medium text-slate-ink">{sayi(sinif.korumaBasari)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-slate-faint">Kalan getiri</dt>
+                      <dd className="tabular-nums font-medium text-slate-ink">{tlHassas(sinif.korumaGetiri)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-t border-green-200/60 pt-1.5">
+                      <dt className="font-semibold text-slate-ink">Net kâr · ROI</dt>
+                      <dd className={cn("tabular-nums font-bold", sinif.korumaKar <= 0 ? "text-ok" : "text-warn")}>
+                        {tl(sinif.korumaKar)} · {carpan(sinif.korumaRoi)}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+              <p className="mt-3 text-[11.5px] leading-relaxed text-slate-muted">
+                {sinif.caydirildi
+                  ? `Başarı başına maliyet ${carpan(sinif.maliyetArtisCarpani)} arttı ve kâr sıfırın altına düştü — bu sınıf için saldırının ekonomik gerekçesi kalmadı.`
+                  : `Başarı başına maliyet ${carpan(sinif.maliyetArtisCarpani)} arttı; kâr marjı daraldı ama henüz pozitif — kural sıkılaştırma bu sınıfı da caydırabilir.`}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 /* ================================================================== 2) Bot Ekonomisi & Caydırıcılık */
 
 function EkonomiBolum({ ekonomi, azHareket }: { ekonomi: BotEkonomiRaporu; azHareket: boolean }) {
@@ -522,6 +762,7 @@ function EkonomiBolum({ ekonomi, azHareket }: { ekonomi: BotEkonomiRaporu; azHar
   const siniflar = ekonomi.siniflar ?? [];
   const tamCaydirma = o.toplamSinif > 0 && o.caydirilanSinif === o.toplamSinif;
   const maxKar = Math.max(1, ...siniflar.map((s) => Math.max(s.hamKar, s.korumaKar)));
+  const [acikSinif, setAcikSinif] = useState<string | null>(null);
 
   return (
     <Bolum azHareket={azHareket} gecikme={0.05}>
@@ -606,61 +847,17 @@ function EkonomiBolum({ ekonomi, azHareket }: { ekonomi: BotEkonomiRaporu; azHar
               </div>
             </div>
 
-            {/* Sınıf-başına detay kartları */}
+            {/* Sınıf-başına detay kartları — tıklanınca korumasız↔Veylify tam kırılım açılır */}
             <div className="mt-4 space-y-2.5">
-              {siniflar.map((s) => {
-                const g = botSinifGorsel(s.eko.botClass);
-                return (
-                  <div
-                    key={s.eko.botClass}
-                    className="rounded-xl border border-line bg-surface px-4 py-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span
-                          className="grid size-7 shrink-0 place-items-center rounded-lg"
-                          style={{ background: g.soft, color: g.renk }}
-                        >
-                          <g.ikon className="size-4" />
-                        </span>
-                        <span className="truncate text-[13px] font-semibold text-slate-ink">{s.eko.ad}</span>
-                        <span className="hidden shrink-0 text-[11px] text-slate-faint sm:inline">{s.eko.amac}</span>
-                      </div>
-                      {s.caydirildi ? (
-                        <Badge ton="yesil">Caydırıldı</Badge>
-                      ) : (
-                        <Badge ton="sari">Kısmen kârlı</Badge>
-                      )}
-                    </div>
-                    <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px] sm:grid-cols-4">
-                      <div>
-                        <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">İstek</div>
-                        <div className="tabular-nums font-semibold text-slate-ink">{sayi(s.istekSayisi)}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">
-                          Korumasız kâr
-                        </div>
-                        <div className="tabular-nums font-semibold text-slate-ink">{tl(s.hamKar)}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">
-                          Veylify'la kâr
-                        </div>
-                        <div className={cn("tabular-nums font-semibold", s.korumaKar <= 0 ? "text-ok" : "text-warn")}>
-                          {tl(s.korumaKar)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-medium uppercase tracking-wide text-slate-faint">
-                          Maliyet artışı
-                        </div>
-                        <div className="tabular-nums font-semibold text-brand-700">{carpan(s.maliyetArtisCarpani)}</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {siniflar.map((s) => (
+                <SinifKart
+                  key={s.eko.botClass}
+                  sinif={s}
+                  acik={acikSinif === s.eko.botClass}
+                  onToggle={() => setAcikSinif(acikSinif === s.eko.botClass ? null : s.eko.botClass)}
+                  azHareket={azHareket}
+                />
+              ))}
             </div>
 
             <div className="mt-5">
