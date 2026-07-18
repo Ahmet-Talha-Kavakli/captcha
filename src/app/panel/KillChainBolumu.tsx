@@ -629,6 +629,33 @@ export function KillChainBolumu({
           </div>
         </div>
 
+        {/* AKTİF IP ENGELLERİ — analistin dashboard'dan eklediği engellerin özeti.
+            Kaç IP engelli + ilk birkaçı + kurallar sayfasına git (hepsini yönet). */}
+        {engelliIpler.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-green-200 bg-ok-soft/30 px-3.5 py-2.5">
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-green-800">
+              <Ban className="size-3.5" />
+              {sayi(engelliIpler.length)} IP engelli
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {engelliIpler.slice(0, 5).map((ip) => (
+                <span key={ip} className="rounded-md bg-surface px-1.5 py-0.5 font-mono text-[11px] text-slate-muted ring-1 ring-inset ring-green-200">
+                  {ip}
+                </span>
+              ))}
+              {engelliIpler.length > 5 && (
+                <span className="text-[11px] text-slate-faint">+{sayi(engelliIpler.length - 5)}</span>
+              )}
+            </div>
+            <a
+              href="/panel/kurallar"
+              className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-medium text-green-800 ring-1 ring-inset ring-green-300 transition hover:bg-ok-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+            >
+              Engelleri yönet <ArrowRight className="size-3" />
+            </a>
+          </div>
+        )}
+
         {/* İki kolonlu derinlik: sol = gerçek dikey HUNİ, sağ = tehdit segment şeridi.
             Monoton yatay-bar ızgarası yerine iki farklı görsel dil. */}
         <div className="mt-5 grid gap-3 lg:grid-cols-12">
