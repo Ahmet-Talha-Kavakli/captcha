@@ -10,6 +10,7 @@ import { Panel, Badge, Ilerleme, Modal, NotKutusu, useToast, Girdi } from "@/com
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { Plan } from "@/lib/db/schema";
+import { PLANLAR as PLAN_KAYNAK } from "@/lib/specter/plans";
 
 /* ------------------------------------------------------------------ plan tanımları */
 
@@ -22,14 +23,25 @@ interface PlanTanim {
   kotalar: { dogrulama: number; site: number; ekip: number };
 }
 
-// Değerler backend plans.ts (PLANLAR) + landing fiyatlandırma ile TUTARLI olmalı.
-// Daha önce burada ayrı bir kopya vardı (Pro ₺490/100K/999site) ve dashboard'la
-// (Büyüme) + landing'le (₺990/1M/10site) çelişiyordu — müşteri kafa karışıklığı.
-const PLANLAR: PlanTanim[] = [
-  { key: "free", ad: "Başlangıç", fiyat: 0, fiyatEtiket: "₺0", ozet: "Kişisel projeler ve deneme için.", kotalar: { dogrulama: 10000, site: 1, ekip: 1 } },
-  { key: "pro", ad: "Büyüme", fiyat: 990, fiyatEtiket: "₺990", ozet: "Büyüyen ekipler ve üretim trafiği.", kotalar: { dogrulama: 1000000, site: 10, ekip: 10 } },
-  { key: "scale", ad: "Ölçek", fiyat: null, fiyatEtiket: "Özel", ozet: "Yüksek hacim, SLA ve kurumsal gereksinimler.", kotalar: { dogrulama: 100000000, site: 9999, ekip: 999 } },
-];
+// TEK KAYNAK: sayısal değerler (ad/fiyat/kota/limit) backend plans.ts'ten TÜRETİLİR
+// — daha önce burada ayrı bir kopya vardı ve dashboard/landing ile çelişiyordu.
+// Yalnızca UI-özel açıklama (ozet) burada map'lenir. Böylece plans.ts değişince
+// bu ekran otomatik tutarlı kalır (üçüncü-kopya bakım-borcu ortadan kalkar).
+const OZET: Record<Plan, string> = {
+  free: "Kişisel projeler ve deneme için.",
+  pro: "Büyüyen ekipler ve üretim trafiği.",
+  scale: "Yüksek hacim, SLA ve kurumsal gereksinimler.",
+};
+const PLANLAR: PlanTanim[] = (["free", "pro", "scale"] as Plan[]).map((k) => {
+  const p = PLAN_KAYNAK[k];
+  const fiyatSayi = p.fiyat === "Özel" ? null : Number(p.fiyat.replace(/[^\d]/g, "")) || 0;
+  return {
+    key: k, ad: p.ad, fiyat: fiyatSayi,
+    fiyatEtiket: p.fiyat.replace("/ay", ""),
+    ozet: OZET[k],
+    kotalar: { dogrulama: p.dogrulamaKotasi, site: p.siteLimiti, ekip: p.ekipLimiti },
+  };
+});
 
 /* Özellik karşılaştırma matrisi. */
 const OZELLIKLER: { ad: string; free: boolean | string; pro: boolean | string; scale: boolean | string }[] = [
