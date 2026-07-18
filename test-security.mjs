@@ -190,6 +190,20 @@ async function main() {
   const invitePro = await fetch(`${BASE}/api/team`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: planJar }, body: JSON.stringify({ email: "u2@x.dev", role: "admin" }) });
   check("Pro yükseltince ekip daveti → oluşur", invitePro.status === 200);
 
+  // API ANAHTAR LİMİTİ — free (anahtarLimiti=2) aşımı reddedilir; iptal edilen
+  // anahtar limiti tıkamaz (aktif sayı üzerinden hesaplanır).
+  const keyEmail = `key${Date.now()}@x.dev`;
+  const keyJar = await kayit(keyEmail);
+  const mkKey = (n) => fetch(`${BASE}/api/tokens`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: keyJar }, body: JSON.stringify({ name: n, scopes: ["stats"] }) });
+  const key1 = await mkKey("k1"); const key1b = await key1.json();
+  await mkKey("k2");
+  check("Free plan 2 API anahtarı → oluşur", key1.status === 200);
+  const key3 = await mkKey("k3");
+  check("Free plan 3. API anahtarı → 403 key_limit", key3.status === 403);
+  await fetch(`${BASE}/api/tokens`, { method: "DELETE", headers: { "Content-Type": "application/json", Cookie: keyJar }, body: JSON.stringify({ id: key1b.token.id }) });
+  const key4 = await mkKey("k4");
+  check("İptal edilen anahtar limiti açar → yeni anahtar 200", key4.status === 200);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
