@@ -360,14 +360,16 @@ function AiKoruma() {
 
 /* ============================================================ COMPARE */
 function Compare() {
+  // Karşılaştırma "Klasik CAPTCHA" (statik görüntü tabanlı) ile — her satır
+  // ürünün GERÇEK yeteneğini yansıtır (yanıltıcı karşılaştırma yasal risk).
   const satirlar: [string, boolean, boolean][] = [
-    ["AI botlarını durdurur", true, false],
-    ["İnsanı yormaz (görünmez mod)", true, false],
-    ["Ekran görüntüsüne karşı dayanıklı", true, false],
-    ["Davranış biyometrisi", true, false],
-    ["reCAPTCHA uyumlu API", true, true],
-    ["Coğrafi & ASN istihbaratı", true, false],
-    ["10 dakikada kurulum", true, true],
+    ["AI vision modellerine dayanıklı (ghost-font)", true, false],
+    ["Ekran görüntüsüne karşı dayanıklı (temporal dithering)", true, false],
+    ["Davranış biyometrisi (fare/klavye/zamanlama)", true, false],
+    ["AI ajanlarına aktif politika (robots.txt + engelleme)", true, false],
+    ["Görünmez mod (davranışla sürtünmesiz doğrulama)", true, false],
+    ["Coğrafi & ASN istihbaratı + kural motoru", true, false],
+    ["reCAPTCHA uyumlu siteverify API", true, true],
   ];
   return (
     <section id="karsilastirma" className="px-5 py-20 lg:px-8">
