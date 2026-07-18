@@ -266,6 +266,13 @@ async function main() {
   })).json();
   check("Dashboard IP-engelle: engellenen IP + doğru cevap → rule_block (enforce)",
     engelVer.success === false && engelVer.reason === "rule_block");
+  // Canlı akış geri-bildirimi: rule_block olayı triggeredRules'ında "Engel:" ön-ekli
+  // kuralı taşımalı (UI'daki "Senin engelin" rozetinin veri temeli).
+  const liveRes = await fetch(`${BASE}/api/live`, { headers: { Cookie: jar } });
+  const live = await liveRes.json().catch(() => ({}));
+  const engelOlayi = (live.events ?? []).find((e) => e.ip === engelIp && (e.triggeredRules ?? []).some((r) => String(r).startsWith("Engel:")));
+  check("Dashboard IP-engelle: canlı akış olayı 'Engel:' kuralını taşır ('Senin engelin' rozeti)",
+    !!engelOlayi);
 
   // 13) Görünmez mod: davranış zayıfsa challenge iste (bu sitede invisible kapalı olabilir → invisible_disabled de kabul)
   const passRes = await fetch(`${BASE}/api/v1/passive`, {
