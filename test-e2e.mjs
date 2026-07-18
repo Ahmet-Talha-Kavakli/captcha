@@ -151,6 +151,36 @@ async function main() {
   })).json();
   check("Replay (token tekrar kullanımı) → reddedildi", replay.success === false);
 
+  // 8b) TOKEN BÜTÜNLÜĞÜ (HMAC imza) — kurcalanmış/sahte token reddedilmeli.
+  // Bot, token payload'ını (exp uzatma / powBit düşürme) değiştirirse imza
+  // uyuşmaz → bad_signature. İmza kontrolü kaldırılırsa/bozulursa bu test yakalar
+  // (replay testi yakalamaz — o nonce'a bakar, imzaya değil).
+  const chalT = await (await fetch(`${BASE}/api/v1/challenge`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ siteKey: site.siteKey }),
+  })).json();
+  const tp = chalT.token.split(".");
+  let kurcalanmis = null;
+  try {
+    const obj = JSON.parse(Buffer.from(tp[0], "base64url").toString());
+    obj.exp = obj.exp + 999999999; // token'ı "ölümsüz" yapmaya çalış
+    kurcalanmis = Buffer.from(JSON.stringify(obj)).toString("base64url") + "." + tp.slice(1).join(".");
+  } catch { /* format değişmiş olabilir */ }
+  if (kurcalanmis) {
+    const tamper = await (await fetch(`${BASE}/api/v1/verify`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siteKey: site.siteKey, token: kurcalanmis, input: "x", signals: goodSignals }),
+    })).json();
+    check("Token bütünlüğü: kurcalanmış payload (exp uzatıldı) → bad_signature",
+      tamper.success === false && tamper.reason === "bad_signature");
+  }
+  const sahte = await (await fetch(`${BASE}/api/v1/verify`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ siteKey: site.siteKey, token: "sahte.token", input: "x", signals: {} }),
+  })).json();
+  check("Token bütünlüğü: tamamen sahte token → reddedilir (malformed/bad_signature)",
+    sahte.success === false && /malformed|bad_signature|invalid/.test(sahte.reason || ""));
+
   // 9) Geçersiz site key
   const badKey = await fetch(`${BASE}/api/v1/challenge`, {
     method: "POST", headers: { "Content-Type": "application/json" },
