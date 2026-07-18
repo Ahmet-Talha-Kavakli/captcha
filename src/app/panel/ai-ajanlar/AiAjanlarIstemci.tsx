@@ -5,13 +5,13 @@ import Link from "next/link";
 import {
   Bot, ShieldCheck, GraduationCap, Search, X, ExternalLink, CircleCheck,
   ShieldAlert, Ban, TriangleAlert, Fingerprint, Activity, Flame, Radar as RadarIkon,
-  CheckCircle2, SlashSquare, Copy, Download, FileCode2, Info,
+  CheckCircle2, SlashSquare, Copy, Download, FileCode2, Info, Zap, Loader2,
 } from "lucide-react";
 import { Panel, StatKart, Badge, useToast, useScrollKilit } from "@/components/panel/kit";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import type { AiKategori, AiPolitika } from "@/lib/specter/ai-agents";
-import { aiRobotsUret, aiPolitikaOzet } from "@/lib/specter/ai-agents";
+import { aiRobotsUret, aiPolitikaOzet, AI_SABLONLAR, aiSablonUygula, type AiSablonId } from "@/lib/specter/ai-agents";
 import type { Dil } from "@/lib/i18n/panel";
 import { aiajanlarCeviri } from "./aiajanlar.i18n";
 import { DonutDagilim, TrendGrafik, MiniSpark } from "@/components/panel/grafikler";
@@ -140,6 +140,33 @@ export function AiAjanlarIstemci({
     a.click();
     URL.revokeObjectURL(url);
     goster({ tip: "basari", baslik: t("ai.robots.indirildi") });
+  };
+
+  /* AYRIŞTIRICI ÖZELLİK: tek tıkla TOPLU politika şablonu — 15 ajana akıllı
+   * kategori-bazlı politika uygular (gerçek API). */
+  const [sablonYukleniyor, setSablonYukleniyor] = useState<AiSablonId | null>(null);
+  const sablonUygula = async (id: AiSablonId) => {
+    setSablonYukleniyor(id);
+    // Optimistik: UI'ı anında güncelle (robots + rozetler canlı değişir).
+    const yeni = aiSablonUygula(id);
+    setPolitikalar((p) => ({ ...p, ...yeni }));
+    try {
+      const r = await fetch("/api/ai-agents/sablon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sablon: id }),
+      });
+      const d = await r.json();
+      if (r.ok && d.ok) {
+        goster({ tip: "basari", baslik: t("ai.sablon.uygulandi").replace("{n}", String(d.uygulanan)) });
+      } else {
+        goster({ tip: "hata", baslik: t("ai.sablon.hata") });
+      }
+    } catch {
+      goster({ tip: "hata", baslik: t("ai.sablon.hata") });
+    } finally {
+      setSablonYukleniyor(null);
+    }
   };
 
   /* Kategoriye göre trafik dağılımı (donut). Sunum türevi; veri değişmez. */
@@ -285,6 +312,40 @@ export function AiAjanlarIstemci({
           </Panel>
         </motion.div>
       )}
+
+      {/* AYRIŞTIRICI: tek tıkla toplu politika profilleri (15 ajana akıllı uygula) */}
+      <motion.div initial={{ y: 10 }} animate={{ y: 0 }}>
+        <Panel baslik={t("ai.sablon.baslik")} sagUst={<Zap className="size-4 text-brand-600" />}>
+          <p className="-mt-1 mb-4 text-[12.5px] text-slate-muted">{t("ai.sablon.aciklama")}</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {AI_SABLONLAR.map((s) => {
+              const o = aiPolitikaOzet(aiSablonUygula(s.id));
+              const yukleniyor = sablonYukleniyor === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => sablonUygula(s.id)}
+                  disabled={!!sablonYukleniyor}
+                  className="group flex h-full flex-col rounded-2xl border border-line bg-canvas/40 p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50/40 disabled:opacity-60"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[14px] font-bold text-slate-ink">{t(`ai.sablon.${s.id}.ad`)}</span>
+                    {yukleniyor
+                      ? <Loader2 className="size-4 animate-spin text-brand-600" />
+                      : <Zap className="size-4 text-slate-faint transition group-hover:text-brand-600" />}
+                  </div>
+                  <p className="mt-1 flex-1 text-[12px] leading-relaxed text-slate-muted">{t(`ai.sablon.${s.id}.desc`)}</p>
+                  <div className="mt-3 flex items-center gap-2 text-[11px]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-ok-soft px-2 py-0.5 font-medium text-ok">{o.izin} {t("ai.robots.ozetIzin")}</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-warn-soft px-2 py-0.5 font-medium text-warn">{o.dogrula} {t("ai.robots.ozetDogrula")}</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 font-medium text-danger2">{o.engelle} {t("ai.robots.ozetEngelle")}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </Panel>
+      </motion.div>
 
       {/* AYRIŞTIRICI: politikadan CANLI robots.txt üretimi (rakiplerde yok) */}
       <motion.div initial={{ y: 10 }} animate={{ y: 0 }}>

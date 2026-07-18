@@ -303,6 +303,14 @@ export const Users = {
     persist();
     return u;
   },
+  /** Toplu AI politikası: birden çok ajanı tek yazımla ayarlar (şablon uygula). */
+  setAiPolicies(uid: string, politikalar: Record<string, string>): User | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    u.aiPolicies = { ...(u.aiPolicies ?? {}), ...politikalar };
+    persist();
+    return u;
+  },
 
   /**
    * Profil güncelle (yalnızca izin verilen alanlar). E-posta değişirse

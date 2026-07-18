@@ -375,3 +375,92 @@ export function aiPolitikaOzet(
   }
   return o;
 }
+
+/* ============================================================
+   TOPLU POLİTİKA ŞABLONLARI — tek tıkla tüm AI ajanlarına akıllı
+   politika uygular. Rakiplerin (ikili engelle/izin) ötesinde, içerik
+   sahibinin niyetine göre kategori-bazlı hazır profiller.
+   ============================================================ */
+
+export type AiSablonId = "siki" | "dengeli" | "acik" | "sadece_arama" | "sadece_engelle";
+
+export interface AiSablon {
+  id: AiSablonId;
+  ad: string;
+  aciklama: string;
+  /** kategori → politika. Belirtilmeyen kategori "dengeli"de ajanın önerisine düşer. */
+  kategoriPolitika: Partial<Record<AiKategori, AiPolitika>>;
+  /** true → her ajan kendi onerilenPolitika'sını alır (kategori haritası yok sayılır). */
+  onerileriKullan?: boolean;
+}
+
+export const AI_SABLONLAR: AiSablon[] = [
+  {
+    id: "siki",
+    ad: "Sıkı koru",
+    aciklama: "İçeriğini AI eğitiminden ve kazımadan tamamen koru. Yalnız canlı getirmeyi doğrula.",
+    kategoriPolitika: {
+      model_egitimi: "engelle",
+      veri_kaziyici: "engelle",
+      ajan_tarayici: "engelle",
+      canli_getirme: "dogrula",
+      arama_indeksi: "dogrula",
+    },
+  },
+  {
+    id: "dengeli",
+    ad: "Dengeli (önerilen)",
+    aciklama: "Veylify'ın her ajan için önerdiği akıllı varsayılan. Korumayı ve görünürlüğü dengeler.",
+    onerileriKullan: true,
+    kategoriPolitika: {},
+  },
+  {
+    id: "acik",
+    ad: "Açık / AI görünürlüğü",
+    aciklama: "Tüm AI ajanlarına izin ver — AI arama motorlarında ve asistanlarda maksimum görünürlük.",
+    kategoriPolitika: {
+      model_egitimi: "izin",
+      veri_kaziyici: "dogrula",
+      ajan_tarayici: "izin",
+      canli_getirme: "izin",
+      arama_indeksi: "izin",
+    },
+  },
+  {
+    id: "sadece_arama",
+    ad: "Yalnız arama & asistan",
+    aciklama: "Arama indeksleme ve canlı getirmeye izin ver; model eğitimini ve kazımayı engelle.",
+    kategoriPolitika: {
+      model_egitimi: "engelle",
+      veri_kaziyici: "engelle",
+      ajan_tarayici: "dogrula",
+      canli_getirme: "izin",
+      arama_indeksi: "izin",
+    },
+  },
+  {
+    id: "sadece_engelle",
+    ad: "Hepsini engelle",
+    aciklama: "İstisnasız tüm AI ajanlarını engelle. En katı duruş.",
+    kategoriPolitika: {
+      model_egitimi: "engelle",
+      veri_kaziyici: "engelle",
+      ajan_tarayici: "engelle",
+      canli_getirme: "engelle",
+      arama_indeksi: "engelle",
+    },
+  },
+];
+
+/** Bir şablonu tüm AI ajanlarına uygular → id → politika haritası döndürür. */
+export function aiSablonUygula(sablonId: AiSablonId): Record<string, AiPolitika> {
+  const sablon = AI_SABLONLAR.find((s) => s.id === sablonId);
+  const sonuc: Record<string, AiPolitika> = {};
+  if (!sablon) return sonuc;
+  for (const a of AI_AJANLAR) {
+    sonuc[a.id] = sablon.onerileriKullan
+      ? a.onerilenPolitika
+      : sablon.kategoriPolitika[a.kategori] ?? a.onerilenPolitika;
+  }
+  return sonuc;
+}
