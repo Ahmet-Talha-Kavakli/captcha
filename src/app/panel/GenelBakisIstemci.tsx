@@ -109,7 +109,7 @@ interface Props {
   killZincirler: SaldirganZincir[];
   killOzet: KillChainOzet;
   engelliIpler: string[];
-  engelKurallari: { ip: string; kuralId: string }[];
+  engelKurallari: { ip: string; kuralId: string; hits: number }[];
   korelasyonlar: Korelasyon[];
   korOzet: KorelasyonOzet;
   iliskiGraf: GrafSonuc;

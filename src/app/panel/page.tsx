@@ -177,7 +177,7 @@ export default async function PanelAnaSayfa() {
   // {ip, kuralId} çiftleri — bant'tan tek tıkla kaldırabilmek için id de taşınır.
   const engelKurallari = rules
     .filter((r) => r.enabled && r.field === "ip" && r.op === "eq" && r.action === "block")
-    .map((r) => ({ ip: r.value, kuralId: r.id }));
+    .map((r) => ({ ip: r.value, kuralId: r.id, hits: r.hits }));
   const engelliIpler = engelKurallari.map((e) => e.ip);
 
   // İlişki grafiği (aynı fingerprint/ASN paylaşan IP'ler → botnet kümeleri).

@@ -231,7 +231,7 @@ function KillChainBar({
 /** Dashboard'dan eklenen aktif IP engellerinin özeti — her chip tek tıkla
  *  kaldırılabilir (DELETE /api/rules/{id}). Analist kurallar sayfasına gitmeden
  *  yanlış/gereksiz engeli buradan çözer. */
-function EngelBandi({ engelKurallari }: { engelKurallari: { ip: string; kuralId: string }[] }) {
+function EngelBandi({ engelKurallari }: { engelKurallari: { ip: string; kuralId: string; hits: number }[] }) {
   // Bu oturumda kaldırılanları gizle (sunucu-tazeleme beklemeden anında geri-bildirim).
   const [kaldirilan, setKaldirilan] = useState<Set<string>>(new Set());
   const [siliniyor, setSiliniyor] = useState<string | null>(null);
@@ -263,6 +263,11 @@ function EngelBandi({ engelKurallari }: { engelKurallari: { ip: string; kuralId:
             className="inline-flex items-center gap-1 rounded-md bg-surface py-0.5 pl-1.5 pr-0.5 font-mono text-[11px] text-slate-muted ring-1 ring-inset ring-green-200"
           >
             {e.ip}
+            {e.hits > 0 && (
+              <span className="rounded bg-danger-soft px-1 py-px text-[9.5px] font-bold text-red-700" title={`Bu engel ${e.hits} kez tetiklendi (IP geri geldi, bloklandı)`}>
+                {sayi(e.hits)}× durduruldu
+              </span>
+            )}
             <button
               type="button"
               onClick={() => kaldir(e.kuralId)}
@@ -605,7 +610,7 @@ export function KillChainBolumu({
   azHareket: boolean;
   siteId?: string | null;
   engelliIpler?: string[];
-  engelKurallari?: { ip: string; kuralId: string }[];
+  engelKurallari?: { ip: string; kuralId: string; hits: number }[];
 }) {
   const engelliSet = useMemo(() => new Set(engelliIpler), [engelliIpler]);
   // Açık drill-down zinciri (IP) + tehdit-seviyesi filtresi (null = hepsi).
