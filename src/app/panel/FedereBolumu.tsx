@@ -19,7 +19,8 @@
  * framer-motion rise (azHareket → sade). whileInView/viewport YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Share2,
   Network,
@@ -34,6 +35,7 @@ import {
   Radio,
   Bot,
   Layers,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -231,7 +233,17 @@ function SiteDagilim({
 
 /* ================================================================== Varlık kartı */
 
-function VarlikKart({ varlik, azHareket }: { varlik: FedereVarlik; azHareket: boolean }) {
+function VarlikKart({
+  varlik,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  varlik: FedereVarlik;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const tipTanim = TIP_TANIM[varlik.tip];
   const TipIkon = tipTanim.ikon;
   const tehdit = TEHDIT_TANIM[varlik.tehdit];
@@ -243,6 +255,7 @@ function VarlikKart({ varlik, azHareket }: { varlik: FedereVarlik; azHareket: bo
       className={cn(
         "relative overflow-hidden rounded-2xl border bg-canvas/40 p-4 pl-5 transition",
         vurgulu ? "border-red-200 bg-danger-soft/25" : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
       {/* Isı-renkli sol şerit — tehdit seviyesine göre (görsel sıcaklık ipucu) */}
@@ -252,8 +265,14 @@ function VarlikKart({ varlik, azHareket }: { varlik: FedereVarlik; azHareket: bo
         aria-hidden
       />
 
-      {/* Üst şerit: varlık değeri + tip + tehdit + koordinasyon */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: varlık değeri + tip + tehdit + koordinasyon — TIKLANABİLİR (drill-down) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${varlik.deger} çapraz-site saldırgan detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -280,68 +299,94 @@ function VarlikKart({ varlik, azHareket }: { varlik: FedereVarlik; azHareket: bo
         </div>
 
         {/* Koordinasyon skoru pili */}
-        <div className="flex shrink-0 flex-col items-end">
-          <div className="flex items-center gap-1.5">
-            <Crosshair className="size-3.5 text-slate-faint" />
-            <span className="text-[15px] font-bold tabular-nums" style={{ color: tehdit.hex }}>
-              %{varlik.koordinasyon}
-            </span>
+        <div className="flex shrink-0 items-start gap-2">
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1.5">
+              <Crosshair className="size-3.5 text-slate-faint" />
+              <span className="text-[15px] font-bold tabular-nums" style={{ color: tehdit.hex }}>
+                %{varlik.koordinasyon}
+              </span>
+            </div>
+            <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">koordinasyon</span>
           </div>
-          <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">koordinasyon</span>
+          <ChevronDown className={cn("mt-1 size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
         </div>
-      </div>
+      </button>
 
-      {/* Federe olmanın özü: kaç siteye vurdu — büyük vurgu */}
-      <div
-        className="mb-3.5 flex items-center gap-3 rounded-xl border px-4 py-3"
-        style={{ background: `${tehdit.hex}0d`, borderColor: `${tehdit.hex}2e` }}
-      >
-        <Share2 className="size-5 shrink-0" style={{ color: tehdit.hex }} />
-        <div className="flex items-baseline gap-2">
-          <span className="text-[26px] font-bold leading-none tabular-nums" style={{ color: tehdit.hex }}>
-            {sayi(varlik.siteSayisi)}
-          </span>
-          <span className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: tehdit.hex }}>
-            siteye vurdu
-          </span>
-        </div>
-        <span className="ml-auto text-right text-[11px] leading-tight text-slate-muted">
-          Tek sitende engellensen bile
-          <br />
-          diğerlerine geçmeye çalıştı
-        </span>
-      </div>
+      {/* Drill-down detay — tıklayınca açılır */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3.5">
+              {/* Federe olmanın özü: kaç siteye vurdu — büyük vurgu */}
+              <div
+                className="mb-3.5 flex items-center gap-3 rounded-xl border px-4 py-3"
+                style={{ background: `${tehdit.hex}0d`, borderColor: `${tehdit.hex}2e` }}
+              >
+                <Share2 className="size-5 shrink-0" style={{ color: tehdit.hex }} />
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[26px] font-bold leading-none tabular-nums" style={{ color: tehdit.hex }}>
+                    {sayi(varlik.siteSayisi)}
+                  </span>
+                  <span className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: tehdit.hex }}>
+                    siteye vurdu
+                  </span>
+                </div>
+                <span className="ml-auto text-right text-[11px] leading-tight text-slate-muted">
+                  Tek sitende engellensen bile
+                  <br />
+                  diğerlerine geçmeye çalıştı
+                </span>
+              </div>
 
-      {/* Metrikler */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-        <Metrik ikon={Network} etiket="Etkilenen site">
-          {sayi(varlik.siteSayisi)}
-        </Metrik>
-        <Metrik ikon={Boxes} etiket="Toplam istek">
-          {sayi(varlik.toplamIstek)}
-        </Metrik>
-        <Metrik ikon={Bot} etiket="Bot sınıfı">
-          <span className="truncate">{sinifAd(varlik.botClass)}</span>
-        </Metrik>
-        <Metrik ikon={Server} etiket="ASN">
-          <span className="truncate font-mono text-[12px]">{varlik.asn || "—"}</span>
-        </Metrik>
-      </div>
+              {/* Metrikler */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+                <Metrik ikon={Network} etiket="Etkilenen site">
+                  {sayi(varlik.siteSayisi)}
+                </Metrik>
+                <Metrik ikon={Boxes} etiket="Toplam istek">
+                  {sayi(varlik.toplamIstek)}
+                </Metrik>
+                <Metrik ikon={Bot} etiket="Bot sınıfı">
+                  <span className="truncate">{sinifAd(varlik.botClass)}</span>
+                </Metrik>
+                <Metrik ikon={Server} etiket="ASN">
+                  <span className="truncate font-mono text-[12px]">{varlik.asn || "—"}</span>
+                </Metrik>
+              </div>
 
-      {/* Kaynak ülke */}
-      {varlik.country && (
-        <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-            <Globe className="size-3" />
-            Kaynak
-          </span>
-          <Ulke kod={varlik.country} />
-        </div>
-      )}
+              {/* Kaynak ülke */}
+              {varlik.country && (
+                <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="inline-flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                    <Globe className="size-3" />
+                    Kaynak
+                  </span>
+                  <Ulke kod={varlik.country} />
+                </div>
+              )}
 
-      {/* Site başına dağılım görseli */}
-      {varlik.siteDagilim.length > 0 && (
-        <SiteDagilim dagilim={varlik.siteDagilim} hex={tehdit.hex} azHareket={azHareket} />
+              {/* Site başına dağılım görseli */}
+              {varlik.siteDagilim.length > 0 && (
+                <SiteDagilim dagilim={varlik.siteDagilim} hex={tehdit.hex} azHareket={azHareket} />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
       )}
     </div>
   );
@@ -351,6 +396,7 @@ function VarlikKart({ varlik, azHareket }: { varlik: FedereVarlik; azHareket: bo
 
 export function FedereBolumu({ rapor, azHareket }: { rapor: FedereRapor; azHareket: boolean }) {
   const { cokSite, siteSayisi, ipVarliklar, asnVarliklar, ozet } = rapor;
+  const [acikId, setAcikId] = useState<string | null>(null);
 
   // Çapraz-saldırgan IP + ASN varlıklarını birleştir, koordinasyona göre sırala, ilk 8.
   const tumVarliklar = [...ipVarliklar, ...asnVarliklar];
@@ -475,11 +521,19 @@ export function FedereBolumu({ rapor, azHareket }: { rapor: FedereRapor; azHarek
               </div>
             ) : (
               <div className="mt-5 space-y-3">
-                {gosterilecek.map((v, i) => (
-                  <Bolum key={`${v.tip}-${v.deger}`} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                    <VarlikKart varlik={v} azHareket={azHareket} />
-                  </Bolum>
-                ))}
+                {gosterilecek.map((v, i) => {
+                  const anahtar = `${v.tip}-${v.deger}`;
+                  return (
+                    <Bolum key={anahtar} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
+                      <VarlikKart
+                        varlik={v}
+                        azHareket={azHareket}
+                        acik={acikId === anahtar}
+                        onToggle={() => setAcikId(acikId === anahtar ? null : anahtar)}
+                      />
+                    </Bolum>
+                  );
+                })}
               </div>
             )}
 
