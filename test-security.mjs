@@ -433,6 +433,34 @@ async function main() {
   check("AI anti-spoof: gerçek OAI-SearchBot (resmi CIDR IP) → izinli geçer (yanlış-pozitif yok)",
     gercekAi.passed === true);
 
+  // ---- PLATFORM ÇELİŞKİSİ (gerçek çapraz-doğrulama, UA-taklidine bağışık) ----
+  // UA string'indeki OS ile Client Hints sec-ch-ua-platform ÇELİŞİYORsa → sahte.
+  // İki ayrı ham header'ı karşılaştırır; bot ikisini tutarlı yalanlamayı beceremez.
+  // Kaynak: request-meta.ts headerSinyalCikar/baslikSahtekarligi (platformCeliskisi).
+  const WIN_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  const iyiSig2 = { mouseSamples: 60, mousePathLength: 900, mouseSpeedVariance: 0.3, keyIntervals: [100, 120, 90, 110] };
+  const platPassive = (chPlatform) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: iyiSig2 });
+    const req = http.request(`${BASE}/api/v1/passive`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body),
+        "User-Agent": WIN_UA, "sec-ch-ua": '"Chromium";v="120"', "sec-ch-ua-platform": chPlatform,
+        "accept-language": "tr", "accept": "text/html",
+      },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  // UA Windows ama Client Hints platform "Linux" → çelişki → automation_detected.
+  const celiskili = await platPassive('"Linux"');
+  check("Platform çelişkisi: UA Windows + Client Hints Linux → automation_detected",
+    celiskili.passed === false && celiskili.reason === "automation_detected");
+  // UA Windows + platform "Windows" (tutarlı) → automation DEĞİL (yanlış-pozitif yok).
+  const tutarli = await platPassive('"Windows"');
+  check("Platform çelişkisi: UA Windows + Client Hints Windows → automation değil (FP yok)",
+    tutarli.reason !== "automation_detected");
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

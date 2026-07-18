@@ -31,11 +31,49 @@ export interface HeaderSinyal {
   acceptTarayiciBenzeri: boolean;
   /** UA Chromium (Chrome/Edge, headless değil) iddia ediyor mu? */
   uaChromiumIddiasi: boolean;
+  /**
+   * GERÇEK ÇAPRAZ-DOĞRULAMA: UA string'indeki OS ile Client Hints
+   * `sec-ch-ua-platform` header'ı ÇELİŞİYOR mu? Gerçek Chrome ikisini de tutarlı
+   * gönderir (UA "Windows NT" → platform "Windows"). Bot UA'yı taklit edip
+   * Client Hints platformunu unutur/yanlış verirse burada yakalanır. Header
+   * değeri sunucunun GÖRDÜĞÜ ham veridir — UA gibi kolay uydurulamaz (iki ayrı
+   * yeri tutarlı yalanlamak gerekir). true = tutarsız (sahte sinyali).
+   */
+  platformCeliskisi: boolean;
+}
+
+/** UA'daki OS ailesini kaba çıkar (windows/mac/linux/android/ios/?). */
+function uaPlatform(u: string): string {
+  if (u.includes("windows")) return "windows";
+  if (u.includes("android")) return "android"; // android'i mac/linux'tan önce
+  if (u.includes("iphone") || u.includes("ipad") || u.includes("ios")) return "ios";
+  if (u.includes("mac os") || u.includes("macintosh")) return "mac";
+  if (u.includes("cros")) return "chromeos";
+  if (u.includes("linux")) return "linux";
+  return "?";
+}
+
+/** sec-ch-ua-platform değerini normalize et ("Windows" → windows). */
+function chPlatform(v: string): string {
+  const s = v.replace(/"/g, "").trim().toLowerCase();
+  if (s.includes("windows")) return "windows";
+  if (s.includes("android")) return "android";
+  if (s === "macos" || s.includes("mac")) return "mac";
+  if (s.includes("ios")) return "ios";
+  if (s.includes("chrome os") || s.includes("chromeos")) return "chromeos";
+  if (s.includes("linux")) return "linux";
+  return "?";
 }
 
 function headerSinyalCikar(h: Headers, ua: string): HeaderSinyal {
   const u = ua.toLowerCase();
   const accept = h.get("accept") || "";
+  const chPlatformHam = h.get("sec-ch-ua-platform") || "";
+  const uaPl = uaPlatform(u);
+  const chPl = chPlatform(chPlatformHam);
+  // Her ikisi de bilinen bir platforma çözülüyor VE farklılarsa → çelişki.
+  // "?" (bilinmeyen) veya boş → çelişki sayma (yanlış-pozitif önleme).
+  const platformCeliskisi = !!chPlatformHam && uaPl !== "?" && chPl !== "?" && uaPl !== chPl;
   return {
     clientHintsVar: !!(h.get("sec-ch-ua") || h.get("sec-ch-ua-platform")),
     acceptLanguageVar: !!h.get("accept-language"),
@@ -45,6 +83,7 @@ function headerSinyalCikar(h: Headers, ua: string): HeaderSinyal {
       (u.includes("chrome") || u.includes("edg/")) &&
       !u.includes("headless") &&
       !/python|curl|go-http|node-fetch|axios|scrapy|wget|okhttp|libwww/.test(u),
+    platformCeliskisi,
   };
 }
 
@@ -84,7 +123,12 @@ export function extractMeta(req: Request): RequestMeta {
  * sinyalleri onları zaten yakalar.
  */
 export function baslikSahtekarligi(s: HeaderSinyal): boolean {
-  if (!s.uaChromiumIddiasi) return false; // yalnızca Chromium-iddiası olanları denetle
+  // PLATFORM ÇELİŞKİSİ tek başına güçlü kanıttır (UA "Windows" ama Client Hints
+  // platform "Linux" gibi) — Chromium iddiası olmasa bile geçerli: iki ayrı
+  // yeri tutarlı yalanlamayı beceremeyen bir bot burada yakalanır. Gerçek
+  // çapraz-doğrulama, düşük yanlış-pozitif (yalnızca ikisi de bilinen+farklı).
+  if (s.platformCeliskisi) return true;
+  if (!s.uaChromiumIddiasi) return false; // gerisi yalnızca Chromium-iddiası için
   // Tarayıcı-benzeri Accept HİÇ yoksa (text/html de */* de değil) tek başına güçlü.
   if (!s.acceptTarayiciBenzeri && !s.acceptLanguageVar) return true;
   // Aksi halde: hem Accept-Language HEM Client Hints eksikse (ikisi birden).
