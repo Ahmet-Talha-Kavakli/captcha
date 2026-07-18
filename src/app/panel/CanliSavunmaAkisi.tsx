@@ -22,7 +22,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, Wifi, WifiOff, ArrowRight, Radio, ShieldCheck, Fingerprint, GitBranch, Cpu, Gauge } from "lucide-react";
+import { Activity, Wifi, WifiOff, ArrowRight, Radio, ShieldCheck, Fingerprint, GitBranch, Cpu, Gauge, Ban } from "lucide-react";
 import { Panel, VerdictRozet } from "@/components/panel/kit";
 import { botSinifGorsel } from "@/components/panel/bot-sinif-gorsel";
 import { bayrak, ULKE_AD } from "@/lib/flag";
@@ -225,6 +225,8 @@ export function CanliSavunmaAkisi() {
                 const g = botSinifGorsel(o.botClass);
                 const Ikon = g.ikon;
                 const kat = yakalayanKatman(o);
+                // Analistin dashboard'dan eklediği manuel IP-engeli mi tetikledi?
+                const manuelEngel = (o.triggeredRules ?? []).some((r) => r.startsWith("Engel: "));
                 return (
                   <motion.div
                     key={o.id}
@@ -246,6 +248,11 @@ export function CanliSavunmaAkisi() {
                         {BOT_ETIKET[o.botClass] ?? o.botClass} · <span className="num">{o.path}</span>
                       </p>
                     </div>
+                    {manuelEngel && (
+                      <span className="hidden shrink-0 items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-[10.5px] font-semibold text-red-700 ring-1 ring-inset ring-red-200 sm:inline-flex" title="Bu IP dashboard'dan senin engellediğin bir IP">
+                        <Ban className="size-3" /> Senin engelin
+                      </span>
+                    )}
                     <span className="hidden shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-medium sm:inline-flex" style={{ background: `${kat.renk}12`, color: kat.renk }}>
                       {kat.ad}
                     </span>
