@@ -30,6 +30,15 @@ export function rateLimit(
 }
 
 /**
+ * RFC 6585/9110: 429 yanıtında istemciye "kaç saniye sonra tekrar dene"
+ * bilgisini veren `Retry-After` değeri (saniye). resetAt'e kalan süreyi
+ * yukarı yuvarlar; en az 1 döner (0 anlamsız). İstemci/proxy/CDN buna güvenir.
+ */
+export function retryAfterSn(resetAt: number, now = Date.now()): number {
+  return Math.max(1, Math.ceil((resetAt - now) / 1000));
+}
+
+/**
  * IP başına son 60sn istek sayısını takip eder (rate kuralları için).
  * rate-limit'ten farklı: burada sadece sayar, engellemez — kural motoru
  * "rate > N" koşulunu değerlendirebilsin diye.

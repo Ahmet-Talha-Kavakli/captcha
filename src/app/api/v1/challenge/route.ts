@@ -8,7 +8,7 @@
 
 import { NextResponse } from "next/server";
 import { Sites, Users, Usage } from "@/lib/db/db";
-import { rateLimit } from "@/lib/db/rate";
+import { rateLimit, retryAfterSn } from "@/lib/db/rate";
 import {
   createChallenge,
   adaptiveDifficulty,
@@ -77,9 +77,11 @@ export async function POST(req: Request) {
   const rlIp = rateLimit(`chal:${site.id}:${ipErken}`, ipLimit, 60_000);
   const rlSite = rateLimit(`chal:${site.id}`, Math.max(1200, ipLimit * 20), 60_000);
   if (!rlIp.ok || !rlSite.ok) {
+    // Bloklayan kademenin reset'ine göre Retry-After (RFC 6585) — en uzunu al.
+    const reset = Math.max(!rlIp.ok ? rlIp.resetAt : 0, !rlSite.ok ? rlSite.resetAt : 0);
     return NextResponse.json(
       { error: "Çok fazla istek, biraz bekleyin" },
-      { status: 429, headers },
+      { status: 429, headers: { ...headers, "Retry-After": String(retryAfterSn(reset)) } },
     );
   }
 

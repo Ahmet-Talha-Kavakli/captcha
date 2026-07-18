@@ -17,7 +17,7 @@
  */
 import { NextResponse } from "next/server";
 import { Tokens } from "@/lib/db/db";
-import { rateLimit } from "@/lib/db/rate";
+import { rateLimit, retryAfterSn } from "@/lib/db/rate";
 import { korumaOzeti, panelSayilari } from "@/lib/ozet";
 
 function bearer(req: Request): string | null {
@@ -44,12 +44,19 @@ export async function GET(req: Request) {
     );
   }
 
-  // Rate-limit: token başına dakikada 120 istek.
-  const rl = rateLimit(`api:${token.id}`, 120, 60_000);
+  // Rate-limit: token başına dakikada 120 istek. Public API → standart
+  // X-RateLimit-* header'ları (GitHub/Stripe deseni) + 429'da Retry-After.
+  const RL_LIMIT = 120;
+  const rl = rateLimit(`api:${token.id}`, RL_LIMIT, 60_000);
+  const rlHeaders: Record<string, string> = {
+    "X-RateLimit-Limit": String(RL_LIMIT),
+    "X-RateLimit-Remaining": String(rl.remaining),
+    "X-RateLimit-Reset": String(Math.ceil(rl.resetAt / 1000)),
+  };
   if (!rl.ok) {
     return NextResponse.json(
       { error: "rate_limited", message: "Çok fazla istek — biraz bekleyin." },
-      { status: 429 },
+      { status: 429, headers: { ...rlHeaders, "Retry-After": String(retryAfterSn(rl.resetAt)) } },
     );
   }
 
@@ -79,5 +86,5 @@ export async function GET(req: Request) {
     active_rules: sayilar.aktifKural,
     bad_ips_tracked: sayilar.kotuIp,
     generated_at: new Date().toISOString(),
-  });
+  }, { headers: rlHeaders });
 }

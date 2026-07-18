@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 import { Sites, Events, Nonces, Rules, Usage, IpRep } from "@/lib/db/db";
 import { webhookTetikle } from "@/lib/specter/webhook-delivery";
 import { botSiniflandir } from "@/lib/specter/classifier";
-import { rateLimit, trackRate } from "@/lib/db/rate";
+import { rateLimit, trackRate, retryAfterSn } from "@/lib/db/rate";
 import { verifyAttempt } from "@/lib/specter/verify";
 import { verifyToken } from "@/lib/specter/crypto";
 import { emptySignals, type BehaviorSignals } from "@/lib/specter/behavior";
@@ -117,7 +117,11 @@ export async function POST(req: Request) {
   const rlIp = rateLimit(`ver:${site.id}:${istekIp}`, 120, 60_000);
   const rlSite = rateLimit(`ver:${site.id}`, 2400, 60_000);
   if (!rlIp.ok || !rlSite.ok) {
-    return NextResponse.json({ error: "Çok fazla istek" }, { status: 429, headers });
+    const reset = Math.max(!rlIp.ok ? rlIp.resetAt : 0, !rlSite.ok ? rlSite.resetAt : 0);
+    return NextResponse.json(
+      { error: "Çok fazla istek" },
+      { status: 429, headers: { ...headers, "Retry-After": String(retryAfterSn(reset)) } },
+    );
   }
 
   const now = Date.now();

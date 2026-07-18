@@ -138,6 +138,23 @@ async function main() {
   check("Kota: demo (kota-altı) challenge → 200, quota_exceeded değil",
     chRes.status === 200 && chRes.headers.get("X-Veylify-Quota") !== "exceeded");
 
+  // 21) RATE-LIMIT 429 + Retry-After (RFC 6585). Tek IP'den challenge flood →
+  // ipLimit (varsayılan 60/dk) aşılınca 429 + geçerli Retry-After header.
+  // İzole IP kullan (203.0.113.222) — başka testleri etkilemesin.
+  let rl429 = null;
+  for (let i = 0; i < 90; i++) {
+    const r = await post("/api/v1/challenge", { siteKey: "pk_demo_veylify_public" }, { "x-forwarded-for": "203.0.113.222" });
+    if (r.status === 429) { rl429 = r; break; }
+  }
+  check("Rate-limit: tek IP flood → 429 döner (DoS koruması)", rl429 !== null);
+  const ra = rl429 && rl429.headers.get("Retry-After");
+  check("Rate-limit: 429 yanıtı Retry-After header taşır (RFC 6585)",
+    !!ra && Number(ra) >= 1 && Number(ra) <= 60);
+  // İZOLASYON: farklı temiz IP hâlâ 429 DEĞİL (bir IP tüm siteyi kilitleyemez).
+  const temizIp = await post("/api/v1/challenge", { siteKey: "pk_demo_veylify_public" }, { "x-forwarded-for": "198.51.100.7" });
+  check("Rate-limit: farklı temiz IP flood'dan etkilenmez (429 değil — IP izolasyonu)",
+    temizIp.status !== 429);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
