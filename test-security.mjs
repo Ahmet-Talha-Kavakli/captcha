@@ -506,6 +506,23 @@ async function main() {
   check("Sec-Fetch: Chrome-UA + ClientHints + Sec-Fetch → automation değil (FP yok)",
     gercekTarayici.reason !== "automation_detected");
 
+  // ---- KATMANLI SAVUNMA: davranış-spoofing tek başına yetmez ----
+  // Bir bot MÜKEMMEL insan-benzeri davranış sinyalleri ENJEKTE etse bile (yüksek
+  // varyans/örnek), gerçek Chromium başlık setini gönderemezse yakalanır. Davranış
+  // katmanı aldatılsa da sunucu-tarafı başlık sinyalleri botu ele verir.
+  const mukemmelDavranis = { mouseSamples: 150, mousePathLength: 2000, mouseSpeedVariance: 0.4, mouseCorners: 12, mouseAccelVariance: 0.3, keyIntervals: [95, 130, 88, 142, 110, 99, 120] };
+  const katmanliRes = await new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: mukemmelDavranis });
+    const req = http.request(`${BASE}/api/v1/passive`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "User-Agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/120.0.0.0 Safari/537.36" },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  check("Katmanlı savunma: mükemmel enjekte davranış + tool başlıkları → yine yakalanır",
+    katmanliRes.passed === false);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
