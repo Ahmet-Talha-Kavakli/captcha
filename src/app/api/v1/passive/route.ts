@@ -100,8 +100,20 @@ export async function POST(req: Request) {
   // en katı olarak kalır (kullanıcı hem izin hem block yazdıysa güvenlik önce).
   const kesinBlock = evalRes.action === "block";
   const kuralEngeli = aiIzin ? kesinBlock : (evalRes.action === "block" || evalRes.action === "challenge");
+
+  // ── KESİN OTOMASYON VETOSU ──────────────────────────────────────────
+  // İstemci-tarafı davranış sinyalleri UYDURULABİLİR: bir bot mükemmel fare/
+  // tuş sinyalleri enjekte edip yüksek skor toplayabilir. Bu yüzden davranış
+  // skoru TEK BAŞINA görünmez geçiş için yeterli değildir. `navigator.webdriver`
+  // veya headless/otomasyon parmak-izi gibi TARTIŞMASIZ otomasyon kanıtları
+  // varsa, skor ne olursa olsun görünmez geçiş REDDEDİLİR (challenge'a düşer) —
+  // çünkü bu işaretler "ben otomasyonum" itirafıdır. AI "izin" bunu bypass etmez
+  // (izin verilen AI zaten davranış eşiğinden muaf ama otomasyon-yalanı söyleyen
+  // bir crawler değil, dürüst UA ile gelir; yine de veto güvenlik için kalır).
+  const otomasyonKaniti = signals.webdriver === true || fpKural.headless === true;
+
   const davranisGecti = aiIzin || behavior.score >= invisibleEsik;
-  const gecti = davranisGecti && !kuralEngeli && !aiEngeli && !beslemeEngeli;
+  const gecti = davranisGecti && !kuralEngeli && !aiEngeli && !beslemeEngeli && !otomasyonKaniti;
 
   const now = Date.now();
   const verdict: Verdict = gecti ? "allowed" : "challenged";
@@ -122,7 +134,15 @@ export async function POST(req: Request) {
   Usage.increment(site.id, gecti ? "verified" : "challenged", 1);
 
   if (!gecti) {
-    return NextResponse.json({ passed: false, reason: "needs_challenge", score: behavior.score }, { status: 200, headers });
+    // Sebep önceliği: kesin otomasyon kanıtı > AI politikası > kural > tehdit
+    // beslemesi > düşük davranış. Böylece istemci veya panel neden challenge'a
+    // düşüldüğünü doğru görür (uydurma sinyalle yüksek skor toplanmış olsa bile).
+    const reason = otomasyonKaniti ? "automation_detected"
+      : aiEngeli ? "ai_policy"
+      : kuralEngeli ? "rule_challenge"
+      : beslemeEngeli ? "threat_feed"
+      : "needs_challenge";
+    return NextResponse.json({ passed: false, reason, score: behavior.score }, { status: 200, headers });
   }
 
   const claim: VerificationClaim = {
