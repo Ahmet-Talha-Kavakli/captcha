@@ -214,7 +214,7 @@ function TrendRozet({
 }) {
   if (yon === "flat") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[12px] font-medium text-slate-600 ring-1 ring-inset ring-slate-200">
+      <span className="inline-flex items-center gap-1 rounded-full bg-canvas px-2.5 py-0.5 text-[12px] font-medium text-slate-muted ring-1 ring-inset ring-line">
         <Minus className="size-3.5" />
         {metin}
       </span>
@@ -226,7 +226,7 @@ function TrendRozet({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-medium ring-1 ring-inset",
-        iyi ? "bg-ok-soft text-green-700 ring-green-200" : "bg-danger-soft text-red-700 ring-red-200",
+        iyi ? "bg-ok-soft text-ok ring-green-200" : "bg-danger-soft text-danger2 ring-red-200",
       )}
     >
       <Ikon className="size-3.5" />
@@ -453,10 +453,10 @@ function AiRadarBolum({
                         <span className="tabular-nums text-slate-muted">
                           {sayi(ajan.olay)} {t("dr.ai.olay")}
                         </span>
-                        <span className="tabular-nums text-green-700">
+                        <span className="tabular-nums text-ok">
                           ✓ {sayi(ajan.izinVerilen)}
                         </span>
-                        <span className="tabular-nums text-red-700">
+                        <span className="tabular-nums text-danger2">
                           ✕ {sayi(ajan.engellenen)}
                         </span>
                       </div>
@@ -774,7 +774,7 @@ function CografyaBolum({
                           <Ulke kod={u.kod} />
                         </div>
                         <div className="flex items-center gap-2 text-[12px]">
-                          <span className="tabular-nums text-red-700">{yuzOran(u.botOran)} bot</span>
+                          <span className="tabular-nums text-danger2">{yuzOran(u.botOran)} bot</span>
                           <Badge ton="kirmizi">{t("dr.cografya.yuksekRisk")}</Badge>
                         </div>
                       </div>
@@ -835,7 +835,7 @@ function CografyaBolum({
                             className={cn(
                               "rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums",
                               yuksekBot
-                                ? "bg-danger-soft text-red-700"
+                                ? "bg-danger-soft text-danger2"
                                 : "bg-brand-50 text-brand-600",
                             )}
                           >
@@ -1181,7 +1181,7 @@ function CanliNabizBolum({
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-line bg-canvas/40 px-3.5 py-3">
               <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-faint">
-                <TrendingUp className="size-3.5 text-red-700" />
+                <TrendingUp className="size-3.5 text-danger2" />
                 {t("dr.nabiz.zirve")}
               </div>
               <div className="mt-1 flex items-baseline gap-2">
@@ -1195,7 +1195,7 @@ function CanliNabizBolum({
             </div>
             <div className="rounded-xl border border-line bg-canvas/40 px-3.5 py-3">
               <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-faint">
-                <TrendingDown className="size-3.5 text-green-700" />
+                <TrendingDown className="size-3.5 text-ok" />
                 {t("dr.nabiz.sakin")}
               </div>
               <div className="mt-1 flex items-baseline gap-2">

@@ -113,7 +113,7 @@ export function TehditHaritasiOzet({ cografya }: { cografya: CografyaIstihbarat 
                         <p className="num text-[10.5px] text-slate-faint">{u.kod}</p>
                       </div>
                       {u.kod === enTehdit && (
-                        <span className="shrink-0 rounded-full bg-danger-soft px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-700">#1</span>
+                        <span className="shrink-0 rounded-full bg-danger-soft px-1.5 py-0.5 text-[9px] font-bold uppercase text-danger2">#1</span>
                       )}
                     </div>
                     <div className="mt-2.5 flex items-end justify-between">
@@ -124,7 +124,7 @@ export function TehditHaritasiOzet({ cografya }: { cografya: CografyaIstihbarat 
                       <span className="num text-[12px] font-bold" style={{ color: isi.metin }}>%{Math.round(u.botOran * 100)}</span>
                     </div>
                     {/* ısı çubuğu */}
-                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/70">
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-canvas">
                       <motion.div className="h-full rounded-full" style={{ background: isi.metin }} initial={{ width: 0 }} animate={{ width: `${Math.min(100, u.botOran * 100)}%` }} transition={{ duration: 0.7, delay: i * 0.03 }} />
                     </div>
                   </motion.div>

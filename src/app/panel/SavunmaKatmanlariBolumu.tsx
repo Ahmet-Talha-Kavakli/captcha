@@ -171,7 +171,7 @@ function KatmanKart({
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex size-[16px] items-center justify-center rounded-md bg-slate-100 text-[10px] font-bold text-slate-500 ring-1 ring-inset ring-slate-200">
+              <span className="inline-flex size-[16px] items-center justify-center rounded-md bg-canvas text-[10px] font-bold text-slate-muted ring-1 ring-inset ring-line">
                 {sira}
               </span>
               <span className="truncate text-[13px] font-semibold text-slate-ink">{tanim.ad}</span>

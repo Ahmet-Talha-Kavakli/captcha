@@ -206,7 +206,11 @@ export function GenelBakisIstemci({
         };
 
   // Gösterge özelleştirme (localStorage).
-  const [gizli, setGizli] = useState<Record<string, boolean>>({});
+  // SADELİK: ilk açılışta "Modül kısayolları" varsayılan GİZLİ — sol menüyle
+  // birebir tekrar eden navigasyon; ferah bir ilk görünüm için kapalı başlar,
+  // "Özelleştir"den tek tıkla geri açılır (hiçbir bölüm SİLİNMEZ).
+  const VARSAYILAN_GIZLI: Record<string, boolean> = { moduller: true };
+  const [gizli, setGizli] = useState<Record<string, boolean>>(VARSAYILAN_GIZLI);
   const [ozellestir, setOzellestir] = useState(false);
   useEffect(() => {
     try {
@@ -330,7 +334,7 @@ export function GenelBakisIstemci({
               <span className="flex items-center gap-1.5 font-medium text-slate-muted"><Wallet className="size-3.5" /> {t("gb.plani").replace("{plan}", planAd)}</span>
               <span className="num font-semibold text-slate-ink">%{Math.round(kotaOran)}</span>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-canvas">
               <div className="h-full rounded-full transition-all" style={{ width: `${kotaOran}%`, background: kotaOran > 90 ? "#dc2626" : "linear-gradient(90deg,#6a97fb,#2f6fed)" }} />
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-faint">
@@ -740,7 +744,7 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
         <div className="flex items-center gap-2.5">
           <span className="relative flex size-2">
             {canli && <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />}
-            <span className={cn("relative inline-flex size-2 rounded-full", canli ? "bg-emerald-500" : "bg-slate-300")} />
+            <span className={cn("relative inline-flex size-2 rounded-full", canli ? "bg-emerald-500" : "bg-line-strong")} />
           </span>
           <span className="text-[14px] font-semibold text-slate-ink">{t("gb.savunmaKomuta")}</span>
           <span className="text-[12px] font-medium text-slate-faint">{canli ? t("gb.canli") : t("gb.duraklatildi")}</span>
@@ -806,7 +810,6 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
           </div>
           <div className="flex flex-col gap-1">
             {akis.slice(0, 6).map((o, i) => {
-              const engel = o.verdict === "blocked" || o.verdict === "challenged";
               const renk = o.verdict === "blocked" ? "#dc2626" : o.verdict === "challenged" ? "#d97706" : o.verdict === "allowed" ? "#16a34a" : "#64748b";
               const kararMetin = o.verdict === "blocked" ? "Engellendi" : o.verdict === "challenged" ? "Doğrulandı" : o.verdict === "allowed" ? "İzin verildi" : "İşaretlendi";
               return (
@@ -816,16 +819,16 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
                   style={i === 0 ? { animation: "zn-slide-in 0.4s both" } : undefined}
                 >
                   <span className="size-1.5 shrink-0 rounded-full" style={{ background: renk }} />
-                  <span className="font-mono font-medium text-slate-ink">{o.ip || "—"}</span>
+                  <span className="shrink-0 font-mono font-medium text-slate-ink">{o.ip || "—"}</span>
                   {o.botClass && o.botClass !== "human" && (
-                    <span className="rounded bg-canvas px-1.5 py-0.5 text-[10.5px] text-slate-muted">{o.botClass}</span>
+                    <span className="shrink-0 rounded bg-canvas px-1.5 py-0.5 text-[10.5px] text-slate-muted">{o.botClass}</span>
                   )}
-                  {o.path && <span className="truncate font-mono text-[11px] text-slate-faint">{o.path}</span>}
+                  {o.path && <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-faint">{o.path}</span>}
                   <span
                     className="ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold"
                     style={{ background: `${renk}18`, color: renk }}
                   >
-                    {engel ? kararMetin : kararMetin}
+                    {kararMetin}
                   </span>
                 </div>
               );
@@ -882,7 +885,7 @@ function IcgoruKarti({
               <div key={i} className={cn("rounded-2xl border px-3.5 py-3", siddetRenk[a.siddet] ?? siddetRenk.dusuk)}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] font-semibold text-slate-ink">{a.baslik}</span>
-                  <span className="rounded-full bg-white/60 px-2 py-0.5 text-[10px] font-bold uppercase">{a.siddet}</span>
+                  <span className="rounded-full bg-canvas/70 px-2 py-0.5 text-[10px] font-bold uppercase">{a.siddet}</span>
                 </div>
                 <p className="mt-1 text-[12px] leading-relaxed text-slate-muted">{a.aciklama}</p>
                 {a.oneri && <p className="mt-1.5 text-[11.5px] italic text-slate-faint">→ {a.oneri}</p>}
@@ -1078,7 +1081,7 @@ function OnboardingKart({
         <Link href="/panel/ai-ajanlar" className="hidden shrink-0 items-center gap-1 text-[12.5px] font-medium text-brand-600 transition hover:text-brand-700 sm:inline-flex">
           {t("gb.siradaAi")} <ChevronRight className="size-3.5" />
         </Link>
-        <button onClick={kucultKaydet} aria-label={t("gb.kapat")} className="grid size-7 shrink-0 place-items-center rounded-full text-slate-faint transition hover:bg-white/70 hover:text-slate-ink">
+        <button onClick={kucultKaydet} aria-label={t("gb.kapat")} className="grid size-7 shrink-0 place-items-center rounded-full text-slate-faint transition hover:bg-canvas/70 hover:text-slate-ink">
           <X className="size-4" />
         </button>
       </div>
@@ -1099,7 +1102,7 @@ function OnboardingKart({
           <span className="num shrink-0 rounded-full bg-white px-3 py-1 text-[13px] font-semibold text-brand-700 ring-1 ring-brand-100">{t("gb.tamamlandiSayi").replace("{n}", String(tamamSayi)).replace("{toplam}", String(toplam))}</span>
         </div>
         <div className="mt-4 flex items-center gap-3">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/70">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-canvas">
             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${yuzde}%`, background: "linear-gradient(90deg, #6a97fb, #2f6fed)" }} />
           </div>
           <span className="num text-[13px] font-bold text-slate-ink">%{yuzde}</span>
@@ -1119,7 +1122,7 @@ function OnboardingKart({
                   ) : aktif ? (
                     <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-brand-600 text-white shadow-card">{a.ikon}</span>
                   ) : (
-                    <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-300"><Circle className="size-4" /></span>
+                    <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-canvas text-slate-faint"><Circle className="size-4" /></span>
                   )}
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
