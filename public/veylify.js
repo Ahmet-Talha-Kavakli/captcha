@@ -485,16 +485,26 @@
   // Widget UI (Shadow DOM ile izole)
   // ---------------------------------------------------------------------
   var STYLE = [
-    ':host{all:initial;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}',
+    /* TEMA — renkler CSS custom property'lerde; koyu varsayılan :host'ta,
+       açık tema :host([data-tema=light])'te SADECE property'leri override eder
+       (specificity savaşı yok — aynı değişken). data-theme="light" ile açılır.
+       Ghost-font canvas (.cvFrame) property'siz, KOYU sabit kalır (kontrast). */
+    ':host{all:initial;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;',
+    '--vy-fg:#e8eef7;--vy-bg:radial-gradient(120% 140% at 0% 0%,#16233f 0%,#0c1526 45%,#080d18 100%);',
+    '--vy-title:#aebfd4;--vy-hint:#7387a0;--vy-foot:#54657f;--vy-inp-bg:rgba(9,14,26,.8);--vy-inp-bd:rgba(255,255,255,.1);--vy-inp-fg:#fff;',
+    '--vy-shadow:0 1px 0 0 rgba(255,255,255,.06) inset,0 20px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(103,232,249,.10)}',
+    ':host([data-tema=light]){--vy-fg:#1a2436;--vy-bg:linear-gradient(120% 140% at 0% 0%,#ffffff 0%,#f4f6fb 60%,#eaeef6 100%);',
+    '--vy-title:#334155;--vy-hint:#64748b;--vy-foot:#64748b;--vy-inp-bg:#ffffff;--vy-inp-bd:rgba(20,40,80,.18);--vy-inp-fg:#1a2436;',
+    '--vy-shadow:0 1px 0 0 rgba(255,255,255,.8) inset,0 12px 40px -14px rgba(20,30,60,.25),0 0 0 1px rgba(20,40,80,.10)}',
     '*{box-sizing:border-box}',
     /* Yeni nesil "kart": derin uzay gradyanı + ince cam kenar + katmanlı glow */
-    '.box{width:328px;border-radius:20px;position:relative;color:#e8eef7;overflow:hidden;',
-    'background:radial-gradient(120% 140% at 0% 0%,#16233f 0%,#0c1526 45%,#080d18 100%);',
-    'box-shadow:0 1px 0 0 rgba(255,255,255,.06) inset,0 20px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(103,232,249,.10)}',
+    '.box{width:328px;border-radius:20px;position:relative;color:var(--vy-fg);overflow:hidden;',
+    'background:var(--vy-bg);',
+    'box-shadow:var(--vy-shadow)}',
     /* üst ince aydınlık şerit (glossy) */
     '.box::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.5),transparent);z-index:2}',
     '.head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}',
-    '.title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#aebfd4;letter-spacing:-.01em}',
+    '.title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--vy-title);letter-spacing:-.01em}',
     '.title svg{width:16px;height:16px;filter:drop-shadow(0 0 6px rgba(34,211,238,.5))}',
     '.secure{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#5ad1c4}',
     '.secure .lock{width:11px;height:11px}',
@@ -517,14 +527,14 @@
     '.yonBtn{flex:1;height:44px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(9,14,26,.8);color:#cfe3f2;font-size:19px;font-weight:800;cursor:pointer;transition:.16s;display:grid;place-items:center}',
     '.yonBtn:hover{border-color:#22d3ee;color:#e8f9ff;background:rgba(34,211,238,.14)}',
     '.yonBtn.sec{border-color:#22d3ee;background:rgba(34,211,238,.24);color:#e8f9ff;box-shadow:0 0 0 3px rgba(34,211,238,.18)}',
-    'input{flex:1;height:44px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(9,14,26,.8);color:#fff;padding:0 14px;font-size:16px;font-weight:600;letter-spacing:3px;text-transform:uppercase;outline:none;transition:.18s}',
+    'input{flex:1;height:44px;border-radius:11px;border:1px solid var(--vy-inp-bd);background:var(--vy-inp-bg);color:var(--vy-inp-fg);padding:0 14px;font-size:16px;font-weight:600;letter-spacing:3px;text-transform:uppercase;outline:none;transition:.18s}',
     'input:focus{border-color:#22d3ee;box-shadow:0 0 0 4px rgba(34,211,238,.18)}',
     'input::placeholder{color:#54657f;letter-spacing:.5px;text-transform:none;font-weight:500}',
     '.btn{height:44px;padding:0 20px;border-radius:11px;border:none;background:linear-gradient(180deg,#2ee0f5,#06b6d4);color:#042028;font-weight:800;font-size:14px;cursor:pointer;transition:.18s;box-shadow:0 4px 14px -4px rgba(6,182,212,.6)}',
     '.btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 6px 20px -4px rgba(6,182,212,.7)}',
     '.btn:active{transform:translateY(0)}',
     '.btn:disabled{opacity:.45;cursor:default;filter:none;transform:none;box-shadow:none}',
-    '.foot{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 13px;font-size:11px;color:#54657f}',
+    '.foot{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 13px;font-size:11px;color:var(--vy-foot)}',
     '.brand{display:flex;align-items:center;gap:6px;font-weight:700;color:#8fa8bd}',
     '.brand a{color:inherit;text-decoration:none}',
     '.dot{width:7px;height:7px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee;animation:pl 1.8s ease-in-out infinite}',
@@ -538,7 +548,7 @@
     '.spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(34,211,238,.16);border-top-color:#22d3ee;animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}',
     '.xmark{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(220,38,38,.26),rgba(220,38,38,.08));color:#f87171;display:grid;place-items:center;font-size:26px;box-shadow:0 0 0 1px rgba(248,113,113,.3)}',
     '.msg{font-size:15px;font-weight:600;color:#e8eef7;letter-spacing:-.01em}',
-    '.hint{font-size:12.5px;color:#7387a0}',
+    '.hint{font-size:12.5px;color:var(--vy-hint)}',
     /* CSP-UYUMLU gizleme sınıfları — inline style yerine (katı style-src 'self'
        olan müşteri sitelerinde inline style CSP ihlali yapıyordu). */
     '.vy-honeypot{position:absolute!important;left:-9999px!important;top:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none}',
@@ -757,6 +767,17 @@
     // RTL dilleri (şu an yalnızca Arapça). Widget kökü ve gövdesi sağdan-sola
     // akmalı — böylece hizalama, tuş takımı ve okun yönü doğru görünür.
     var RTL = lang === "ar";
+
+    // TEMA: data-theme (light|dark|auto). auto → prefers-color-scheme. light
+    // seçilince host'a data-tema="light" set edilir; STYLE'daki :host([data-tema=
+    // light]) CSS custom property'leri override eder (dış kutu+metin+input açılır,
+    // ghost-canvas koyu kalır). Varsayılan koyu (widget'ın özgün tasarımı).
+    var temaAttr = (target.getAttribute("data-theme") || "auto").toLowerCase();
+    var acikTema = temaAttr === "light";
+    if (temaAttr === "auto") {
+      try { acikTema = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches; } catch (e) { acikTema = false; }
+    }
+    if (acikTema) target.setAttribute("data-tema", "light");
 
     var canvas = h("canvas", { role: "img", "aria-label": T.canvasLabel });
     var input = h("input", { type: "text", placeholder: T.placeholder, maxlength: "8", autocomplete: "off", spellcheck: "false", "aria-label": T.codeLabel, inputmode: "text" });
