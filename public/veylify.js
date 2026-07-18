@@ -967,8 +967,7 @@
             if (res.passed && res.token) {
               hidden.value = res.token;
               show("success");
-              target.dispatchEvent(new CustomEvent("veylify-verified", { detail: res, bubbles: true }));
-              target.dispatchEvent(new CustomEvent("specter-verified", { detail: res, bubbles: true }));
+              basariBildir(res);
             } else {
               loadChallenge();
             }
@@ -1001,8 +1000,7 @@
             // Doğrulandı → TTL yenileme timer'ını durdur (artık gereksiz).
             if (ttlTimer) { clearTimeout(ttlTimer); ttlTimer = 0; }
             show("success");
-            target.dispatchEvent(new CustomEvent("veylify-verified", { detail: res, bubbles: true }));
-              target.dispatchEvent(new CustomEvent("specter-verified", { detail: res, bubbles: true }));
+            basariBildir(res);
           } else {
             // Normal kullanıcı hatası (yanlış cevap) → "başarısız, tekrar dene"
             // (config-hata modundan sonra metni normale döndür).
@@ -1089,6 +1087,19 @@
         if (duyuru) duyuru.textContent = T.audioPlaying + (sonEk ? cevap.length + sonEk : "");
       }
       setTimeout(function () { sesBtn.classList.remove("calisiyor"); }, (t - audioCtx.currentTime) * 1000);
+    }
+
+    // Doğrulama başarılı olduğunda: (1) event dispatch (mevcut), (2) data-callback
+    // ile belirtilen GLOBAL fonksiyonu token'la çağır (reCAPTCHA/Turnstile deseni —
+    // event dinlemeden kolay entegrasyon: <div class="veylify" data-callback="onOk">
+    // + window.onOk = function(token){...}). Callback token'ı argüman olarak alır.
+    function basariBildir(res) {
+      target.dispatchEvent(new CustomEvent("veylify-verified", { detail: res, bubbles: true }));
+      target.dispatchEvent(new CustomEvent("specter-verified", { detail: res, bubbles: true }));
+      var cbAd = target.getAttribute("data-callback");
+      if (cbAd && typeof window[cbAd] === "function") {
+        try { window[cbAd](res.token, res); } catch (e) { /* müşteri callback'i patlarsa widget'ı bozma */ }
+      }
     }
 
     btn.addEventListener("click", submit);
