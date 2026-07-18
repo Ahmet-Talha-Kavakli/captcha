@@ -26,6 +26,7 @@ import {
   Lock,
   Search,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Panel, StatKart, Badge, Ulke, DurumRozeti, Tablo, Avatar, Ilerleme, useToast, type Kolon } from "@/components/panel/kit";
 import {
   TrendGrafik,
@@ -34,6 +35,7 @@ import {
   KorumaSkoru,
   SkorCubugu,
 } from "@/components/panel/grafikler";
+import { Gauge as GaugeGost, IsiMatris } from "@/components/panel/grafikler-ek";
 import type { Plan } from "@/lib/specter/plans";
 import type { Dil } from "@/lib/i18n/panel";
 import { cn } from "@/lib/cn";
@@ -233,6 +235,38 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
 
   const insanOran = veri.botOran > 0 ? 1 - veri.botOran : 1;
 
+  // --- GÖRSEL TÜRETMELER (yalnızca mevcut veriyi OKUR; hiçbir mantık/CRUD değişmez) ---
+
+  // Sistem durumu gauge şeridi — 4 ana operasyonel gösterge (mevcut sağlık paneliyle aynı hesap).
+  const dogrulanmisOran =
+    veri.toplamSite > 0 ? Math.round(((veri.toplamSite - veri.dogrulanmamisSite) / veri.toplamSite) * 100) : 100;
+  const aktifHesapOran =
+    veri.toplamHesap > 0 ? Math.round((veri.hesaplar.filter((h) => h.durum === "aktif").length / veri.toplamHesap) * 100) : 0;
+  const durumGostergeler = [
+    { etiket: t("durum.saglik"), deger: veri.saglikSkoru },
+    { etiket: t("durum.insan"), deger: Math.round(insanOran * 100) },
+    { etiket: t("durum.dogrulanmis"), deger: dogrulanmisOran },
+    { etiket: t("durum.aktifHesap"), deger: aktifHesapOran },
+  ];
+
+  // Bayrak dağılım donutu — localStorage durumundan (SALT OKUR; toggle mantığı değişmez).
+  const bayrakAcikSayi = BAYRAKLAR.filter((b) => bayraklar[b.key] ?? b.varsayilan).length;
+  const bayrakKapaliSayi = BAYRAKLAR.length - bayrakAcikSayi;
+  const bayrakSegmentler = [
+    { etiket: t("bayrakDagilim.acik"), deger: bayrakAcikSayi, renk: "#2f6fed" },
+    { etiket: t("bayrakDagilim.kapali"), deger: bayrakKapaliSayi, renk: "#cbd5e1" },
+  ].filter((s) => s.deger > 0);
+
+  // Bölgesel kaynak kullanım ısı-matrisi (temsili, deterministik — worker metrikleriyle aynı ruh).
+  const kaynakSatirlar = [t("kaynak.cpu"), t("kaynak.bellek"), t("kaynak.ag"), t("kaynak.kuyruk")];
+  const kaynakSutunlar = ["EU-W", "US-E", "US-W", "AP-SE", "SA-E"];
+  const kaynakDegerler = [
+    [58, 71, 44, 63, 39],
+    [62, 55, 48, 70, 41],
+    [47, 66, 52, 58, 35],
+    [23, 31, 18, 44, 12],
+  ];
+
   // Hesap tablosu kolonları.
   const kolonlar: Kolon<HesapSatir>[] = [
     {
@@ -336,19 +370,41 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
             <div className="mt-4 w-full space-y-3">
               <SkorCubugu
                 etiket={t("saglik.dogrulanmisSite")}
-                deger={veri.toplamSite > 0 ? Math.round(((veri.toplamSite - veri.dogrulanmamisSite) / veri.toplamSite) * 100) : 100}
+                deger={dogrulanmisOran}
                 renk="#16a34a"
               />
               <SkorCubugu etiket={t("saglik.insanTrafigi")} deger={Math.round(insanOran * 100)} renk="#2f6fed" />
               <SkorCubugu
                 etiket={t("saglik.aktifHesap")}
-                deger={veri.toplamHesap > 0 ? Math.round((veri.hesaplar.filter((h) => h.durum === "aktif").length / veri.toplamHesap) * 100) : 0}
+                deger={aktifHesapOran}
                 renk="#4a41e8"
               />
             </div>
           </div>
         </Panel>
       </div>
+
+      {/* --- sistem durumu: gauge şeridi (skor-çubuğu monotonluğunu kırar) --- */}
+      <Panel baslik={t("durum.baslik")}>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {durumGostergeler.map((g, i) => (
+            <motion.div
+              key={g.etiket}
+              className="flex flex-col items-center rounded-2xl border border-line bg-canvas/40 py-4"
+              initial={{ y: 10 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.45, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <GaugeGost deger={g.deger} boyut={128} />
+              <span className="mt-1 text-center text-[12px] font-medium text-slate-muted">{g.etiket}</span>
+            </motion.div>
+          ))}
+        </div>
+        <p className="mt-3 flex items-start gap-1.5 text-[12px] text-slate-faint">
+          <HeartPulse className="mt-0.5 size-3.5 shrink-0 text-ok" />
+          {t("durum.not")}
+        </p>
+      </Panel>
 
       {/* --- plan dağılımı + MRR kırılımı + küresel tehdit --- */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -523,6 +579,14 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
           baslik={t("bayrak.baslik")}
           sagUst={<Badge ton="sari">{t("bayrak.rozet")}</Badge>}
         >
+          {/* bayrak dağılım donutu — açık/kapalı özeti (toggle mantığı değişmez) */}
+          <div className="mb-4 rounded-2xl border border-line bg-canvas/40 p-4">
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
+              <Flag className="size-3.5" />
+              {t("bayrakDagilim.baslik")}
+            </div>
+            <DonutDagilim segmentler={bayrakSegmentler} merkezEtiket={t("bayrakDagilim.merkez")} />
+          </div>
           <div className="space-y-1">
             {BAYRAKLAR.map((b) => {
               const acik = bayraklar[b.key] ?? b.varsayilan;
@@ -619,6 +683,26 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
           </Panel>
         </div>
       </div>
+
+      {/* --- bölgesel kaynak kullanımı (ısı-matris; liste tekrarını kırar) --- */}
+      <Panel baslik={t("kaynak.baslik")}>
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <IsiMatris
+            satirlar={kaynakSatirlar}
+            sutunlar={kaynakSutunlar}
+            degerler={kaynakDegerler}
+            renk="#2f6fed"
+          />
+        </motion.div>
+        <p className="mt-3 flex items-start gap-1.5 text-[12px] text-slate-faint">
+          <Cpu className="mt-0.5 size-3.5 shrink-0 text-brand-600" />
+          {t("kaynak.aciklama")}
+        </p>
+      </Panel>
 
       {/* --- kapasite büyüme özeti (küçük statlar) --- */}
       <Panel baslik={t("kapasite.baslik")}>

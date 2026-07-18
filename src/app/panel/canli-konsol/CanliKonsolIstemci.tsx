@@ -15,13 +15,19 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import {
   Terminal, Search, X, Ban, ShieldCheck, ShieldAlert, Bot, Activity,
-  Fingerprint, Play, Pause, ArrowDownToLine, Users, Gauge, Zap,
-  Filter, ChevronRight, Cpu, Globe, Clock, Hash, ExternalLink,
+  Fingerprint, Play, Pause, ArrowDownToLine, Users, Gauge as GaugeGost, Zap,
+  Filter, ChevronRight, Cpu, Globe, Clock, Hash, ExternalLink, PieChart,
+  Radar, TrendingUp,
 } from "lucide-react";
 import { Ulke } from "@/components/panel/kit";
+import { bayrak } from "@/lib/flag";
+import { DonutDagilim, MiniSpark } from "@/components/panel/grafikler";
+import { Histogram } from "@/components/panel/grafikler-ek";
+import { botSinifGorsel } from "@/components/panel/bot-sinif-gorsel";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { konsolCeviri } from "./canli-konsol.i18n";
@@ -253,16 +259,46 @@ export function CanliKonsolIstemci({ ilkOlaylar, dil }: { ilkOlaylar: KonsolOlay
 
   /* ----- Oturum mini-metrikleri (filtresiz tampon üzerinden) ----- */
   const metrik = useMemo(() => {
-    let blocked = 0, challenged = 0, allowed = 0;
+    let blocked = 0, challenged = 0, allowed = 0, flagged = 0;
     const ipler = new Set<string>();
+    // Bot sınıfı dağılımı (histogram için) — sabit sıralı sayaç.
+    const sinifSayac: Record<string, number> = {};
+    for (const c of BOT_SINIFLAR) sinifSayac[c] = 0;
     for (const e of olaylar) {
       if (e.verdict === "blocked") blocked++;
       else if (e.verdict === "challenged") challenged++;
       else if (e.verdict === "allowed") allowed++;
+      else if (e.verdict === "flagged") flagged++;
+      if (sinifSayac[e.botClass] !== undefined) sinifSayac[e.botClass]++;
+      else sinifSayac[e.botClass] = 1;
       ipler.add(e.ip);
     }
-    return { toplam: olaylar.length, blocked, challenged, allowed, ipler: ipler.size };
+    return { toplam: olaylar.length, blocked, challenged, allowed, flagged, ipler: ipler.size, sinifSayac };
   }, [olaylar]);
+
+  /* ----- Görsel özet verileri (karar donut + bot-sınıf histogram) ----- */
+  const kararSegment = useMemo(
+    () => [
+      { etiket: verdictEtiket(t, "allowed"), deger: metrik.allowed, renk: "#16a34a" },
+      { etiket: verdictEtiket(t, "challenged"), deger: metrik.challenged, renk: "#d97706" },
+      { etiket: verdictEtiket(t, "blocked"), deger: metrik.blocked, renk: "#dc2626" },
+      { etiket: verdictEtiket(t, "flagged"), deger: metrik.flagged, renk: "#64748b" },
+    ],
+    [metrik.allowed, metrik.challenged, metrik.blocked, metrik.flagged, t],
+  );
+  // Histogram: yalnızca gözlemlenmiş sınıfları (deger>0 olanları önce) göster;
+  // insan/bot tonu ile renklendir (yeşil=insan/iyi, kırmızı=tehdit).
+  const sinifKovalar = useMemo(() => {
+    const tehdit = new Set(["scraper", "credential_stuffing", "ddos", "spam"]);
+    return BOT_SINIFLAR.map((c) => ({
+      etiket: botEtiket(t, c),
+      deger: metrik.sinifSayac[c] ?? 0,
+      ton: (c === "human" || c === "good_bot" ? "insan" : tehdit.has(c) ? "bot" : "nötr") as
+        | "insan"
+        | "bot"
+        | "nötr",
+    }));
+  }, [metrik.sinifSayac, t]);
 
   /* ----- Oto-kaydırma: yeni olay gelince en üste (akış tepesine) tut ----- */
   useEffect(() => {
@@ -337,6 +373,58 @@ export function CanliKonsolIstemci({ ilkOlaylar, dil }: { ilkOlaylar: KonsolOlay
         <MetrikKart etiket={t("kk.m.izinVerilen")} deger={metrik.allowed} ton="ok" ikon={<ShieldCheck className="size-4" />} dil={dil} />
         <MetrikKart etiket={t("kk.m.benzersizIp")} deger={metrik.ipler} birim={t("kk.m.ip")} ikon={<Users className="size-4" />} dil={dil} />
       </div>
+
+      {/* Görsel özet şeridi — karar donut + bot-sınıf histogram + olay/sn trend.
+          Akıştaki tampon üzerinden hesaplanır; canlı geldikçe güncellenir. */}
+      <motion.div
+        initial={{ y: 8 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.85fr)]"
+      >
+        {/* Karar dağılımı (donut) */}
+        <div className="rounded-3xl border border-line bg-surface p-5 shadow-card">
+          <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            <span className="grid size-7 place-items-center rounded-lg bg-brand-50 text-brand-600">
+              <PieChart className="size-4" />
+            </span>
+            {t("kk.gorsel.kararDagilim")}
+          </div>
+          <DonutDagilim segmentler={kararSegment} merkezEtiket={t("kk.m.olay")} />
+        </div>
+
+        {/* Bot sınıf dağılımı (histogram) */}
+        <div className="rounded-3xl border border-line bg-surface p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            <span className="grid size-7 place-items-center rounded-lg bg-brand-50 text-brand-600">
+              <Radar className="size-4" />
+            </span>
+            {t("kk.gorsel.sinifDagilim")}
+          </div>
+          <Histogram kovalar={sinifKovalar} yukseklik={104} />
+        </div>
+
+        {/* Olay hızı mini trend + canlı sayaç */}
+        <div className="flex flex-col rounded-3xl border border-line bg-surface p-5 shadow-card">
+          <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            <span className="grid size-7 place-items-center rounded-lg bg-brand-50 text-brand-600">
+              <TrendingUp className="size-4" />
+            </span>
+            {t("kk.gorsel.olayTrend")}
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="num text-[32px] font-bold leading-none tabular-nums text-slate-ink">{rps}</span>
+            <span className="text-[12px] text-slate-faint">{t("kk.m.olaySn")}</span>
+          </div>
+          <div className="mt-auto pt-3">
+            {spark.length >= 2 ? (
+              <Sparkline veri={spark} genis />
+            ) : (
+              <MiniSpark tohum="konsol-trend" yukseklik={46} />
+            )}
+          </div>
+        </div>
+      </motion.div>
 
       {/* Filtre çubuğu */}
       <div className="space-y-3 rounded-2xl border border-line bg-surface p-4">
@@ -510,6 +598,9 @@ function OlaySatir({
 }) {
   const stil = VERDICT_STIL[olay.verdict] ?? VERDICT_STIL.flagged;
   const skorYuzde = Math.round(olay.score * 100);
+  const sinifG = botSinifGorsel(olay.botClass);
+  const SinifIkon = sinifG.ikon;
+  const bayrakEmoji = bayrak(olay.country);
   return (
     <li>
       <button
@@ -528,12 +619,26 @@ function OlaySatir({
           <span className={cn("size-1.5 rounded-full", stil.nokta)} /> {verdictEtiket(t, olay.verdict)}
         </span>
 
-        {/* Sınıf */}
-        <span className="hidden text-[12.5px] text-white/70 lg:block">{botEtiket(t, olay.botClass)}</span>
+        {/* Sınıf — ikon çipi + etiket (düz yazı yerine görsel kimlik) */}
+        <span className="hidden min-w-0 items-center gap-1.5 lg:flex">
+          <span
+            className="grid size-4 shrink-0 place-items-center rounded-[5px]"
+            style={{ background: `${sinifG.renk}26`, color: sinifG.renk }}
+          >
+            <SinifIkon className="size-2.5" strokeWidth={2.4} />
+          </span>
+          <span className="truncate text-[12.5px] text-white/70">{botEtiket(t, olay.botClass)}</span>
+        </span>
 
         {/* IP + bayrak (mobilde ikinci sütun toplu) */}
-        <span className="flex min-w-0 items-center gap-2 lg:contents">
-          <span className="num truncate text-[12.5px] font-medium text-white/85 lg:block">{olay.ip}</span>
+        <span className="flex min-w-0 items-center gap-1.5 lg:contents">
+          <span className="num flex min-w-0 items-center gap-1.5 text-[12.5px] font-medium text-white/85 lg:block">
+            <span className="shrink-0 text-[13px] leading-none lg:hidden" aria-hidden>{bayrakEmoji}</span>
+            <span className="truncate">
+              <span className="mr-1.5 hidden text-[13px] leading-none lg:inline" aria-hidden>{bayrakEmoji}</span>
+              {olay.ip}
+            </span>
+          </span>
           <span className="hidden truncate text-[12.5px] text-white/45 lg:block">{olay.path}</span>
         </span>
 
@@ -579,7 +684,7 @@ function DetayCekmece({ olay, onKapat, t, dil }: { olay: KonsolOlay; onKapat: ()
         {/* Skor + gecikme */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-line bg-canvas/40 px-3.5 py-3">
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-faint"><Gauge className="size-3.5" /> {t("kk.detay.insanlikSkoru")}</div>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-faint"><GaugeGost className="size-3.5" /> {t("kk.detay.insanlikSkoru")}</div>
             <div className={cn("num mt-1 text-[24px] font-bold leading-none", skorYuzde < 40 ? "text-danger2" : skorYuzde < 70 ? "text-warn" : "text-ok")}>{skorYuzde}</div>
           </div>
           <div className="rounded-2xl border border-line bg-canvas/40 px-3.5 py-3">
@@ -665,19 +770,31 @@ function MetrikKart({
   );
 }
 
-/* ------------------------------------------------------------------ Sparkline (saf inline SVG) */
-function Sparkline({ veri }: { veri: number[] }) {
-  if (veri.length < 2) return <span className="h-6 w-16" />;
-  const w = 64, h = 22;
+/* ------------------------------------------------------------------ Sparkline (saf inline SVG)
+ * `genis` modu: karta tam oturan geniş trend (viewBox + w-full). Varsayılan: küçük
+ * satır-içi sparkline (metrik kartı köşesi). Renk brand-600 (geniş) / emerald (küçük). */
+function Sparkline({ veri, genis = false }: { veri: number[]; genis?: boolean }) {
+  const w = genis ? 240 : 64;
+  const h = genis ? 46 : 22;
+  if (veri.length < 2) return <span style={{ display: "block", height: h }} className={genis ? "w-full" : "w-16"} />;
+  const cizgiRenk = genis ? "#2f6fed" : "rgb(52 211 153)";
+  const alanRenk = genis ? "rgba(47,111,237,0.14)" : "rgb(52 211 153 / 0.15)";
   const maks = Math.max(1, ...veri);
   const adim = w / (veri.length - 1);
-  const noktalar = veri.map((v, i) => `${(i * adim).toFixed(1)},${(h - (v / maks) * (h - 3) - 1.5).toFixed(1)}`);
+  const noktalar = veri.map((v, i) => `${(i * adim).toFixed(1)},${(h - (v / maks) * (h - 4) - 2).toFixed(1)}`);
   const cizgi = `M ${noktalar.join(" L ")}`;
   const alan = `${cizgi} L ${w},${h} L 0,${h} Z`;
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="overflow-visible" aria-hidden="true">
-      <path d={alan} fill="rgb(52 211 153 / 0.15)" />
-      <path d={cizgi} fill="none" stroke="rgb(52 211 153)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    <svg
+      width={genis ? undefined : w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      className={cn("overflow-visible", genis && "w-full")}
+      preserveAspectRatio={genis ? "none" : undefined}
+      aria-hidden="true"
+    >
+      <path d={alan} fill={alanRenk} />
+      <path d={cizgi} fill="none" stroke={cizgiRenk} strokeWidth={genis ? 2 : 1.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }

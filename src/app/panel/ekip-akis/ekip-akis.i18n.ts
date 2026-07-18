@@ -77,6 +77,18 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ekip.acikVaka": "{n} açık vaka",
     "ekip.dipnot":
       "İş yükü, atanmış açık vakalardan gerçek zamanlı hesaplanır. Bir analist 4+ açık vakaya ulaşırsa bar kırmızıya döner (aşırı yük sinyali).",
+    // görsel analiz
+    "analiz.turBaslik": "Vaka türü dağılımı",
+    "analiz.durumBaslik": "Durum dağılımı",
+    "analiz.zamanBaslik": "Zaman içinde aktivite",
+    "analiz.vaka": "vaka",
+    "analiz.olusturulan": "Açılan",
+    "analiz.guncellenen": "Güncellenen",
+    "analiz.veriYok": "Henüz veri yok",
+    "isbirligi.baslik": "İşbirliği yoğunluğu (analist × öncelik)",
+    "isbirligi.temsili": "Temsili atama",
+    "isbirligi.dipnot":
+      "Her hücre, ilgili analiste atanmış açık vaka sayısıdır. Koyu hücreler yük yoğunlaşmasını, kritik (P1) sütununda birikme ise devir riskini gösterir.",
     // roller (enum → etiket)
     "rol.kidemli": "Kıdemli Analist",
     "rol.analist": "Analist",
@@ -166,6 +178,17 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ekip.acikVaka": "{n} open cases",
     "ekip.dipnot":
       "Workload is computed in real time from assigned open cases. If an analyst reaches 4+ open cases, the bar turns red (overload signal).",
+    "analiz.turBaslik": "Case type distribution",
+    "analiz.durumBaslik": "Status distribution",
+    "analiz.zamanBaslik": "Activity over time",
+    "analiz.vaka": "cases",
+    "analiz.olusturulan": "Opened",
+    "analiz.guncellenen": "Updated",
+    "analiz.veriYok": "No data yet",
+    "isbirligi.baslik": "Collaboration density (analyst × priority)",
+    "isbirligi.temsili": "Representative assignment",
+    "isbirligi.dipnot":
+      "Each cell is the number of open cases assigned to that analyst. Darker cells show load concentration; a buildup in the critical (P1) column signals handover risk.",
     "rol.kidemli": "Senior Analyst",
     "rol.analist": "Analyst",
     "rol.yonetici": "Manager",

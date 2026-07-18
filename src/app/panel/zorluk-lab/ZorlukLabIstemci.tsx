@@ -23,6 +23,7 @@
  * gerçek tekniğin sadık bir görsel demosudur (kanıt değil, gösterim).
  */
 
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FlaskConical,
@@ -30,11 +31,16 @@ import {
   ScanLine,
   Sparkles,
   Info,
-  Gauge,
+  Gauge as GaugeIkon,
   Waves,
+  Radar,
+  Layers,
+  BarChart3,
+  Activity,
 } from "lucide-react";
 import { Panel, StatKart, Badge } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { RadarGrafik, Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { labCeviri } from "./zorluk-lab.i18n";
@@ -373,6 +379,72 @@ export function ZorlukLabIstemci({ dil }: { dil: Dil }) {
 
   const { canliRef, donukRef, ortRef } = useGhostCanvas(konfig, metin, 300, 108);
 
+  // --- GÖRSEL TÜRETMELER (skorlama fonksiyonlarını yalnızca OKUR; hiçbir mantık değişmez) ---
+
+  // Radar profili: mevcut ayarın 5 eksende dağılımı (hepsi 0-100'e normalize).
+  const radarEksenler = useMemo(
+    () => [
+      { etiket: t("eksen.ocr"), deger: ocr },
+      { etiket: t("eksen.oku"), deger: oku },
+      { etiket: t("eksen.dither"), deger: Math.round(((konfig.ditherHz - 6) / (48 - 6)) * 100) },
+      { etiket: t("eksen.gurultu"), deger: Math.round(konfig.gurultu * 100) },
+      { etiket: t("eksen.entegrasyon"), deger: Math.round(((konfig.kareSayisi - 2) / (32 - 2)) * 100) },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ocr, oku, konfig.ditherHz, konfig.gurultu, konfig.kareSayisi, dil],
+  );
+
+  // Seviye karşılaştırma: 4 sabit profil (deterministik) — skorları gerçek lab.ts ile üretilir.
+  const seviyeler = useMemo(() => {
+    const tanim: { anahtar: string; k: Konfig }[] = [
+      { anahtar: "seviye.hafif", k: { ditherHz: 12, hucreKontrast: 0.8, gurultu: 0.25, kareSayisi: 20, karakterSeti: "kod", boyut: 6 } },
+      { anahtar: "seviye.dengeli", k: { ditherHz: 24, hucreKontrast: 0.62, gurultu: 0.45, kareSayisi: 16, karakterSeti: "kod", boyut: 4 } },
+      { anahtar: "seviye.sert", k: { ditherHz: 34, hucreKontrast: 0.5, gurultu: 0.62, kareSayisi: 10, karakterSeti: "kod", boyut: 3 } },
+      { anahtar: "seviye.asiri", k: { ditherHz: 44, hucreKontrast: 0.4, gurultu: 0.82, kareSayisi: 6, karakterSeti: "kod", boyut: 2 } },
+    ];
+    return tanim.map((s) => {
+      const d = dengeSkoru(s.k);
+      return { anahtar: s.anahtar, ocr: d.ocrDirenc, oku: d.okunabilirlik, denge: d.skor };
+    });
+  }, []);
+
+  // Mevcut ayara en yakın seviye (denge skoruna göre) — vurgulanır.
+  const yakinSeviye = useMemo(() => {
+    let en = 0;
+    let enFark = Infinity;
+    seviyeler.forEach((s, i) => {
+      const f = Math.abs(s.ocr - ocr) + Math.abs(s.oku - oku);
+      if (f < enFark) { enFark = f; en = i; }
+    });
+    return en;
+  }, [seviyeler, ocr, oku]);
+
+  // Tek-kare kontrast histogramı: harf ve zemin hücrelerinin parlaklık dağılımını,
+  // fizik parametrelerinden (kontrast/gürültü) 7 kovaya modelle. Örtüşme = OCR körlüğü.
+  const kontrastKovalar = useMemo(() => {
+    const zamanFark = konfig.hucreKontrast * 0.5;    // harf-zemin ayrımı (lab.fizik ile aynı ölçek)
+    const genlik = Math.min(0.85, 0.1 + konfig.gurultu * 0.85); // titreşim yayılımı
+    const harfMerkez = 0.5 + zamanFark;              // harf hücre parlaklık ortası
+    const zeminMerkez = 0.5 - zamanFark;             // zemin hücre parlaklık ortası
+    const N = 7;
+    // Her kova için harf+zemin Gauss-benzeri yoğunluk topla.
+    const gauss = (x: number, mu: number, s: number) => Math.exp(-((x - mu) ** 2) / (2 * s * s));
+    const kovalar = [];
+    for (let i = 0; i < N; i++) {
+      const x = i / (N - 1);
+      const harf = gauss(x, harfMerkez, genlik * 0.7 + 0.08);
+      const zemin = gauss(x, zeminMerkez, genlik * 0.7 + 0.08);
+      const ortak = Math.min(harf, zemin); // örtüşme → OCR'ın ayıramadığı bölge
+      kovalar.push({
+        etiket: `${Math.round(x * 100)}`,
+        harf: Math.round(harf * 100),
+        zemin: Math.round(zemin * 100),
+        ortak: Math.round(ortak * 100),
+      });
+    }
+    return kovalar;
+  }, [konfig.hucreKontrast, konfig.gurultu]);
+
   const guncelle = (yama: Partial<Konfig>) =>
     setKonfig((k) => ({ ...k, ...yama }));
 
@@ -419,7 +491,7 @@ export function ZorlukLabIstemci({ dil }: { dil: Dil }) {
         <StatKart
           sayi={denge.skor}
           etiket={t("ozet.denge")}
-          ikon={<Gauge className="size-4" />}
+          ikon={<GaugeIkon className="size-4" />}
           tone={denge.ton === "ideal" || denge.ton === "iyi" ? "ok" : "warn"}
         />
         <StatKart
@@ -641,6 +713,203 @@ export function ZorlukLabIstemci({ dil }: { dil: Dil }) {
             </p>
           </Panel>
         </div>
+      </div>
+
+      {/* --- ZORLUK ANALİZİ: radar profili + gerilim ölçerleri --- */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.15fr]">
+        {/* Radar — 5 eksende mevcut profil */}
+        <Panel
+          baslik={
+            <span className="flex items-center gap-2">
+              <Radar className="size-4 text-brand-600" />
+              {t("profil.baslik")}
+            </span>
+          }
+        >
+          <motion.div
+            className="flex flex-col items-center"
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <RadarGrafik eksenler={radarEksenler} boyut={230} />
+            <p className="mt-2 max-w-sm text-center text-[12px] leading-snug text-slate-muted">
+              {t("profil.aciklama")}
+            </p>
+          </motion.div>
+        </Panel>
+
+        {/* Üç gerilim ölçeri: OCR körlüğü / insan netliği / denge */}
+        <Panel
+          baslik={
+            <span className="flex items-center gap-2">
+              <Activity className="size-4 text-brand-600" />
+              {t("gauge.baslik")}
+            </span>
+          }
+        >
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { etiket: t("gauge.ocr"), deger: ocr, renk: "#4a41e8" },
+              { etiket: t("gauge.oku"), deger: oku, renk: "#16a34a" },
+              { etiket: t("gauge.denge"), deger: denge.skor, renk: "#2f6fed" },
+            ].map((g, i) => (
+              <motion.div
+                key={g.etiket}
+                className="flex flex-col items-center rounded-2xl border border-line bg-canvas/50 py-3"
+                initial={{ y: 10 }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.45, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <GaugeGost deger={g.deger} boyut={116} renk={g.renk} />
+                <span className="mt-1 text-center text-[11.5px] font-medium text-slate-muted">
+                  {g.etiket}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+          <p className="mt-3 flex items-start gap-1.5 rounded-xl border border-line bg-canvas/50 p-3 text-[12px] leading-snug text-slate-muted">
+            <GaugeIkon className="mt-0.5 size-3.5 shrink-0 text-brand-600" />
+            {t("gauge.aciklama")}
+          </p>
+        </Panel>
+      </div>
+
+      {/* --- SEVİYE KARŞILAŞTIRMA + KONTRAST HİSTOGRAMI --- */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* Zorluk seviyeleri — mevcut ayara en yakın seviye vurgulanır */}
+        <Panel
+          baslik={
+            <span className="flex items-center gap-2">
+              <Layers className="size-4 text-brand-600" />
+              {t("seviye.baslik")}
+            </span>
+          }
+        >
+          <div className="space-y-2.5">
+            {seviyeler.map((s, i) => {
+              const aktif = i === yakinSeviye;
+              return (
+                <motion.div
+                  key={s.anahtar}
+                  className={cn(
+                    "rounded-2xl border p-3 transition",
+                    aktif ? "border-brand-300 bg-brand-50/60" : "border-line bg-canvas/40",
+                  )}
+                  initial={{ y: 8 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{ background: ["#16a34a", "#2f6fed", "#d97706", "#dc2626"][i] }}
+                      />
+                      {t(s.anahtar)}
+                      {aktif && <Badge ton="brand">{t("seviye.simdiki")}</Badge>}
+                    </span>
+                    <span className="num text-[12px] font-semibold text-slate-muted">
+                      {t("seviye.kol.denge")} {s.denge}
+                    </span>
+                  </div>
+                  {/* çift ince çubuk: OCR (mor) + okunabilirlik (yeşil) */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <ScanLine className="size-3 shrink-0 text-brand-600" />
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                        <motion.div
+                          className="h-full rounded-full bg-brand-500"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${s.ocr}%` }}
+                          transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                        />
+                      </div>
+                      <span className="num w-7 shrink-0 text-right text-[11px] font-semibold text-slate-ink">{s.ocr}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Eye className="size-3 shrink-0 text-ok" />
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                        <motion.div
+                          className="h-full rounded-full bg-ok"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${s.oku}%` }}
+                          transition={{ duration: 0.7, delay: i * 0.05 + 0.08, ease: [0.16, 1, 0.3, 1] }}
+                        />
+                      </div>
+                      <span className="num w-7 shrink-0 text-right text-[11px] font-semibold text-slate-ink">{s.oku}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-[12px] leading-snug text-slate-muted">{t("seviye.aciklama")}</p>
+        </Panel>
+
+        {/* Tek-kare kontrast histogramı — harf/zemin/örtüşme */}
+        <Panel
+          baslik={
+            <span className="flex items-center gap-2">
+              <BarChart3 className="size-4 text-brand-600" />
+              {t("hist.baslik")}
+            </span>
+          }
+        >
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Üç serili histogram: harf (yeşil) / zemin (mavi) / örtüşme (kırmızı) */}
+            <div className="flex items-end gap-1.5" style={{ height: 130 }}>
+              {kontrastKovalar.map((k, i) => {
+                const max = 100;
+                return (
+                  <div key={i} className="flex flex-1 flex-col items-center justify-end gap-1">
+                    <div className="relative flex w-full items-end justify-center gap-[3px]" style={{ height: "100%" }}>
+                      <motion.div
+                        className="w-1/3 rounded-t bg-ok/80"
+                        initial={{ height: 0 }}
+                        animate={{ height: `${(k.harf / max) * 100}%` }}
+                        transition={{ duration: 0.6, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
+                        title={`${t("hist.harf")}: ${k.harf}`}
+                      />
+                      <motion.div
+                        className="w-1/3 rounded-t bg-brand-500/80"
+                        initial={{ height: 0 }}
+                        animate={{ height: `${(k.zemin / max) * 100}%` }}
+                        transition={{ duration: 0.6, delay: i * 0.03 + 0.05, ease: [0.16, 1, 0.3, 1] }}
+                        title={`${t("hist.zemin")}: ${k.zemin}`}
+                      />
+                      <motion.div
+                        className="w-1/3 rounded-t bg-danger2/85"
+                        initial={{ height: 0 }}
+                        animate={{ height: `${(k.ortak / max) * 100}%` }}
+                        transition={{ duration: 0.6, delay: i * 0.03 + 0.1, ease: [0.16, 1, 0.3, 1] }}
+                        title={`${t("hist.ortusme")}: ${k.ortak}`}
+                      />
+                    </div>
+                    <span className="text-[9px] tabular-nums text-slate-faint">{k.etiket}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* legend */}
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px]">
+              <span className="flex items-center gap-1.5 text-slate-muted">
+                <span className="size-2.5 rounded-full bg-ok/80" /> {t("hist.harf")}
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-muted">
+                <span className="size-2.5 rounded-full bg-brand-500/80" /> {t("hist.zemin")}
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-muted">
+                <span className="size-2.5 rounded-full bg-danger2/85" /> {t("hist.ortusme")}
+              </span>
+            </div>
+          </motion.div>
+          <p className="mt-3 text-[12px] leading-snug text-slate-muted">{t("hist.aciklama")}</p>
+        </Panel>
       </div>
     </div>
   );

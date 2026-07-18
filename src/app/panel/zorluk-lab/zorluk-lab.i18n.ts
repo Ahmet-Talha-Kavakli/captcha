@@ -87,6 +87,42 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "nasil.durustluk.etiket": "Dürüstlük notu:",
     "nasil.durustluk.metin":
       "OCR direnci ve okunabilirlik skorları modellenmiş tahminlerdir; soldaki canvas ise gerçek tekniğin (ghostfont.ts / specter.js ile aynı fizik) sadık bir görsel demosudur.",
+
+    // profil radarı
+    "profil.baslik": "Zorluk profili",
+    "profil.aciklama": "Mevcut ayarın beş eksende dağılımı — dengeli bir örümcek geniş ve simetriktir.",
+    "eksen.ocr": "OCR direnci",
+    "eksen.oku": "Okunabilirlik",
+    "eksen.dither": "Dither",
+    "eksen.gurultu": "Gürültü",
+    "eksen.entegrasyon": "Entegrasyon",
+
+    // gerilim ölçeri
+    "gauge.baslik": "OCR ↔ İnsan gerilimi",
+    "gauge.ocr": "OCR körlüğü",
+    "gauge.oku": "İnsan netliği",
+    "gauge.denge": "Denge",
+    "gauge.aciklama": "Üç ölçer aynı anda dolduğunda tatlı noktadasın.",
+
+    // seviye karşılaştırma (deterministik ön-tanımlı profiller)
+    "seviye.baslik": "Zorluk seviyeleri",
+    "seviye.aciklama": "Hafif → aşırı: her seviyenin OCR direnci ve okunabilirliği. Mevcut ayarın en yakın seviyesi vurgulanır.",
+    "seviye.hafif": "Hafif",
+    "seviye.dengeli": "Dengeli",
+    "seviye.sert": "Sert",
+    "seviye.asiri": "Aşırı",
+    "seviye.kol.seviye": "Seviye",
+    "seviye.kol.ocr": "OCR",
+    "seviye.kol.oku": "Okunur",
+    "seviye.kol.denge": "Denge",
+    "seviye.simdiki": "şimdiki",
+
+    // kontrast histogramı
+    "hist.baslik": "Tek-kare kontrast dağılımı",
+    "hist.aciklama": "Hücre parlaklıklarının dağılımı — harf ve zemin ne kadar üst üste binerse OCR o kadar kör.",
+    "hist.harf": "Harf hücreleri",
+    "hist.zemin": "Zemin hücreleri",
+    "hist.ortusme": "Örtüşme (OCR körlüğü)",
   },
 
   en: {
@@ -150,6 +186,38 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "nasil.durustluk.etiket": "Honesty note:",
     "nasil.durustluk.metin":
       "The OCR-resistance and readability scores are modeled estimates; the canvas on the left is a faithful visual demo of the real technique (same physics as ghostfont.ts / specter.js).",
+
+    "profil.baslik": "Difficulty profile",
+    "profil.aciklama": "The current setting across five axes — a balanced web is wide and symmetric.",
+    "eksen.ocr": "OCR resist.",
+    "eksen.oku": "Readability",
+    "eksen.dither": "Dither",
+    "eksen.gurultu": "Noise",
+    "eksen.entegrasyon": "Integration",
+
+    "gauge.baslik": "OCR ↔ human tension",
+    "gauge.ocr": "OCR blindness",
+    "gauge.oku": "Human clarity",
+    "gauge.denge": "Balance",
+    "gauge.aciklama": "When all three gauges fill at once, you're at the sweet spot.",
+
+    "seviye.baslik": "Difficulty levels",
+    "seviye.aciklama": "Light → extreme: OCR resistance and readability per level. The level closest to your setting is highlighted.",
+    "seviye.hafif": "Light",
+    "seviye.dengeli": "Balanced",
+    "seviye.sert": "Hard",
+    "seviye.asiri": "Extreme",
+    "seviye.kol.seviye": "Level",
+    "seviye.kol.ocr": "OCR",
+    "seviye.kol.oku": "Readable",
+    "seviye.kol.denge": "Balance",
+    "seviye.simdiki": "current",
+
+    "hist.baslik": "Single-frame contrast distribution",
+    "hist.aciklama": "Distribution of cell brightness — the more glyph and background overlap, the blinder OCR becomes.",
+    "hist.harf": "Glyph cells",
+    "hist.zemin": "Background cells",
+    "hist.ortusme": "Overlap (OCR blindness)",
   },
 
   de: {
@@ -214,6 +282,38 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "nasil.durustluk.etiket": "Ehrlichkeitshinweis:",
     "nasil.durustluk.metin":
       "Die Werte für OCR-Resistenz und Lesbarkeit sind modellierte Schätzungen; das Canvas links ist eine getreue visuelle Demo der echten Technik (gleiche Physik wie ghostfont.ts / specter.js).",
+
+    "profil.baslik": "Schwierigkeitsprofil",
+    "profil.aciklama": "Die aktuelle Einstellung über fünf Achsen — ein ausgewogenes Netz ist breit und symmetrisch.",
+    "eksen.ocr": "OCR-Resist.",
+    "eksen.oku": "Lesbarkeit",
+    "eksen.dither": "Dither",
+    "eksen.gurultu": "Rauschen",
+    "eksen.entegrasyon": "Integration",
+
+    "gauge.baslik": "OCR ↔ Mensch-Spannung",
+    "gauge.ocr": "OCR-Blindheit",
+    "gauge.oku": "Menschl. Klarheit",
+    "gauge.denge": "Balance",
+    "gauge.aciklama": "Wenn alle drei Anzeigen gleichzeitig füllen, bist du am Sweet Spot.",
+
+    "seviye.baslik": "Schwierigkeitsstufen",
+    "seviye.aciklama": "Leicht → extrem: OCR-Resistenz und Lesbarkeit pro Stufe. Die Ihrer Einstellung nächste Stufe wird hervorgehoben.",
+    "seviye.hafif": "Leicht",
+    "seviye.dengeli": "Ausgewogen",
+    "seviye.sert": "Schwer",
+    "seviye.asiri": "Extrem",
+    "seviye.kol.seviye": "Stufe",
+    "seviye.kol.ocr": "OCR",
+    "seviye.kol.oku": "Lesbar",
+    "seviye.kol.denge": "Balance",
+    "seviye.simdiki": "aktuell",
+
+    "hist.baslik": "Einzelbild-Kontrastverteilung",
+    "hist.aciklama": "Verteilung der Zellhelligkeit — je mehr sich Zeichen und Hintergrund überlappen, desto blinder wird OCR.",
+    "hist.harf": "Zeichenzellen",
+    "hist.zemin": "Hintergrundzellen",
+    "hist.ortusme": "Überlappung (OCR-Blindheit)",
   },
 
   fr: {
@@ -278,6 +378,38 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "nasil.durustluk.etiket": "Note d'honnêteté :",
     "nasil.durustluk.metin":
       "Les scores de résistance OCR et de lisibilité sont des estimations modélisées ; le canvas à gauche est une démo visuelle fidèle de la technique réelle (même physique que ghostfont.ts / specter.js).",
+
+    "profil.baslik": "Profil de difficulté",
+    "profil.aciklama": "Le réglage actuel sur cinq axes — une toile équilibrée est large et symétrique.",
+    "eksen.ocr": "Résist. OCR",
+    "eksen.oku": "Lisibilité",
+    "eksen.dither": "Dither",
+    "eksen.gurultu": "Bruit",
+    "eksen.entegrasyon": "Intégration",
+
+    "gauge.baslik": "Tension OCR ↔ humain",
+    "gauge.ocr": "Cécité OCR",
+    "gauge.oku": "Netteté humaine",
+    "gauge.denge": "Équilibre",
+    "gauge.aciklama": "Quand les trois jauges se remplissent en même temps, vous êtes au point idéal.",
+
+    "seviye.baslik": "Niveaux de difficulté",
+    "seviye.aciklama": "Léger → extrême : résistance OCR et lisibilité par niveau. Le niveau le plus proche de votre réglage est surligné.",
+    "seviye.hafif": "Léger",
+    "seviye.dengeli": "Équilibré",
+    "seviye.sert": "Dur",
+    "seviye.asiri": "Extrême",
+    "seviye.kol.seviye": "Niveau",
+    "seviye.kol.ocr": "OCR",
+    "seviye.kol.oku": "Lisible",
+    "seviye.kol.denge": "Équilibre",
+    "seviye.simdiki": "actuel",
+
+    "hist.baslik": "Distribution du contraste sur une image",
+    "hist.aciklama": "Distribution de la luminosité des cellules — plus le glyphe et le fond se chevauchent, plus l'OCR devient aveugle.",
+    "hist.harf": "Cellules de glyphe",
+    "hist.zemin": "Cellules de fond",
+    "hist.ortusme": "Chevauchement (cécité OCR)",
   },
 
   es: {
@@ -342,6 +474,38 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "nasil.durustluk.etiket": "Nota de honestidad:",
     "nasil.durustluk.metin":
       "Las puntuaciones de resistencia a OCR y de legibilidad son estimaciones modeladas; el canvas de la izquierda es una demo visual fiel de la técnica real (misma física que ghostfont.ts / specter.js).",
+
+    "profil.baslik": "Perfil de dificultad",
+    "profil.aciklama": "El ajuste actual en cinco ejes — una telaraña equilibrada es amplia y simétrica.",
+    "eksen.ocr": "Resist. OCR",
+    "eksen.oku": "Legibilidad",
+    "eksen.dither": "Dither",
+    "eksen.gurultu": "Ruido",
+    "eksen.entegrasyon": "Integración",
+
+    "gauge.baslik": "Tensión OCR ↔ humano",
+    "gauge.ocr": "Ceguera OCR",
+    "gauge.oku": "Nitidez humana",
+    "gauge.denge": "Equilibrio",
+    "gauge.aciklama": "Cuando los tres medidores se llenan a la vez, estás en el punto óptimo.",
+
+    "seviye.baslik": "Niveles de dificultad",
+    "seviye.aciklama": "Ligero → extremo: resistencia OCR y legibilidad por nivel. Se resalta el nivel más cercano a tu ajuste.",
+    "seviye.hafif": "Ligero",
+    "seviye.dengeli": "Equilibrado",
+    "seviye.sert": "Duro",
+    "seviye.asiri": "Extremo",
+    "seviye.kol.seviye": "Nivel",
+    "seviye.kol.ocr": "OCR",
+    "seviye.kol.oku": "Legible",
+    "seviye.kol.denge": "Equilibrio",
+    "seviye.simdiki": "actual",
+
+    "hist.baslik": "Distribución de contraste de un fotograma",
+    "hist.aciklama": "Distribución del brillo de las celdas — cuanto más se superponen glifo y fondo, más ciego queda el OCR.",
+    "hist.harf": "Celdas de glifo",
+    "hist.zemin": "Celdas de fondo",
+    "hist.ortusme": "Superposición (ceguera OCR)",
   },
 };
 

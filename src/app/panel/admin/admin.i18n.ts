@@ -158,6 +158,28 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "zaman.dk": "{n} dk önce",
     "zaman.sa": "{n} sa önce",
     "zaman.gun": "{n} gün önce",
+
+    // Sistem durumu göstergeleri (gauge şeridi)
+    "durum.baslik": "Sistem durumu",
+    "durum.saglik": "Sağlık",
+    "durum.insan": "İnsan trafiği",
+    "durum.dogrulanmis": "Doğrulanmış site",
+    "durum.aktifHesap": "Aktif hesap",
+    "durum.not": "Dört ana operasyonel gösterge tek bakışta. Yeşil = sağlıklı eşik.",
+
+    // Bayrak dağılımı (donut)
+    "bayrakDagilim.baslik": "Bayrak durumu",
+    "bayrakDagilim.acik": "Açık",
+    "bayrakDagilim.kapali": "Kapalı",
+    "bayrakDagilim.merkez": "bayrak",
+
+    // Kaynak kullanım ısı-matrisi
+    "kaynak.baslik": "Bölgesel kaynak kullanımı",
+    "kaynak.aciklama": "Edge bölgelerinde alt-sistemlerin yük yüzdesi (temsili) — koyu = daha yüklü.",
+    "kaynak.cpu": "CPU",
+    "kaynak.bellek": "Bellek",
+    "kaynak.ag": "Ağ G/Ç",
+    "kaynak.kuyruk": "Kuyruk",
   },
 
   en: {
@@ -288,6 +310,25 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "zaman.dk": "{n} min ago",
     "zaman.sa": "{n} h ago",
     "zaman.gun": "{n} d ago",
+
+    "durum.baslik": "System status",
+    "durum.saglik": "Health",
+    "durum.insan": "Human traffic",
+    "durum.dogrulanmis": "Verified sites",
+    "durum.aktifHesap": "Active accounts",
+    "durum.not": "Four key operational gauges at a glance. Green = healthy threshold.",
+
+    "bayrakDagilim.baslik": "Flag status",
+    "bayrakDagilim.acik": "On",
+    "bayrakDagilim.kapali": "Off",
+    "bayrakDagilim.merkez": "flags",
+
+    "kaynak.baslik": "Regional resource usage",
+    "kaynak.aciklama": "Subsystem load percentage across edge regions (representative) — darker = busier.",
+    "kaynak.cpu": "CPU",
+    "kaynak.bellek": "Memory",
+    "kaynak.ag": "Net I/O",
+    "kaynak.kuyruk": "Queue",
   },
 
   de: {
@@ -418,6 +459,25 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "zaman.dk": "vor {n} Min.",
     "zaman.sa": "vor {n} Std.",
     "zaman.gun": "vor {n} T.",
+
+    "durum.baslik": "Systemstatus",
+    "durum.saglik": "Gesundheit",
+    "durum.insan": "Menschl. Traffic",
+    "durum.dogrulanmis": "Verifizierte Sites",
+    "durum.aktifHesap": "Aktive Konten",
+    "durum.not": "Vier zentrale Betriebsanzeigen auf einen Blick. Grün = gesunde Schwelle.",
+
+    "bayrakDagilim.baslik": "Flag-Status",
+    "bayrakDagilim.acik": "An",
+    "bayrakDagilim.kapali": "Aus",
+    "bayrakDagilim.merkez": "Flags",
+
+    "kaynak.baslik": "Regionale Ressourcennutzung",
+    "kaynak.aciklama": "Auslastung der Subsysteme über Edge-Regionen (repräsentativ) — dunkler = ausgelasteter.",
+    "kaynak.cpu": "CPU",
+    "kaynak.bellek": "Speicher",
+    "kaynak.ag": "Netz-E/A",
+    "kaynak.kuyruk": "Queue",
   },
 
   fr: {
@@ -548,6 +608,25 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "zaman.dk": "il y a {n} min",
     "zaman.sa": "il y a {n} h",
     "zaman.gun": "il y a {n} j",
+
+    "durum.baslik": "État du système",
+    "durum.saglik": "Santé",
+    "durum.insan": "Trafic humain",
+    "durum.dogrulanmis": "Sites vérifiés",
+    "durum.aktifHesap": "Comptes actifs",
+    "durum.not": "Quatre jauges opérationnelles clés en un coup d'œil. Vert = seuil sain.",
+
+    "bayrakDagilim.baslik": "État des indicateurs",
+    "bayrakDagilim.acik": "Activé",
+    "bayrakDagilim.kapali": "Désactivé",
+    "bayrakDagilim.merkez": "indic.",
+
+    "kaynak.baslik": "Utilisation régionale des ressources",
+    "kaynak.aciklama": "Pourcentage de charge des sous-systèmes par région edge (représentatif) — plus foncé = plus chargé.",
+    "kaynak.cpu": "CPU",
+    "kaynak.bellek": "Mémoire",
+    "kaynak.ag": "E/S réseau",
+    "kaynak.kuyruk": "File",
   },
 
   es: {
@@ -678,6 +757,25 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "zaman.dk": "hace {n} min",
     "zaman.sa": "hace {n} h",
     "zaman.gun": "hace {n} d",
+
+    "durum.baslik": "Estado del sistema",
+    "durum.saglik": "Salud",
+    "durum.insan": "Tráfico humano",
+    "durum.dogrulanmis": "Sitios verificados",
+    "durum.aktifHesap": "Cuentas activas",
+    "durum.not": "Cuatro indicadores operativos clave de un vistazo. Verde = umbral saludable.",
+
+    "bayrakDagilim.baslik": "Estado de indicadores",
+    "bayrakDagilim.acik": "Activo",
+    "bayrakDagilim.kapali": "Inactivo",
+    "bayrakDagilim.merkez": "indic.",
+
+    "kaynak.baslik": "Uso regional de recursos",
+    "kaynak.aciklama": "Porcentaje de carga de subsistemas por región edge (representativo) — más oscuro = más ocupado.",
+    "kaynak.cpu": "CPU",
+    "kaynak.bellek": "Memoria",
+    "kaynak.ag": "E/S de red",
+    "kaynak.kuyruk": "Cola",
   },
 };
 

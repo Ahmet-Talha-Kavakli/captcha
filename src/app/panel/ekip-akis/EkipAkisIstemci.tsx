@@ -19,6 +19,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import {
   Users,
@@ -35,9 +36,16 @@ import {
   Gauge,
   UserPlus,
   Layers,
+  PieChart,
+  Activity,
+  Grid3x3,
+  TrendingUp,
 } from "lucide-react";
 import { Panel, StatKart, Badge, Avatar, Ilerleme, NotKutusu, useToast, Tooltip } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim, TrendGrafik } from "@/components/panel/grafikler";
+import { IsiMatris } from "@/components/panel/grafikler-ek";
+import { botSinifGorsel } from "@/components/panel/bot-sinif-gorsel";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { ekipCeviri } from "./ekip-akis.i18n";
@@ -440,6 +448,77 @@ export function EkipAkisIstemci({
   }, [vakalar]);
   const maxYuk = Math.max(1, ...[...isYuku.values()]);
 
+  /* ----- Görsel analiz agregasyonları ----- */
+
+  // Vaka türü (saldırı sınıfı) dağılımı — donut. botClass görsel kimliğinden renk.
+  const turDagilim = useMemo(() => {
+    const say = new Map<string, { deger: number; renk: string }>();
+    for (const v of vakalar) {
+      const g = botSinifGorsel(v.botClass);
+      const mev = say.get(v.tur);
+      if (mev) mev.deger++;
+      else say.set(v.tur, { deger: 1, renk: g.renk });
+    }
+    return [...say.entries()]
+      .map(([etiket, o]) => ({ etiket, deger: o.deger, renk: o.renk }))
+      .sort((a, b) => b.deger - a.deger)
+      .slice(0, 6);
+  }, [vakalar]);
+
+  // Durum dağılımı (donut) — kanban kolonlarının görsel özeti.
+  const durumDagilim = useMemo(() => {
+    const renk: Record<VakaDurum, string> = {
+      yeni: "#2f6fed",
+      triyaj: "#d97706",
+      devam: "#0891b2",
+      beklemede: "#64748b",
+      cozuldu: "#16a34a",
+    };
+    return DURUM_SIRA.map((d) => ({
+      etiket: durumEtiket(d, t),
+      deger: vakalar.filter((v) => v.durum === d).length,
+      renk: renk[d],
+    }));
+  }, [vakalar, t]);
+
+  // Zaman trendi — vaka oluşturma & güncelleme yoğunluğu, `now`'a kadar 8 kova.
+  const zamanTrend = useMemo(() => {
+    const KOVA = 8;
+    const zamanlar: number[] = [];
+    for (const v of vakalar) {
+      zamanlar.push(v.olusturuldu, v.guncellendi);
+    }
+    if (zamanlar.length === 0) {
+      return { olusturma: [] as number[], guncelleme: [] as number[], etiketler: [] as string[] };
+    }
+    const min = Math.min(...zamanlar);
+    const max = Math.max(now, ...zamanlar);
+    const genislik = Math.max(1, (max - min) / KOVA);
+    const olusturma = new Array(KOVA).fill(0);
+    const guncelleme = new Array(KOVA).fill(0);
+    const kovaIndex = (ts: number) => Math.min(KOVA - 1, Math.max(0, Math.floor((ts - min) / genislik)));
+    for (const v of vakalar) {
+      olusturma[kovaIndex(v.olusturuldu)]++;
+      guncelleme[kovaIndex(v.guncellendi)]++;
+    }
+    const etiketler = new Array(KOVA).fill(0).map((_, i) =>
+      new Date(min + genislik * (i + 0.5)).toLocaleDateString(YEREL[dil], { day: "2-digit", month: "short" }),
+    );
+    return { olusturma, guncelleme, etiketler };
+  }, [vakalar, now, dil]);
+
+  // İşbirliği ısı-matrisi — analist (satır) × öncelik (sütun) açık vaka yoğunluğu.
+  const isbirligiMatris = useMemo(() => {
+    const satirlar = TAKIM.map((an) => an.ad);
+    const sutunlar: Oncelik[] = ["P1", "P2", "P3", "P4"];
+    const degerler = TAKIM.map((an) =>
+      sutunlar.map(
+        (o) => vakalar.filter((v) => v.durum !== "cozuldu" && v.atanan === an.ad && v.oncelik === o).length,
+      ),
+    );
+    return { satirlar, sutunlar, degerler };
+  }, [vakalar]);
+
   // --- Aksiyonlar (iyimser, oturum-yerel) ---
   function durumDegistir(id: string, durum: VakaDurum) {
     setOturum((p) => ({ ...p, [id]: { ...p[id], durum } }));
@@ -560,6 +639,46 @@ export function EkipAkisIstemci({
             </div>
           </div>
 
+          {/* Görsel analiz şeridi — kategori donut + durum donut + zaman trendi */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="grid gap-4 lg:grid-cols-3"
+          >
+            <Panel
+              baslik={t("analiz.turBaslik")}
+              sagUst={<PieChart className="size-4 text-slate-faint" />}
+            >
+              <DonutDagilim segmentler={turDagilim} merkezEtiket={t("analiz.vaka")} />
+            </Panel>
+            <Panel
+              baslik={t("analiz.durumBaslik")}
+              sagUst={<Activity className="size-4 text-slate-faint" />}
+            >
+              <DonutDagilim segmentler={durumDagilim} merkezEtiket={t("analiz.vaka")} />
+            </Panel>
+            <Panel
+              baslik={t("analiz.zamanBaslik")}
+              sagUst={<TrendingUp className="size-4 text-slate-faint" />}
+            >
+              {zamanTrend.etiketler.length > 0 ? (
+                <TrendGrafik
+                  noktalar={[]}
+                  seriler={[zamanTrend.olusturma, zamanTrend.guncelleme]}
+                  renkler={["#2f6fed", "#16a34a"]}
+                  seriEtiketleri={[t("analiz.olusturulan"), t("analiz.guncellenen")]}
+                  etiketler={zamanTrend.etiketler}
+                  yukseklik={180}
+                />
+              ) : (
+                <div className="grid h-[180px] place-items-center text-[12px] text-slate-faint">
+                  {t("analiz.veriYok")}
+                </div>
+              )}
+            </Panel>
+          </motion.div>
+
           {/* Ekip panosu + SLA/performans */}
           <div className="grid gap-4 lg:grid-cols-3">
             {/* Ekip iş yükü */}
@@ -617,6 +736,25 @@ export function EkipAkisIstemci({
               </div>
             </Panel>
           </div>
+
+          {/* İşbirliği ısı-matrisi — analist × öncelik açık vaka yoğunluğu */}
+          <Panel
+            baslik={t("isbirligi.baslik")}
+            sagUst={
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-faint">
+                <Grid3x3 className="size-4" />
+                {t("isbirligi.temsili")}
+              </span>
+            }
+          >
+            <IsiMatris
+              satirlar={isbirligiMatris.satirlar}
+              sutunlar={isbirligiMatris.sutunlar}
+              degerler={isbirligiMatris.degerler}
+              renk="#2f6fed"
+            />
+            <p className="mt-3 text-[11px] text-slate-faint">{t("isbirligi.dipnot")}</p>
+          </Panel>
 
           {/* SLA & backlog performans */}
           <div className="grid gap-4 lg:grid-cols-2">

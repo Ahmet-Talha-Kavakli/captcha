@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { Panel, Badge, NotKutusu } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { Gauge as GaugeGost, RadarGrafik } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { mudahaleCeviri } from "./mudahale.i18n";
@@ -486,6 +488,36 @@ function PlaybookCalistirici({
 
   const bitenSayi = playbook.adimlar.length - ilerleme.kalanAdim;
 
+  // Faz başına adım sayısı → donut segmentleri (playbook adım kompozisyonu).
+  const FAZ_RENK: Record<Faz, string> = {
+    tespit: "#0891b2",
+    sınırlama: "#2f6fed",
+    engelleme: "#dc2626",
+    doğrulama: "#16a34a",
+    kapanış: "#7c3aed",
+  };
+  const fazDonut = useMemo(
+    () =>
+      fazGruplari.map((g) => ({
+        etiket: t(`faz.${g.faz}`),
+        deger: g.adimlar.length,
+        renk: FAZ_RENK[g.faz],
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fazGruplari, t],
+  );
+
+  // Sorumlu dağılımı → radar profili (kim ne kadar iş yapıyor).
+  const sorumluRadar = useMemo(() => {
+    const say: Record<Sorumlu, number> = { Specter: 0, Operatör: 0, "Güvenlik Ekibi": 0 };
+    for (const a of playbook.adimlar) say[a.sorumlu]++;
+    const maks = Math.max(1, ...Object.values(say));
+    return (Object.keys(say) as Sorumlu[]).map((s) => ({
+      etiket: t(`sorumlu.${s}`),
+      deger: (say[s] / maks) * 100,
+    }));
+  }, [playbook, t]);
+
   return (
     <div className="space-y-5">
       {/* başlık kartı */}
@@ -589,6 +621,35 @@ function PlaybookCalistirici({
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* playbook profili — faz kompozisyon donut + tamamlanma gauge +
+            sorumlu radar. Adım listesindeki tekrarlı satır dilini kırar,
+            playbook'un "şeklini" tek bakışta gösterir (guven-merkezi ferahlığı). */}
+        <div className="mt-5 grid gap-4 border-t border-line pt-5 md:grid-cols-[1fr_auto_1fr]">
+          {/* Faz kompozisyonu (donut) */}
+          <div>
+            <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-wide text-slate-faint">
+              <ListChecks className="size-3.5" /> {t("cal.profil.fazlar")}
+            </div>
+            <DonutDagilim segmentler={fazDonut} merkezEtiket={t("cal.profil.adim")} />
+          </div>
+
+          {/* Tamamlanma gauge (yarım daire) — mevcut ilerleme mantığından türer */}
+          <div className="flex flex-col items-center justify-center gap-1 md:border-x md:border-line md:px-6">
+            <GaugeGost deger={ilerleme.yuzde} boyut={148} etiket={t("cal.profil.tamamlanma")} />
+            <span className="num text-[11px] text-slate-faint">
+              {bitenSayi}/{playbook.adimlar.length} {t("cal.profil.adim")}
+            </span>
+          </div>
+
+          {/* Sorumlu profili (radar) */}
+          <div className="flex flex-col items-center">
+            <div className="mb-1 flex w-full items-center gap-1.5 text-[12px] font-medium uppercase tracking-wide text-slate-faint">
+              <Hand className="size-3.5" /> {t("cal.profil.sorumlu")}
+            </div>
+            <RadarGrafik eksenler={sorumluRadar} boyut={168} renk={sm.renk} />
           </div>
         </div>
       </Panel>

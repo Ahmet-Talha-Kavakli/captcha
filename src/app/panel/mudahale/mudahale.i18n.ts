@@ -65,6 +65,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "cal.metrik.sure.deger": "~{n} dk",
     "cal.metrik.sure.alt": "{n} adım toplam",
     "cal.fazakisi": "Faz akışı",
+    "cal.profil.fazlar": "Faz dağılımı",
+    "cal.profil.adim": "adım",
+    "cal.profil.tamamlanma": "tamamlandı",
+    "cal.profil.sorumlu": "Sorumlu profili",
 
     // dürüstlük etiketi
     "not.baslik": "Bunlar rehber niteliğinde şablonlardır",
@@ -262,6 +266,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "cal.metrik.sure.deger": "~{n} min",
     "cal.metrik.sure.alt": "{n} steps total",
     "cal.fazakisi": "Phase flow",
+    "cal.profil.fazlar": "Phase breakdown",
+    "cal.profil.adim": "steps",
+    "cal.profil.tamamlanma": "complete",
+    "cal.profil.sorumlu": "Owner profile",
 
     "not.baslik": "These are guidance templates",
     "not.metin.a": "Checking off a step only records",
@@ -446,6 +454,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "cal.metrik.sure.deger": "~{n} Min.",
     "cal.metrik.sure.alt": "{n} Schritte gesamt",
     "cal.fazakisi": "Phasenablauf",
+    "cal.profil.fazlar": "Phasen-Verteilung",
+    "cal.profil.adim": "Schritte",
+    "cal.profil.tamamlanma": "erledigt",
+    "cal.profil.sorumlu": "Verantwortlichkeitsprofil",
 
     "not.baslik": "Dies sind Vorlagen zur Orientierung",
     "not.metin.a": "Das Abhaken eines Schritts erfasst nur",
@@ -630,6 +642,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "cal.metrik.sure.deger": "~{n} min",
     "cal.metrik.sure.alt": "{n} étapes au total",
     "cal.fazakisi": "Flux des phases",
+    "cal.profil.fazlar": "Répartition des phases",
+    "cal.profil.adim": "étapes",
+    "cal.profil.tamamlanma": "terminé",
+    "cal.profil.sorumlu": "Profil des responsables",
 
     "not.baslik": "Ce sont des modèles à titre indicatif",
     "not.metin.a": "Cocher une étape enregistre seulement",
@@ -814,6 +830,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "cal.metrik.sure.deger": "~{n} min",
     "cal.metrik.sure.alt": "{n} pasos en total",
     "cal.fazakisi": "Flujo de fases",
+    "cal.profil.fazlar": "Distribución de fases",
+    "cal.profil.adim": "pasos",
+    "cal.profil.tamamlanma": "completado",
+    "cal.profil.sorumlu": "Perfil de responsables",
 
     "not.baslik": "Son plantillas orientativas",
     "not.metin.a": "Marcar un paso solo registra",

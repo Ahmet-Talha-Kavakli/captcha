@@ -33,6 +33,11 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kk.m.benzersizIp": "Benzersiz IP",
     "kk.m.ip": "IP",
 
+    // Görsel özet
+    "kk.gorsel.kararDagilim": "Karar dağılımı",
+    "kk.gorsel.sinifDagilim": "Bot sınıf dağılımı",
+    "kk.gorsel.olayTrend": "Olay hızı trendi",
+
     // Filtre çubuğu
     "kk.filtreler": "Filtreler",
     "kk.araPlaceholder": "IP, yol veya ASN ara…",
@@ -121,6 +126,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kk.m.izinVerilen": "Allowed",
     "kk.m.benzersizIp": "Unique IPs",
     "kk.m.ip": "IPs",
+
+    "kk.gorsel.kararDagilim": "Verdict distribution",
+    "kk.gorsel.sinifDagilim": "Bot class distribution",
+    "kk.gorsel.olayTrend": "Event rate trend",
 
     "kk.filtreler": "Filters",
     "kk.araPlaceholder": "Search IP, path or ASN…",

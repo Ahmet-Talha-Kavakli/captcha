@@ -66,6 +66,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "km.senaryo.engel": "%{n} engel",
     "km.senaryo.karantinada": "Karantinada",
     "km.senaryo.karantinaAl": "Senaryoyu karantinaya al",
+    "km.senaryo.hacimBaslik": "Senaryo hacimleri",
+    "km.karar.engelProfil": "Senaryo bazlı engel oranı",
 
     // Komuta paneli
     "km.komuta.baslik": "Komuta paneli",
@@ -195,6 +197,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "km.senaryo.engel": "{n}% blocked",
     "km.senaryo.karantinada": "Quarantined",
     "km.senaryo.karantinaAl": "Quarantine scenario",
+    "km.senaryo.hacimBaslik": "Scenario volumes",
+    "km.karar.engelProfil": "Block rate by scenario",
 
     "km.komuta.baslik": "Command panel",
     "km.komuta.altbaslik": "Operator action queue — session-local.",
@@ -315,6 +319,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "km.senaryo.engel": "{n}% blockiert",
     "km.senaryo.karantinada": "Unter Quarantäne",
     "km.senaryo.karantinaAl": "Szenario unter Quarantäne stellen",
+    "km.senaryo.hacimBaslik": "Szenario-Volumen",
+    "km.karar.engelProfil": "Blockrate nach Szenario",
 
     "km.komuta.baslik": "Kommandopanel",
     "km.komuta.altbaslik": "Operator-Aktionswarteschlange — sitzungslokal.",
@@ -435,6 +441,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "km.senaryo.engel": "{n}% bloqué",
     "km.senaryo.karantinada": "En quarantaine",
     "km.senaryo.karantinaAl": "Mettre le scénario en quarantaine",
+    "km.senaryo.hacimBaslik": "Volumes de scénarios",
+    "km.karar.engelProfil": "Taux de blocage par scénario",
 
     "km.komuta.baslik": "Panneau de commande",
     "km.komuta.altbaslik": "File d'actions de l'opérateur — locale à la session.",
@@ -555,6 +563,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "km.senaryo.engel": "{n}% bloqueado",
     "km.senaryo.karantinada": "En cuarentena",
     "km.senaryo.karantinaAl": "Poner escenario en cuarentena",
+    "km.senaryo.hacimBaslik": "Volúmenes de escenarios",
+    "km.karar.engelProfil": "Tasa de bloqueo por escenario",
 
     "km.komuta.baslik": "Panel de mando",
     "km.komuta.altbaslik": "Cola de acciones del operador — local a la sesión.",

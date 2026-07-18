@@ -32,6 +32,7 @@ import {
 import { Ulke } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
 import { DonutDagilim } from "@/components/panel/grafikler";
+import { Histogram, RadarGrafik } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { kmCeviri } from "./komuta-merkezi.i18n";
@@ -475,17 +476,36 @@ export function KomutaMerkeziIstemci({
               {foto.senaryolar.length === 0 ? (
                 <p className="py-6 text-center text-sm text-slate-faint">{t("km.senaryo.yok")}</p>
               ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {foto.senaryolar.slice(0, 4).map((s) => (
-                    <SenaryoKart
-                      key={s.sinif}
-                      senaryo={s}
-                      t={t}
-                      karantinada={durum.karantinaSenaryo.includes(s.sinif)}
-                      onKarantina={() => senaryoKarantina(s.sinif)}
-                    />
-                  ))}
-                </div>
+                <>
+                  {/* Senaryo hacim histogramı — kart tekrarı yerine tek bakışta
+                      senaryolar arası büyüklük kıyaslaması (farklı görsel dil). */}
+                  {foto.senaryolar.length > 1 && (
+                    <div className="mb-5 rounded-2xl border border-line bg-canvas/40 px-4 pt-4 pb-3">
+                      <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-faint">
+                        <Layers className="size-3.5" /> {t("km.senaryo.hacimBaslik")}
+                      </div>
+                      <Histogram
+                        yukseklik={72}
+                        kovalar={foto.senaryolar.slice(0, 8).map((s) => ({
+                          etiket: botEtiket(s.sinif, t),
+                          deger: s.adet,
+                          ton: "bot",
+                        }))}
+                      />
+                    </div>
+                  )}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {foto.senaryolar.slice(0, 4).map((s) => (
+                      <SenaryoKart
+                        key={s.sinif}
+                        senaryo={s}
+                        t={t}
+                        karantinada={durum.karantinaSenaryo.includes(s.sinif)}
+                        onKarantina={() => senaryoKarantina(s.sinif)}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </section>
@@ -804,6 +824,11 @@ function KararDagilimi({ foto, t }: { foto: TehditFoto; t: CevirFn }) {
     { etiket: t("km.verdict.allowed"), deger: k.allowed, renk: "#16a34a" },
     { etiket: t("km.verdict.flagged"), deger: k.flagged, renk: "#64748b" },
   ];
+  // Senaryo engel-oranı radarı — 3+ senaryo varsa savunma etkinliğini
+  // (her sınıfta ne kadar engellenebiliyor) tek bakışta gösterir.
+  const radarEksenler = foto.senaryolar
+    .slice(0, 6)
+    .map((s) => ({ etiket: botEtiket(s.sinif, t), deger: Math.round(s.engelOran * 100) }));
   return (
     <section className="rounded-3xl border border-line bg-surface">
       <div className="border-b border-line px-5 py-3.5">
@@ -813,6 +838,17 @@ function KararDagilimi({ foto, t }: { foto: TehditFoto; t: CevirFn }) {
       </div>
       <div className="px-5 py-4">
         <DonutDagilim segmentler={segmentler} merkezEtiket={t("km.akis.kol.karar")} />
+        {/* Senaryo bazlı engel-oranı radarı (donut'tan farklı görsel dil). */}
+        {radarEksenler.length >= 3 && (
+          <div className="mt-4 border-t border-line pt-4">
+            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-faint">
+              <ShieldCheck className="size-3.5" /> {t("km.karar.engelProfil")}
+            </div>
+            <div className="grid place-items-center">
+              <RadarGrafik eksenler={radarEksenler} boyut={196} renk="#dc2626" />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -862,6 +898,20 @@ function TopSaldirganlar({
           </button>
         ))}
       </div>
+      {/* Görsel özet — sekmeye göre farklı dil: hacim histogramı (üst şerit).
+          Liste bar tekrarını üstten kırar, tek bakışta zirveyi gösterir. */}
+      {veri.length > 1 && (
+        <div className="border-b border-line px-5 pt-3.5 pb-2">
+          <Histogram
+            yukseklik={54}
+            kovalar={veri.slice(0, 8).map((s) => ({
+              etiket: sekme === "asn" ? asnAd(s.anahtar).slice(0, 6) : sekme === "ip" ? s.anahtar.split(".").slice(0, 2).join(".") : s.anahtar,
+              deger: s.toplam,
+              ton: s.tehdit / (s.toplam || 1) > 0.5 ? "bot" : "nötr",
+            }))}
+          />
+        </div>
+      )}
       <ul className="divide-y divide-line">
         {veri.length === 0 ? (
           <li className="px-5 py-8 text-center text-sm text-slate-faint">{t("km.top.bosBoyut")}</li>
@@ -878,10 +928,19 @@ function TopSaldirganlar({
                     {sekme !== "ulke" && s.ulke && <Ulke kod={s.ulke} />}
                   </div>
                   <div className="mt-1.5 flex items-center gap-2">
-                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-canvas">
-                      <div className="h-full rounded-full bg-danger2/70" style={{ width: `${Math.round((s.toplam / maks) * 100)}%` }} />
+                    {/* Katmanlı bar: toplam hacim (nötr zemin) + tehdit payı
+                        (kırmızı dolu). Tek-düz bar tekrarını kırar; tehdit
+                        yoğunluğunu tek bakışta gösterir. */}
+                    <div
+                      className="h-1.5 overflow-hidden rounded-full bg-brand-600/25"
+                      style={{ width: `${Math.max(6, Math.round((s.toplam / maks) * 100))}%` }}
+                    >
+                      <div
+                        className="h-full rounded-full bg-danger2/80"
+                        style={{ width: `${Math.round((s.tehdit / (s.toplam || 1)) * 100)}%` }}
+                      />
                     </div>
-                    <span className="num shrink-0 text-[11px] text-slate-muted">{s.tehdit}/{s.toplam}</span>
+                    <span className="num ml-auto shrink-0 text-[11px] text-slate-muted">{s.tehdit}/{s.toplam}</span>
                   </div>
                 </div>
                 <button
