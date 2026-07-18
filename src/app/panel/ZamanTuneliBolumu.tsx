@@ -230,7 +230,7 @@ function FazTuneli({
               </div>
               <p className="mt-1.5 text-[11.5px] leading-relaxed text-slate-muted">{f.aciklama}</p>
               {/* Faz yoğunluk barı (olay sayısı oransal) — fazlar arası hacim farkını gösterir */}
-              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-canvas">
                 <motion.div
                   className="h-full rounded-full"
                   style={{ background: tanim.hex, opacity: 0.75 }}
@@ -333,7 +333,7 @@ function IncidentKart({
               %{mitigasyon} mitigasyon
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas">
             <motion.div
               className="h-full rounded-full bg-ok"
               initial={azHareket ? false : { width: 0 }}

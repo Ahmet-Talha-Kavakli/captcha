@@ -352,7 +352,7 @@ function GuvenilirlikDiyagram({
           const renk = hataRenk(fark);
           const nokta = (
             <>
-              <circle cx={x} cy={y} r={r + 2} fill="#ffffff" />
+              <circle cx={x} cy={y} r={r + 2} fill="var(--color-surface)" />
               <circle cx={x} cy={y} r={r} fill={renk} fillOpacity={0.9} stroke="#ffffff" strokeWidth={1.5} />
             </>
           );
@@ -362,8 +362,8 @@ function GuvenilirlikDiyagram({
           return (
             <motion.g
               key={`nk-${b.aralik}`}
-              initial={{ opacity: 0, scale: 0.4 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ scale: 0.4 }}
+              animate={{ scale: 1 }}
               transition={{ duration: 0.35, delay: 0.15 + i * 0.05, ease: [0.16, 1, 0.3, 1] }}
               style={{ transformOrigin: `${x}px ${y}px` }}
             >

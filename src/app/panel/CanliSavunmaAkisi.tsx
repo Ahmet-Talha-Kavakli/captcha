@@ -181,12 +181,12 @@ export function CanliSavunmaAkisi() {
       }
     >
       {/* 5 savunma katmanının canlı durumu */}
-      <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {KATMANLAR.map((k) => {
           const Ikon = k.ikon;
           const aktif = aktifKatmanlar.has(k.id);
           return (
-            <div key={k.id} className="flex items-center gap-2.5 rounded-2xl border border-line bg-canvas/40 px-3 py-2.5">
+            <div key={k.id} className="flex items-center gap-2.5 rounded-2xl border border-line bg-canvas/40 px-3.5 py-3">
               <span className="grid size-8 shrink-0 place-items-center rounded-xl" style={{ background: `${k.renk}14`, color: k.renk }}>
                 <Ikon className="size-4" strokeWidth={2.2} />
               </span>
@@ -205,10 +205,10 @@ export function CanliSavunmaAkisi() {
         })}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_236px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_236px]">
         {/* Canlı olay akışı */}
         <div className="min-w-0">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">Canlı olay akışı</span>
             <Link href="/panel/trafik" className="flex items-center gap-1 text-[12px] font-medium text-brand-600 hover:text-brand-700">
               Tüm trafik <ArrowRight className="size-3.5" />
@@ -232,7 +232,7 @@ export function CanliSavunmaAkisi() {
                     initial={{ y: -8 }}
                     animate={{ y: 0 }}
                     transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2"
+                    className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-3.5 py-2.5"
                   >
                     <span className="grid size-8 shrink-0 place-items-center rounded-xl" style={{ background: g.soft, color: g.renk }}>
                       <Ikon className="size-4" strokeWidth={2.2} />

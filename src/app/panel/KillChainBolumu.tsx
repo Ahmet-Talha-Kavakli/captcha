@@ -190,7 +190,7 @@ function KillChainBar({
 
             {/* Aşamalar arası bağlantı çizgisi (son aşamadan sonra yok) */}
             {i < ASAMA_SIRA.length - 1 && (
-              <div className="relative h-[3px] min-w-3 flex-1 self-start overflow-hidden rounded-full bg-slate-100" style={{ marginTop: 16 }}>
+              <div className="relative h-[3px] min-w-3 flex-1 self-start overflow-hidden rounded-full bg-canvas" style={{ marginTop: 16 }}>
                 <motion.div
                   className="h-full rounded-full"
                   style={{
@@ -409,7 +409,7 @@ export function KillChainBolumu({
                     </div>
                     {/* Daralan huni çubuğu (ortalanmış, gerçek funnel hissi) */}
                     <div className="flex min-w-0 flex-1 items-center">
-                      <div className="flex h-7 w-full items-center justify-center overflow-hidden rounded-md bg-slate-100">
+                      <div className="flex h-7 w-full items-center justify-center overflow-hidden rounded-md bg-canvas">
                         <motion.div
                           className="flex h-full items-center justify-end rounded-md pr-2"
                           style={{ background: `${asamaHex}` }}
@@ -446,7 +446,7 @@ export function KillChainBolumu({
               Tehdit seviyesi dağılımı
             </div>
             {/* Segment şeridi (oranlı, tek satır ısı-bar) */}
-            <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-canvas">
               {tehditDagilim
                 .filter((t) => t.sayi > 0)
                 .map((t) => (

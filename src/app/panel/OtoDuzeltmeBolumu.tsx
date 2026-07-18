@@ -444,7 +444,7 @@ function BoslukKart({
             {sayi(bosluk.insanSayi)} meşru
           </span>
         </div>
-        <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-100">
+        <div className="flex h-1.5 overflow-hidden rounded-full bg-canvas">
           <div className="h-full" style={{ width: `${kotuOran}%`, background: hex }} />
         </div>
       </div>

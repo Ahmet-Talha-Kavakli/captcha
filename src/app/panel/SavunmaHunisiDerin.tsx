@@ -91,9 +91,9 @@ export function SavunmaHunisiDerin({ savunma, totals }: Props) {
         </span>
       }
     >
-      <div className="grid gap-5 lg:grid-cols-[1fr_260px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
         {/* Huni barları */}
-        <div className="min-w-0 space-y-2">
+        <div className="min-w-0 space-y-2.5">
           {/* Gelen (tam genişlik referans) */}
           <HuniSatir ad="Gelen İstek" aciklama="Tüm trafik" renk="#6b6a63" ikon={ArrowRight} genislik={100} sayi={gelen} elenen={null} href="/panel/trafik" gecikme={0} />
           {katmanlar.map((k, i) => {
@@ -119,9 +119,9 @@ export function SavunmaHunisiDerin({ savunma, totals }: Props) {
 
         {/* Özet: en etkili / en zayıf */}
         <div className="space-y-3">
-          <div className="rounded-2xl border border-line bg-canvas/40 px-4 py-3.5">
+          <div className="rounded-2xl border border-line bg-canvas/40 px-4 py-4">
             <span className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">Katman özeti</span>
-            <div className="mt-2 space-y-2.5 text-[12px]">
+            <div className="mt-3 space-y-2.5 text-[12px]">
               <div className="flex items-center justify-between">
                 <span className="text-slate-muted">Katman kapsaması</span>
                 <span className="num font-semibold text-slate-ink">%{Math.round(savunma.katmanKapsama.yuzde)}</span>
@@ -182,7 +182,7 @@ function HuniSatir({
           <span className="num font-semibold text-slate-ink">{sayi.toLocaleString("tr-TR")}</span>
         </span>
       </div>
-      <div className="h-6 overflow-hidden rounded-lg bg-canvas">
+      <div className="h-7 overflow-hidden rounded-lg bg-canvas">
         <motion.div
           className="flex h-full items-center rounded-lg pl-2 transition-opacity group-hover:opacity-90"
           style={{ background: `linear-gradient(90deg, ${renk}, ${renk}cc)` }}

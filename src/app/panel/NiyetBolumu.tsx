@@ -350,7 +350,7 @@ function OzetDagilim({ ozet, azHareket }: { ozet: NiyetOzet; azHareket: boolean 
       </div>
 
       {/* Yığılmış oran çubuğu */}
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-canvas">
         {varOlan.map((d, i) => {
           const t = NIYET_TANIM[d.motivasyon];
           return (
@@ -456,7 +456,7 @@ function SaldirganKart({ s, azHareket }: { s: SaldirganNiyet; azHareket: boolean
       </div>
 
       {/* Mini güven barı (en olası niyet olasılığı) */}
-      <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-canvas">
         <motion.div
           className="h-full rounded-full"
           style={{ background: t.hex }}

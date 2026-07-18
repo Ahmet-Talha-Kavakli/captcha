@@ -209,7 +209,7 @@ function SiteDagilim({
               <span className="w-24 shrink-0 truncate font-mono text-[11px] text-slate-muted" title={d.siteId}>
                 {siteKisa(d.siteId)}
               </span>
-              <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-canvas">
                 <motion.div
                   className="h-full rounded-full"
                   style={{ background: hex }}

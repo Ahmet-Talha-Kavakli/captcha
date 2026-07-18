@@ -175,7 +175,7 @@ function KatkiBar({
           %{oran}
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+      <div className="h-1.5 overflow-hidden rounded-full bg-canvas">
         <motion.div
           className="h-full rounded-full"
           style={{ background: hex }}

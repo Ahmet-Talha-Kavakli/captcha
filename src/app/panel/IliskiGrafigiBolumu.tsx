@@ -339,7 +339,7 @@ function TehditGauge({ skor, hex, azHareket }: { skor: number; hex: string; azHa
   return (
     <div className="relative grid size-[46px] place-items-center">
       <svg viewBox="0 0 40 40" className="size-full -rotate-90">
-        <circle cx="20" cy="20" r={r} fill="none" stroke="#eceae2" strokeWidth="4" />
+        <circle cx="20" cy="20" r={r} fill="none" stroke="var(--color-line)" strokeWidth="4" />
         <motion.circle
           cx="20"
           cy="20"

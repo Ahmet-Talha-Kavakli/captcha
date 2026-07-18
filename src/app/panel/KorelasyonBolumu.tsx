@@ -203,7 +203,7 @@ function MitigasyonHalka({
   return (
     <div className="relative grid place-items-center" style={{ width: boyut, height: boyut }}>
       <svg viewBox="0 0 56 56" className="size-full -rotate-90">
-        <circle cx="28" cy="28" r={r} fill="none" stroke="#eceae2" strokeWidth="5" />
+        <circle cx="28" cy="28" r={r} fill="none" stroke="var(--color-line)" strokeWidth="5" />
         <motion.circle
           cx="28"
           cy="28"
@@ -254,9 +254,9 @@ function MiniDonut({
     <div className="flex items-center gap-3">
       <div className="relative shrink-0" style={{ width: boyut, height: boyut }}>
         <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-          <circle cx="50" cy="50" r={r} fill="none" stroke="#eceae2" strokeWidth="9" />
+          <circle cx="50" cy="50" r={r} fill="none" stroke="var(--color-line)" strokeWidth="9" />
           {dilimler.map((s, i) => (
-            <motion.circle
+            <circle
               key={i}
               cx="50"
               cy="50"
@@ -267,9 +267,6 @@ function MiniDonut({
               strokeDasharray={`${s.uz} ${cevre - s.uz}`}
               strokeDashoffset={-s.off}
               strokeLinecap="butt"
-              initial={{ opacity: 0.001 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
             />
           ))}
         </svg>

@@ -78,23 +78,23 @@ export function TehditHaritasiOzet({ cografya }: { cografya: CografyaIstihbarat 
       }
     >
       {/* Üst özet metrikleri */}
-      <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <OzetMetrik etiket="Ülke" deger={cografya.ozet.ulkeSayisi} />
         <OzetMetrik etiket="Ağ (ASN)" deger={cografya.ozet.asnSayisi} />
         <OzetMetrik etiket="Datacenter" deger={`%${Math.round(cografya.ozet.datacenterOran * 100)}`} tehdit={cografya.ozet.datacenterOran > 0.3} />
         <OzetMetrik etiket="Riskli bölge" deger={cografya.riskliBolgeler.length} tehdit={cografya.riskliBolgeler.length > 0} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_270px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_270px]">
         {/* En riskli ülke kartları (ısı-renkli) */}
         <div className="min-w-0">
           <span className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">En riskli kaynaklar</span>
           {enRiskli.length === 0 ? (
-            <div className="mt-2 grid place-items-center rounded-2xl border border-dashed border-line py-8 text-[13px] text-slate-faint">
+            <div className="mt-3 grid place-items-center rounded-2xl border border-dashed border-line py-8 text-[13px] text-slate-faint">
               Coğrafi tehdit verisi yok.
             </div>
           ) : (
-            <div className="mt-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {enRiskli.map((u, i) => {
                 const isi = isiRenk(u);
                 return (
@@ -103,7 +103,7 @@ export function TehditHaritasiOzet({ cografya }: { cografya: CografyaIstihbarat 
                     initial={{ y: 10 }}
                     animate={{ y: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
-                    className="rounded-2xl border p-3"
+                    className="rounded-2xl border p-3.5"
                     style={{ background: isi.arka, borderColor: isi.kenar }}
                   >
                     <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export function TehditHaritasiOzet({ cografya }: { cografya: CografyaIstihbarat 
         </div>
 
         {/* ASN kategori özeti */}
-        <div className="space-y-2.5 rounded-2xl border border-line bg-canvas/40 px-4 py-3.5">
+        <div className="space-y-3 rounded-2xl border border-line bg-canvas/40 px-5 py-4">
           <span className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">Ağ kategorileri</span>
           {asnKategoriler.length === 0 ? (
             <p className="text-[12.5px] text-slate-faint">ASN verisi yok.</p>
@@ -169,9 +169,9 @@ export function TehditHaritasiOzet({ cografya }: { cografya: CografyaIstihbarat 
 
 function OzetMetrik({ etiket, deger, tehdit }: { etiket: string; deger: string | number; tehdit?: boolean }) {
   return (
-    <div className="rounded-2xl border border-line bg-canvas/40 px-3 py-2.5">
-      <p className="text-[11px] text-slate-muted">{etiket}</p>
-      <p className={cn("num mt-0.5 text-[19px] font-bold leading-none", tehdit ? "text-danger2" : "text-slate-ink")}>{typeof deger === "number" ? deger.toLocaleString("tr-TR") : deger}</p>
+    <div className="rounded-2xl border border-line bg-surface px-4 py-3.5 shadow-card">
+      <p className={cn("num text-[24px] font-bold leading-none", tehdit ? "text-danger2" : "text-slate-ink")}>{typeof deger === "number" ? deger.toLocaleString("tr-TR") : deger}</p>
+      <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-slate-faint">{etiket}</p>
     </div>
   );
 }

@@ -122,12 +122,13 @@ function SeviyeRozet({ seviye }: { seviye: TehditSeviye }) {
   );
 }
 
-/** Küçük vurgu-metrik hücresi (etiket + değer). */
+/** Küçük vurgu-metrik hücresi (etiket + değer). guven-merkezi StatKart dili:
+ *  temiz yüzey, büyük net sayı, ferah padding. */
 function VurguHucre({ etiket, deger }: { etiket: string; deger: string }) {
   return (
-    <div className="rounded-xl border border-line bg-canvas/40 px-3.5 py-3">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-slate-faint">{etiket}</div>
-      <div className="mt-1 text-[20px] font-bold leading-none num text-slate-ink">{deger}</div>
+    <div className="rounded-2xl border border-line bg-surface px-4 py-4 shadow-card">
+      <div className="text-[26px] font-bold leading-none num text-slate-ink">{deger}</div>
+      <div className="mt-2 text-[11px] font-medium uppercase tracking-wide text-slate-faint">{etiket}</div>
     </div>
   );
 }
@@ -137,9 +138,9 @@ function BrifingGovde({ brifing, azHareket }: { brifing: Brifing; azHareket: boo
   const s = SEVIYE_STIL[brifing.tehditSeviye];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* 1) Seviye rozeti + özet anlatı */}
-      <div className={cn("rounded-2xl border p-4 sm:p-5", s.kenar, s.ozetZemin)}>
+      <div className={cn("rounded-2xl border p-5 sm:p-6", s.kenar, s.ozetZemin)}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SeviyeRozet seviye={brifing.tehditSeviye} />
           <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-slate-faint">
@@ -147,18 +148,18 @@ function BrifingGovde({ brifing, azHareket }: { brifing: Brifing; azHareket: boo
             Otomatik üretilen istihbarat
           </span>
         </div>
-        <p className="mt-3.5 text-[14px] leading-relaxed text-slate-ink">{brifing.ozet}</p>
+        <p className="mt-4 text-[15px] leading-relaxed text-slate-ink">{brifing.ozet}</p>
       </div>
 
       {/* 2) Vurgular — 6 küçük metrik grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
         {brifing.vurgular.map((v) => (
           <VurguHucre key={v.etiket} etiket={v.etiket} deger={v.deger} />
         ))}
       </div>
 
       {/* 3) Bulgular + Öneriler */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-7 lg:grid-cols-2">
         {/* Bulgular */}
         <div>
           <div className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-slate-muted">
@@ -172,7 +173,7 @@ function BrifingGovde({ brifing, azHareket }: { brifing: Brifing; azHareket: boo
               const govde = (
                 <div
                   className={cn(
-                    "flex items-start gap-3 rounded-xl border px-3.5 py-3",
+                    "flex items-start gap-3 rounded-2xl border px-4 py-3.5",
                     st.kenar,
                     st.zemin,
                   )}
@@ -181,8 +182,8 @@ function BrifingGovde({ brifing, azHareket }: { brifing: Brifing; azHareket: boo
                     <Ikon className="size-4" />
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[13px] font-semibold text-slate-ink">{b.baslik}</div>
-                    <div className="mt-0.5 text-[12px] leading-relaxed text-slate-muted">{b.detay}</div>
+                    <div className="text-[13.5px] font-semibold text-slate-ink">{b.baslik}</div>
+                    <div className="mt-1 text-[12px] leading-relaxed text-slate-muted">{b.detay}</div>
                   </div>
                 </div>
               );
@@ -210,11 +211,11 @@ function BrifingGovde({ brifing, azHareket }: { brifing: Brifing; azHareket: boo
           <ol className="space-y-2.5">
             {brifing.oneriler.map((o, i) => {
               const govde = (
-                <li className="flex items-start gap-3 rounded-xl border border-line bg-surface px-3.5 py-3 transition hover:border-line-strong hover:bg-canvas/40">
+                <li className="flex items-start gap-3 rounded-2xl border border-line bg-surface px-4 py-3.5 transition hover:border-line-strong hover:bg-canvas/40">
                   <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-600 num">
                     {i + 1}
                   </span>
-                  <span className="flex-1 text-[13px] leading-relaxed text-slate-ink">{o}</span>
+                  <span className="flex-1 text-[13.5px] leading-relaxed text-slate-ink">{o}</span>
                   <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-slate-faint" />
                 </li>
               );

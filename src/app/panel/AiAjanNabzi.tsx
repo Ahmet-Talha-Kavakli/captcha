@@ -88,9 +88,9 @@ export function AiAjanNabzi({ aiRadar }: { aiRadar: AiBotRadar }) {
       }
     >
       {/* Anlatı bandı + kategori dağılımı */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-2xl border border-brand-100 bg-brand-50/60 px-4 py-3.5">
-          <p className="text-[14px] leading-relaxed text-slate-ink">
+      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        <div className="rounded-2xl border border-brand-100 bg-brand-50/60 px-5 py-4">
+          <p className="text-[15px] leading-relaxed text-slate-ink">
             {toplam > 0 ? (
               <>
                 <b className="num text-brand-700">{aiRadar.ozet.taninanAjan}</b> AI ajanı sitenizi taradı;{" "}
@@ -116,7 +116,7 @@ export function AiAjanNabzi({ aiRadar }: { aiRadar: AiBotRadar }) {
         </div>
 
         {/* Kategori dağılımı */}
-        <div className="space-y-2.5 rounded-2xl border border-line bg-canvas/40 px-4 py-3.5">
+        <div className="space-y-3 rounded-2xl border border-line bg-canvas/40 px-5 py-4">
           <span className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">Amaç dağılımı</span>
           {(Object.keys(KATEGORI) as (keyof typeof KATEGORI)[]).map((k) => {
             const meta = KATEGORI[k];
@@ -140,14 +140,14 @@ export function AiAjanNabzi({ aiRadar }: { aiRadar: AiBotRadar }) {
       </div>
 
       {/* En aktif AI crawler'lar */}
-      <div className="mt-5">
+      <div className="mt-6">
         <span className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">En aktif AI crawler'lar</span>
         {ajanlar.length === 0 ? (
-          <div className="mt-2 grid place-items-center rounded-2xl border border-dashed border-line py-8 text-[13px] text-slate-faint">
+          <div className="mt-3 grid place-items-center rounded-2xl border border-dashed border-line py-8 text-[13px] text-slate-faint">
             AI ajan tespit edilmedi.
           </div>
         ) : (
-          <div className="mt-2 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {ajanlar.map((a, i) => {
               const meta = ajanMeta(a.ad);
               const kat = KATEGORI[meta.kategori];

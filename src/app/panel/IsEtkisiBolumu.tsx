@@ -153,7 +153,7 @@ function RoiGauge({ carpanDeger, ucretsiz, azHareket }: { carpanDeger: number; u
         <path
           d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none"
-          stroke="#eceae2"
+          stroke="var(--color-line)"
           strokeWidth={9}
           strokeLinecap="round"
         />

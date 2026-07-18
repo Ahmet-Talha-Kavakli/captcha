@@ -12,9 +12,10 @@ import { motion } from "framer-motion";
 import { useId, useMemo, useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/cn";
 
-/* Ortak grafik palet sabitleri (renk-körü güvenli) */
-const GRID = "#eceae2"; // çok açık yatay grid
-const EKSEN_YAZI = "#9c9a90"; // slate-faint
+/* Ortak grafik palet sabitleri — CSS token'ına bağlı, böylece koyu temada da
+   doğru (sabit hex değil). SVG stroke/fill bu değişkenleri okuyabilir. */
+const GRID = "var(--color-line)"; // grid/zemin çizgisi — tema-duyarlı
+const EKSEN_YAZI = "var(--color-slate-faint)"; // eksen yazısı — tema-duyarlı
 const TABAN_YAZI = "#6b6a63"; // slate-muted
 
 /* ------------------------------------------------------- Koruma Skoru donut gauge */

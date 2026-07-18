@@ -276,26 +276,18 @@ export function GenelBakisIstemci({
         </motion.div>
       )}
 
-      {/* YÖNETİCİ TEHDİT BRİFİNGİ — otomatik istihbarat anlatısı (24s/7g/30g) */}
-      <motion.div {...bolum((bolumSira++) * 0.06)}>
-        <YoneticiBrifingi brifing24={brifing24} brifing7={brifing7} brifing30={brifing30} azHareket={!!azHareket} />
-      </motion.div>
-
-      {/* Specter Zeka içgörüsü + anomali */}
-      {gorunur("icgoru") && (
-        <motion.div {...bolum((bolumSira++) * 0.06)}>
-          <IcgoruKarti icgoru={icgoru} anomaliler={anomaliler} t={t} />
-        </motion.div>
-      )}
-
       {/* Koruma skoru + şeffaf kırılım (sol)  |  6 KPI (sağ)
-          guven-merkezi düzeni: halka YATAY (sol) + skor kırılımı (sağ). */}
+          guven-merkezi düzeni: SKOR + KPI EN ÜSTTE — kullanıcı paneli açar
+          açmaz güven duruşunu tek bakışta görür. Yönetici brifingi ve AI
+          içgörüsü (metin ağırlıklı) skordan SONRA gelir; böylece ilk ekran
+          metin duvarı değil, ferah bir skor + rakam paneli olur. */}
       <motion.div className="grid gap-5 lg:grid-cols-[360px_1fr]" {...bolum((bolumSira++) * 0.06)}>
         <Panel baslik={t("gb.korumaSkoru")}>
-          {/* Üst: halka solda + alt-sistem kırılımı sağda (guven-merkezi yatay) */}
-          <div className="flex items-center gap-5">
+          {/* Üst: halka solda + alt-sistem kırılımı sağda (guven-merkezi yatay).
+              Halka büyük ve ferah — panelin görsel çapası bu skor. */}
+          <div className="flex items-center gap-6">
             <div className="shrink-0">
-              <KorumaSkoru skor={skorSonuc.skor} boyut={148} />
+              <KorumaSkoru skor={skorSonuc.skor} boyut={168} />
             </div>
             <div className="min-w-0 flex-1 space-y-2.5">
               <div>
@@ -370,6 +362,19 @@ export function GenelBakisIstemci({
           ))}
         </div>
       </motion.div>
+
+      {/* YÖNETİCİ TEHDİT BRİFİNGİ — otomatik istihbarat anlatısı (24s/7g/30g).
+          Skor + KPI'dan SONRA: önce rakamlar, sonra anlatı. */}
+      <motion.div {...bolum((bolumSira++) * 0.06)}>
+        <YoneticiBrifingi brifing24={brifing24} brifing7={brifing7} brifing30={brifing30} azHareket={!!azHareket} />
+      </motion.div>
+
+      {/* Specter Zeka içgörüsü + anomali */}
+      {gorunur("icgoru") && (
+        <motion.div {...bolum((bolumSira++) * 0.06)}>
+          <IcgoruKarti icgoru={icgoru} anomaliler={anomaliler} t={t} />
+        </motion.div>
+      )}
 
       {/* ── CANLI OPERASYON KATMANI: 4 zengin bölüm (Datadog/Cloudflare seviyesi) ──
           6 KPI'dan SONRA, 14g trend'den ÖNCE. Hepsi mevcut proplardan/canlı
@@ -541,14 +546,15 @@ export function GenelBakisIstemci({
         </motion.div>
       )}
 
-      {/* modül kısayolları */}
+      {/* modül kısayolları — guven-merkezi "Modüller" bölümü dili: net başlık +
+          ferah kart grid, hover'da hafif yükselme. */}
       {gorunur("moduller") && (
         <motion.div {...bolum((bolumSira++) * 0.06)}>
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-slate-faint">{t("gb.moduller")}</h2>
+          <h2 className="mb-4 text-[15px] font-semibold text-slate-ink">{t("gb.moduller")}</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {moduller.map((m) => (
-              <Link key={m.key} href={m.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 transition hover:border-line-strong hover:bg-canvas/40">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+              <Link key={m.key} href={m.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:shadow-lift">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 transition group-hover:scale-110">
                   <LucideIkon name={m.icon} className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -739,14 +745,15 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
   ];
 
   return (
-    <div className="rounded-2xl border border-line bg-surface">
+    <div className="rounded-3xl border border-line bg-surface shadow-card">
+      {/* guven-merkezi başlık dili: net başlık + nabız, ferah üst boşluk */}
       <div className="flex flex-wrap items-center justify-between gap-4 px-6 pt-5 pb-4">
         <div className="flex items-center gap-2.5">
-          <span className="relative flex size-2">
+          <span className="relative flex size-2.5">
             {canli && <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />}
-            <span className={cn("relative inline-flex size-2 rounded-full", canli ? "bg-emerald-500" : "bg-line-strong")} />
+            <span className={cn("relative inline-flex size-2.5 rounded-full", canli ? "bg-emerald-500" : "bg-line-strong")} />
           </span>
-          <span className="text-[14px] font-semibold text-slate-ink">{t("gb.savunmaKomuta")}</span>
+          <span className="text-[15px] font-semibold text-slate-ink">{t("gb.savunmaKomuta")}</span>
           <span className="text-[12px] font-medium text-slate-faint">{canli ? t("gb.canli") : t("gb.duraklatildi")}</span>
         </div>
         <button onClick={() => setCanli((v) => !v)} className="text-[12.5px] font-medium text-slate-muted transition hover:text-slate-ink">
@@ -757,37 +764,37 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
       {/* metrik şeridi — borderless, ince dikey ayraçlarla; Tavily/Google dili.
           Metrikler ilgili derin sayfaya link (drill-down): tıkla, incele. */}
       <div className="grid divide-y divide-line border-t border-line sm:grid-cols-2 sm:divide-y-0 sm:divide-x lg:grid-cols-4">
-        <Link href="/panel/canli-konsol" className="group px-6 py-5 transition hover:bg-canvas/40">
+        <Link href="/panel/canli-konsol" className="group px-6 py-6 transition hover:bg-canvas/40">
           <div className="flex items-center gap-1.5 text-[12px] font-medium text-slate-faint"><Activity className="size-3.5" /> {t("gb.olayHizi")} <ArrowUpRight className="size-3 opacity-0 transition group-hover:opacity-100" /></div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="num text-[26px] font-bold leading-none tabular-nums text-slate-ink">{rps}</span>
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="num text-[30px] font-bold leading-none tabular-nums text-slate-ink">{rps}</span>
             <span className="text-[13px] text-slate-faint">{t("gb.olaySn")}</span>
           </div>
-          <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-canvas">
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-canvas">
             <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${Math.min(100, rps * 8)}%` }} />
           </div>
         </Link>
-        <Link href="/panel/tehdit" className="group px-6 py-5 transition hover:bg-canvas/40">
+        <Link href="/panel/tehdit" className="group px-6 py-6 transition hover:bg-canvas/40">
           <div className="flex items-center gap-1.5 text-[12px] font-medium text-slate-faint"><Radar className="size-3.5" /> {t("gb.tehditSeviyesi")} <ArrowUpRight className="size-3 opacity-0 transition group-hover:opacity-100" /></div>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-[20px] font-bold leading-none" style={{ color: seviye.renk }}>{seviye.ad}</span>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-[22px] font-bold leading-none" style={{ color: seviye.renk }}>{seviye.ad}</span>
             <span className="num text-[13px] text-slate-faint">{Math.round(tehditSkoru)}/100</span>
           </div>
-          <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-canvas">
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-canvas">
             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${tehditSkoru}%`, background: seviye.renk }} />
           </div>
         </Link>
-        <Link href="/panel/uyarilar" className="group px-6 py-5 transition hover:bg-canvas/40">
+        <Link href="/panel/uyarilar" className="group px-6 py-6 transition hover:bg-canvas/40">
           <div className="flex items-center gap-1.5 text-[12px] font-medium text-slate-faint"><Ban className="size-3.5" /> {t("gb.oturumEngelleme")} <ArrowUpRight className="size-3 opacity-0 transition group-hover:opacity-100" /></div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="num text-[26px] font-bold leading-none tabular-nums text-slate-ink">{sonOlaylar.blocked}</span>
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="num text-[30px] font-bold leading-none tabular-nums text-slate-ink">{sonOlaylar.blocked}</span>
             <span className="text-[13px] text-slate-faint">/ {sonOlaylar.total}</span>
           </div>
-          <div className="mt-1.5 text-[12px] text-slate-faint">{t("gb.canliAkis")}</div>
+          <div className="mt-2 text-[12px] text-slate-faint">{t("gb.canliAkis")}</div>
         </Link>
-        <div className="px-6 py-5">
-          <div className="mb-2.5 flex items-center gap-1.5 text-[12px] font-medium text-slate-faint"><ShieldCheck className="size-3.5" /> {t("gb.savunmaKatmanlari")}</div>
-          <div className="space-y-2">
+        <div className="px-6 py-6">
+          <div className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-slate-faint"><ShieldCheck className="size-3.5" /> {t("gb.savunmaKatmanlari")}</div>
+          <div className="space-y-2.5">
             {katmanlar.map((k) => (
               <div key={k.anahtar} className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-[12.5px] text-slate-muted">{k.ikon} {k.ad}</span>
@@ -804,8 +811,8 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
           Her karar (izin/engel/challenge) renkli bir satır olarak kayar;
           kullanıcı "sistem yaşıyor" hissini birebir görür. */}
       {akis.length > 0 && (
-        <div className="border-t border-line px-4 py-3">
-          <div className="mb-2 flex items-center gap-1.5 px-2 text-[11px] font-medium uppercase tracking-wide text-slate-faint">
+        <div className="border-t border-line px-5 py-4">
+          <div className="mb-2.5 flex items-center gap-1.5 px-2 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
             <Activity className="size-3" /> {t("gb.canliAkis")}
           </div>
           <div className="flex flex-col gap-1">
@@ -815,7 +822,7 @@ function KomutaSeridi({ kritikUyari, botOran, aktifKampanya, t }: { kritikUyari:
               return (
                 <div
                   key={`${o.ts}-${i}`}
-                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[12px] transition hover:bg-canvas/60"
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[12px] transition hover:bg-canvas/60"
                   style={i === 0 ? { animation: "zn-slide-in 0.4s both" } : undefined}
                 >
                   <span className="size-1.5 shrink-0 rounded-full" style={{ background: renk }} />

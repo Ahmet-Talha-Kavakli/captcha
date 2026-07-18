@@ -174,7 +174,7 @@ function GuvenHalka({
   return (
     <div className="relative grid place-items-center" style={{ width: boyut, height: boyut }}>
       <svg viewBox="0 0 52 52" className="size-full -rotate-90">
-        <circle cx="26" cy="26" r={r} fill="none" stroke="#eceae2" strokeWidth="5" />
+        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--color-line)" strokeWidth="5" />
         <motion.circle
           cx="26"
           cy="26"
@@ -228,9 +228,9 @@ function MiniDonut({
     <div className="flex items-center gap-3">
       <div className="relative shrink-0" style={{ width: boyut, height: boyut }}>
         <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-          <circle cx="50" cy="50" r={r} fill="none" stroke="#eceae2" strokeWidth="9" />
+          <circle cx="50" cy="50" r={r} fill="none" stroke="var(--color-line)" strokeWidth="9" />
           {dilimler.map((s, i) => (
-            <motion.circle
+            <circle
               key={i}
               cx="50"
               cy="50"
@@ -241,9 +241,6 @@ function MiniDonut({
               strokeDasharray={`${s.uz} ${cevre - s.uz}`}
               strokeDashoffset={-s.off}
               strokeLinecap="butt"
-              initial={{ opacity: 0.001 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
             />
           ))}
         </svg>
@@ -559,7 +556,7 @@ export function TehditAktorBolumu({ aktor, azHareket }: { aktor: AktorSonuc; azH
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[11.5px] font-medium text-slate-ink">{p.ad}</div>
-                        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-canvas">
                           <motion.div
                             className="h-full rounded-full"
                             style={{ background: renk }}
