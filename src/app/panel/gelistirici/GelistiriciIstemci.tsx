@@ -1334,12 +1334,32 @@ function SdkSekme({ t }: { t: CevirFn }) {
         <p className="-mt-1 mb-3 text-[13px] text-slate-muted">
           {t("gel.sdk.widgetKurulum.aciklama")}
         </p>
-        <KodBlok dil="html" baslik="index.html" kod={`<script src="https://cdn.veylify.com/widget.js" async defer></script>
+        <KodBlok dil="html" baslik="index.html" kod={`<script src="https://cdn.veylify.com/veylify.js" async defer></script>
 
 <form method="POST" action="/submit">
-  <div class="veylify-widget" data-sitekey="pk_live_a1b2c3..."></div>
+  <!-- Temel: yalnızca site anahtarı gerekli (class "veylify" olmalı) -->
+  <div class="veylify" data-sitekey="pk_live_a1b2c3..."></div>
   <button type="submit">Gönder</button>
 </form>`} />
+        <p className="mt-3 text-[13px] text-slate-muted">Opsiyonel öznitelikler ile davranışı özelleştirin:</p>
+        <KodBlok dil="html" baslik="Tüm opsiyonlar" kod={`<div class="veylify"
+     data-sitekey="pk_live_a1b2c3..."
+     data-lang="tr"            <!-- tr|en|de|fr|es|ar|ru|pt (varsayılan: sayfa dili) -->
+     data-theme="auto"         <!-- light|dark|auto (varsayılan: auto) -->
+     data-callback="onDogrulandi">
+</div>
+
+<script>
+  // Doğrulama başarılı olunca token ile çağrılır (event dinlemeye gerek yok)
+  function onDogrulandi(token, sonuc) {
+    console.log("Doğrulandı:", token);
+    // token'ı formunuzla /api/v1/siteverify'a gönderip sunucuda teyit edin
+  }
+  // Alternatif: event dinleme
+  document.querySelector(".veylify").addEventListener("veylify-verified", function (e) {
+    console.log("Token:", e.detail.token);
+  });
+</script>`} />
       </Panel>
 
       <Panel baslik={t("gel.sdk.sunucuSdk")} sagUst={<Code className="size-4 text-slate-faint" />}>
