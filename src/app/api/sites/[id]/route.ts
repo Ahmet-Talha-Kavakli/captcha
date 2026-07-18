@@ -33,6 +33,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 /** İnsan-okur değişiklik özeti (audit onceki/sonraki + toast) için etiketler. */
 const MOD_ETIKET: Record<string, string> = { monitor: "İzleme", challenge: "Doğrulama", block: "Engelleme" };
 const ZORLUK_ETIKET: Record<string, string> = { low: "Düşük", medium: "Orta", high: "Yüksek" };
+const TUR_ETIKET: Record<string, string> = { kod: "Kod", sayi: "Sayı", yon: "Yön", sec: "Seçim", rotasyon: "Rotasyon" };
+const GECERLI_TUR = ["kod", "sayi", "yon", "sec", "rotasyon"];
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -69,6 +71,13 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (["monitor", "challenge", "block"].includes(body.mode) && body.mode !== site.mode) {
     patch.mode = body.mode;
     alan = "Koruma modu"; onceki = MOD_ETIKET[site.mode]; sonraki = MOD_ETIKET[body.mode];
+  }
+  // Challenge türü (kod/sayı/yön/seç/rotasyon) — daha önce PATCH'te İŞLENMİYORDU:
+  // alan + challenge route + widget destekliyordu ama site sahibi panelden
+  // DEĞİŞTİREMİYORDU (özellik tamdı, son bağlantı eksikti).
+  if (GECERLI_TUR.includes(body.challengeType) && body.challengeType !== (site.challengeType ?? "kod")) {
+    patch.challengeType = body.challengeType;
+    alan = "Doğrulama türü"; onceki = TUR_ETIKET[site.challengeType ?? "kod"]; sonraki = TUR_ETIKET[body.challengeType];
   }
   if (typeof body.rateLimit === "number") {
     // 0 = kapalı; üst sınır makul tutulur (0..100000).

@@ -306,6 +306,14 @@ async function main() {
   const monMode = await (await fetch(`${BASE}/api/v1/passive`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: monSite.siteKey, signals: botSig }) })).json();
   check("Monitor modu: aynı bot → geçer ama monitor:true işaretli (izle-engelleme)", monMode.passed === true && monMode.monitor === true);
 
+  // 18d) CHALLENGE TÜRÜ — site sahibi challengeType değiştirince challenge o türde gelmeli.
+  await fetch(`${BASE}/api/sites/${monSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ challengeType: "sayi" }) });
+  const chSayi = await (await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: monSite.siteKey }) })).json();
+  check("challengeType=sayi → challenge 'sayi' türünde gelir (ayar yansır)", chSayi.params?.type === "sayi");
+  await fetch(`${BASE}/api/sites/${monSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ challengeType: "yon" }) });
+  const chYon = await (await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: monSite.siteKey }) })).json();
+  check("challengeType=yon → challenge 'yon' türünde gelir", chYon.params?.type === "yon");
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;
