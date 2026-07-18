@@ -16,7 +16,8 @@
  * (bg-canvas), tabular-nums, rounded kartlar; framer-motion rise (azHareket → sade).
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Network,
   KeyRound,
@@ -33,6 +34,7 @@ import {
   Gauge,
   Radio,
   Boxes,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -339,10 +341,14 @@ function KampanyaKart({
   kor,
   aktif,
   azHareket,
+  acik,
+  onToggle,
 }: {
   kor: Korelasyon;
   aktif: boolean;
   azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
 }) {
   const turTanim = TUR_TANIM[kor.tur];
   const TurIkon = turTanim.ikon;
@@ -359,10 +365,17 @@ function KampanyaKart({
       className={cn(
         "rounded-2xl border bg-canvas/40 p-4 transition",
         aktif ? "border-red-200 bg-danger-soft/25" : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: tür + başlık + durum */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: tür + başlık + durum — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${turTanim.ad} kampanyası detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -408,20 +421,46 @@ function KampanyaKart({
           </div>
         </div>
 
-        {/* Güven skoru pili */}
-        <div className="flex shrink-0 flex-col items-end">
-          <div className="flex items-center gap-1.5">
-            <Gauge className="size-3.5 text-slate-faint" />
-            <span className="text-[15px] font-bold tabular-nums" style={{ color: siddet.hex }}>
-              %{kor.guvenSkoru}
-            </span>
+        {/* Güven skoru pili + drill-down oku */}
+        <div className="flex shrink-0 items-center gap-2.5">
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1.5">
+              <Gauge className="size-3.5 text-slate-faint" />
+              <span className="text-[15px] font-bold tabular-nums" style={{ color: siddet.hex }}>
+                %{kor.guvenSkoru}
+              </span>
+            </div>
+            <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">güven</span>
           </div>
-          <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">güven</span>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
         </div>
-      </div>
+      </button>
 
+      {/* İpucu — kapalıyken tıkla-aç yönergesi */}
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
+      )}
+
+      {/* Drill-down detay — tıklayınca açılır */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
       {/* Metrikler */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+      <div className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         <Metrik ikon={Boxes} etiket="Olay">
           {sayi(kor.olaySayisi)}
         </Metrik>
@@ -496,6 +535,9 @@ function KampanyaKart({
           </div>
         </div>
       </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -511,6 +553,8 @@ export function KorelasyonBolumu({
   ozet: KorelasyonOzet;
   azHareket: boolean;
 }) {
+  // Açık drill-down kampanyası (id) — null = hepsi kapalı.
+  const [acikId, setAcikId] = useState<string | null>(null);
   const gosterilecek = korelasyonlar.slice(0, 8);
   // "Aktif" belirleme motorla aynı mantık: en yeni olaya göre son 15 dk.
   const enYeniAn = korelasyonlar.reduce((m, k) => Math.max(m, k.sonGorulme), 0);
@@ -629,7 +673,13 @@ export function KorelasyonBolumu({
           <div className="mt-5 space-y-3">
             {gosterilecek.map((kor, i) => (
               <Bolum key={kor.id} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                <KampanyaKart kor={kor} aktif={aktifMi(kor)} azHareket={azHareket} />
+                <KampanyaKart
+                  kor={kor}
+                  aktif={aktifMi(kor)}
+                  azHareket={azHareket}
+                  acik={acikId === kor.id}
+                  onToggle={() => setAcikId(acikId === kor.id ? null : kor.id)}
+                />
               </Bolum>
             ))}
           </div>

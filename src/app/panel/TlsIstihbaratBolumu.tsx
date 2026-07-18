@@ -18,7 +18,8 @@
  * (azHareket → sade). whileInView / viewport / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Fingerprint,
   ShieldCheck,
@@ -35,6 +36,7 @@ import {
   Ban,
   AlertTriangle,
   Layers,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -197,7 +199,17 @@ function Metrik({
 
 /* ================================================================== JA3 küme kartı */
 
-function Ja3Kart({ kume, azHareket }: { kume: Ja3Kume; azHareket: boolean }) {
+function Ja3Kart({
+  kume,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  kume: Ja3Kume;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const tanim = SINIF_TANIM[kume.sinif] ?? SINIF_TANIM.bilinmiyor;
   const SinifIkon = tanim.ikon;
   // "Sahte tarayıcı" (UA-TLS uyumsuz) EN KRİTİK — kartı kırmızıya boya.
@@ -217,6 +229,7 @@ function Ja3Kart({ kume, azHareket }: { kume: Ja3Kume; azHareket: boolean }) {
           : vurgulu
             ? "border-red-200 bg-danger-soft/25"
             : "border-line",
+        acik && !sahtekarlik && "ring-1 ring-inset ring-slate-300",
       )}
     >
       {/* Isı-renkli sol şerit — tehdit skoruna göre (görsel sıcaklık ipucu) */}
@@ -226,8 +239,14 @@ function Ja3Kart({ kume, azHareket }: { kume: Ja3Kume; azHareket: boolean }) {
         aria-hidden
       />
 
-      {/* Üst şerit: sınıf ikonu + TR sınıf + açıklama + tehdit skoru */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: sınıf ikonu + TR sınıf + açıklama + tehdit skoru — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${tanim.ad} (${ja3Kisa(kume.ja3)}) JA3 imzası detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -251,117 +270,148 @@ function Ja3Kart({ kume, azHareket }: { kume: Ja3Kume; azHareket: boolean }) {
           </div>
         </div>
 
-        {/* Tehdit skoru pili */}
-        <div className="flex shrink-0 flex-col items-end">
-          <div className="flex items-center gap-1.5">
-            <Gauge className="size-3.5 text-slate-faint" />
-            <span className="text-[15px] font-bold tabular-nums" style={{ color: tSkorRenk }}>
-              {kume.tehditSkoru}
-            </span>
-          </div>
-          <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">tehdit skoru</span>
-        </div>
-      </div>
-
-      {/* KRİTİK sahtekârlık rozeti — UA tarayıcı der ama JA3 araç imzası */}
-      {sahtekarlik && (
-        <div className="mb-3.5 flex items-center gap-2.5 rounded-xl border border-red-300 bg-danger-soft px-3 py-2.5">
-          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-danger2 text-white">
-            <AlertTriangle className="size-4" />
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[12.5px] font-bold uppercase tracking-wide text-red-700">
-                UA-TLS Uyumsuz — Sahte
+        {/* Tehdit skoru pili + chevron */}
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1.5">
+              <Gauge className="size-3.5 text-slate-faint" />
+              <span className="text-[15px] font-bold tabular-nums" style={{ color: tSkorRenk }}>
+                {kume.tehditSkoru}
               </span>
             </div>
-            <p className="mt-0.5 text-[11.5px] leading-snug text-red-800">
-              User-Agent bir tarayıcı iddia ediyor, fakat JA3 imzası bir otomasyon aracına ait —
-              bu istek kimliğini gizliyor.
-            </p>
+            <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">tehdit skoru</span>
           </div>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
         </div>
+      </button>
+
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
       )}
 
-      {/* JA3 hash + baskın motor */}
-      <div className="mb-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-            <Fingerprint className="size-3" />
-            JA3
-          </span>
-          <span className="truncate rounded bg-canvas px-1.5 py-0.5 font-mono text-[11.5px] text-slate-ink ring-1 ring-inset ring-line">
-            {ja3Kisa(kume.ja3)}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-            <Cpu className="size-3" />
-            Motor
-          </span>
-          <span className="rounded bg-canvas px-1.5 py-0.5 font-mono text-[11.5px] text-slate-muted ring-1 ring-inset ring-line">
-            {engineEtiket(kume.engine)}
-          </span>
-        </div>
-      </div>
-
-      {/* Metrikler */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-        <Metrik ikon={Boxes} etiket="Toplam olay">
-          {sayi(kume.toplam)}
-        </Metrik>
-        <Metrik ikon={Server} etiket="Benzersiz IP">
-          {sayi(kume.benzersizIp)}
-        </Metrik>
-        <Metrik ikon={Ban} etiket="Engellenen" ton={kume.engellenen > 0 ? "danger" : "ink"}>
-          {sayi(kume.engellenen)}
-        </Metrik>
-        <Metrik ikon={Gauge} etiket="Tehdit">
-          <span style={{ color: tSkorRenk }}>{kume.tehditSkoru}</span>
-          <span className="text-[11px] font-medium text-slate-faint">/100</span>
-        </Metrik>
-      </div>
-
-      {/* Kaynak ülkeler */}
-      {ulkeGoster.length > 0 && (
-        <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-              <Globe className="size-3" />
-              Kaynak
-            </span>
-            <div className="flex flex-wrap items-center gap-1">
-              {ulkeGoster.map((u) => (
-                <Ulke key={u} kod={u} />
-              ))}
-              {ulkeArtan > 0 && (
-                <span className="rounded bg-canvas px-1.5 py-0.5 text-[11px] font-medium text-slate-muted">
-                  +{ulkeArtan}
-                </span>
+      {/* Genişleyen ağır detay — tıklayınca açılır */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3.5">
+              {/* KRİTİK sahtekârlık rozeti — UA tarayıcı der ama JA3 araç imzası */}
+              {sahtekarlik && (
+                <div className="mb-3.5 flex items-center gap-2.5 rounded-xl border border-red-300 bg-danger-soft px-3 py-2.5">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-danger2 text-white">
+                    <AlertTriangle className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12.5px] font-bold uppercase tracking-wide text-red-700">
+                        UA-TLS Uyumsuz — Sahte
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11.5px] leading-snug text-red-800">
+                      User-Agent bir tarayıcı iddia ediyor, fakat JA3 imzası bir otomasyon aracına ait —
+                      bu istek kimliğini gizliyor.
+                    </p>
+                  </div>
+                </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Örnek User-Agent — TLS ile karşılaştırma için (mono, kısaltılmış) */}
-      <div className="mt-3.5 flex min-w-0 items-center gap-1.5 border-t border-line/70 pt-3">
-        <span className="inline-flex shrink-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
-          <Layers className="size-3" />
-          Örnek UA
-        </span>
-        <span
-          className={cn(
-            "truncate rounded px-1.5 py-0.5 font-mono text-[11px] ring-1 ring-inset",
-            sahtekarlik
-              ? "bg-danger-soft/60 text-red-800 ring-red-200"
-              : "bg-canvas text-slate-muted ring-line",
-          )}
-          title={kume.ornekUa}
-        >
-          {uaKisa(kume.ornekUa)}
-        </span>
-      </div>
+              {/* JA3 hash + baskın motor */}
+              <div className="mb-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                    <Fingerprint className="size-3" />
+                    JA3
+                  </span>
+                  <span className="truncate rounded bg-canvas px-1.5 py-0.5 font-mono text-[11.5px] text-slate-ink ring-1 ring-inset ring-line">
+                    {ja3Kisa(kume.ja3)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                    <Cpu className="size-3" />
+                    Motor
+                  </span>
+                  <span className="rounded bg-canvas px-1.5 py-0.5 font-mono text-[11.5px] text-slate-muted ring-1 ring-inset ring-line">
+                    {engineEtiket(kume.engine)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Metrikler */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+                <Metrik ikon={Boxes} etiket="Toplam olay">
+                  {sayi(kume.toplam)}
+                </Metrik>
+                <Metrik ikon={Server} etiket="Benzersiz IP">
+                  {sayi(kume.benzersizIp)}
+                </Metrik>
+                <Metrik ikon={Ban} etiket="Engellenen" ton={kume.engellenen > 0 ? "danger" : "ink"}>
+                  {sayi(kume.engellenen)}
+                </Metrik>
+                <Metrik ikon={Gauge} etiket="Tehdit">
+                  <span style={{ color: tSkorRenk }}>{kume.tehditSkoru}</span>
+                  <span className="text-[11px] font-medium text-slate-faint">/100</span>
+                </Metrik>
+              </div>
+
+              {/* Kaynak ülkeler */}
+              {ulkeGoster.length > 0 && (
+                <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                      <Globe className="size-3" />
+                      Kaynak
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1">
+                      {ulkeGoster.map((u) => (
+                        <Ulke key={u} kod={u} />
+                      ))}
+                      {ulkeArtan > 0 && (
+                        <span className="rounded bg-canvas px-1.5 py-0.5 text-[11px] font-medium text-slate-muted">
+                          +{ulkeArtan}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Örnek User-Agent — TLS ile karşılaştırma için (mono, kısaltılmış) */}
+              <div className="mt-3.5 flex min-w-0 items-center gap-1.5 border-t border-line/70 pt-3">
+                <span className="inline-flex shrink-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                  <Layers className="size-3" />
+                  Örnek UA
+                </span>
+                <span
+                  className={cn(
+                    "truncate rounded px-1.5 py-0.5 font-mono text-[11px] ring-1 ring-inset",
+                    sahtekarlik
+                      ? "bg-danger-soft/60 text-red-800 ring-red-200"
+                      : "bg-canvas text-slate-muted ring-line",
+                  )}
+                  title={kume.ornekUa}
+                >
+                  {uaKisa(kume.ornekUa)}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -370,6 +420,8 @@ function Ja3Kart({ kume, azHareket }: { kume: Ja3Kume; azHareket: boolean }) {
 
 export function TlsIstihbaratBolumu({ tls, azHareket }: { tls: TlsSonuc; azHareket: boolean }) {
   const { kumeler, ozet } = tls;
+  // Açık drill-down JA3 kümesi (benzersiz anahtar: ja3).
+  const [acikId, setAcikId] = useState<string | null>(null);
   // Tehdit skoruna göre sırala (motor zaten sıralı gönderir); ilk 8'i göster.
   const gosterilecek = [...kumeler]
     .sort((a, b) => b.tehditSkoru - a.tehditSkoru || b.toplam - a.toplam)
@@ -514,7 +566,12 @@ export function TlsIstihbaratBolumu({ tls, azHareket }: { tls: TlsSonuc; azHarek
           <div className="mt-5 space-y-3">
             {gosterilecek.map((k, i) => (
               <Bolum key={k.ja3} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                <Ja3Kart kume={k} azHareket={azHareket} />
+                <Ja3Kart
+                  kume={k}
+                  azHareket={azHareket}
+                  acik={acikId === k.ja3}
+                  onToggle={() => setAcikId(acikId === k.ja3 ? null : k.ja3)}
+                />
               </Bolum>
             ))}
           </div>

@@ -23,7 +23,8 @@
  * (azHareket → sade). whileInView / viewport / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain,
   Target,
@@ -38,6 +39,7 @@ import {
   Sparkles,
   Users,
   Lightbulb,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -408,17 +410,41 @@ function OzetDagilim({ ozet, azHareket }: { ozet: NiyetOzet; azHareket: boolean 
  * Tek saldırgan (IP) için niyet kartı: IP + ülke + olay sayısı + niyet rozeti +
  * %güven + en güçlü kanıtın detayı. "Bu IP ne peşinde?" — tek bakışta.
  */
-function SaldirganKart({ s, azHareket }: { s: SaldirganNiyet; azHareket: boolean }) {
+function SaldirganKart({
+  s,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  s: SaldirganNiyet;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const niyet = s.sonuc.niyet;
   const t = NIYET_TANIM[niyet];
   const pct = yuzde(s.sonuc.dagilim[0]?.olasilik ?? 0);
-  const enGuclu = [...s.sonuc.kanitlar].sort(
+  // Kanıtları baskın niyete etkisine göre sırala (en güçlüsü en üstte).
+  const siraliKanitlar = [...s.sonuc.kanitlar].sort(
     (a, b) => (b.etkiler[niyet] ?? 0) - (a.etkiler[niyet] ?? 0),
-  )[0];
+  );
+  const enGuclu = siraliKanitlar[0];
 
   return (
-    <div className="rounded-2xl border border-line bg-canvas/40 p-3.5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div
+      className={cn(
+        "rounded-2xl border border-line bg-canvas/40 p-3.5 transition",
+        acik && "ring-1 ring-inset ring-slate-300",
+      )}
+    >
+      {/* Üst şerit: kimlik + niyet + güven — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${s.anahtar} niyet detayını ${acik ? "kapat" : "aç"}`}
+        className="flex w-full flex-wrap items-center justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           {/* Niyet ikon rozeti */}
           <span
@@ -452,8 +478,14 @@ function SaldirganKart({ s, azHareket }: { s: SaldirganNiyet; azHareket: boolean
               güven
             </span>
           </div>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
         </div>
-      </div>
+      </button>
 
       {/* Mini güven barı (en olası niyet olasılığı) */}
       <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-canvas">
@@ -466,7 +498,7 @@ function SaldirganKart({ s, azHareket }: { s: SaldirganNiyet; azHareket: boolean
         />
       </div>
 
-      {/* En güçlü kanıt / gerekçe */}
+      {/* En güçlü kanıt / gerekçe (özet — hep görünür) */}
       {enGuclu ? (
         <p className="mt-2 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-slate-muted">
           <Fingerprint className="mt-0.5 size-3 shrink-0 text-slate-faint" />
@@ -477,6 +509,111 @@ function SaldirganKart({ s, azHareket }: { s: SaldirganNiyet; azHareket: boolean
       ) : (
         <p className="mt-2 text-[11.5px] leading-relaxed text-slate-faint">
           Ayırt edici kanıt zayıf — niyet önsel dağılıma yakın.
+        </p>
+      )}
+
+      {/* Drill-down detay: tam kanıt dökümü + softmax dağılımı (tıklayınca açılır) */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3.5 grid gap-4 border-t border-line pt-3.5 lg:grid-cols-12">
+              {/* Sol: tüm kanıtlar — motorun her göstergesi + baskın niyete etkisi */}
+              <div className="lg:col-span-7">
+                <div className="mb-2 flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                  <Fingerprint className="size-3" />
+                  Tüm kanıtlar — {sayi(siraliKanitlar.length)} gösterge
+                </div>
+                {siraliKanitlar.length > 0 ? (
+                  <ul className="space-y-1.5">
+                    {siraliKanitlar.map((k, i) => {
+                      const etki = k.etkiler[niyet] ?? 0;
+                      return (
+                        <li
+                          key={`${k.ad}-${i}`}
+                          className="rounded-lg border border-line bg-surface/70 px-2.5 py-2"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-[11.5px] font-semibold text-slate-ink">
+                              {k.ad}
+                            </span>
+                            {etki > 0 && (
+                              <span
+                                className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums"
+                                style={{ background: `${t.hex}14`, color: t.hex }}
+                              >
+                                +{yuzde(etki)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 text-[11px] leading-relaxed text-slate-muted">
+                            {k.detay}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-[11.5px] text-slate-faint">
+                    Ayırt edici kanıt yok — niyet önsel dağılıma yakın.
+                  </p>
+                )}
+              </div>
+
+              {/* Sağ: bu saldırgana özel softmax dağılımı (tüm motivasyonlar) */}
+              <div className="lg:col-span-5">
+                <div className="mb-2 flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                  <Sparkles className="size-3" />
+                  Motivasyon olasılık dağılımı
+                </div>
+                <div className="space-y-1.5">
+                  {NIYET_SIRA.map((m) => {
+                    const d = s.sonuc.dagilim.find((x) => x.motivasyon === m);
+                    const oran = yuzde(d?.olasilik ?? 0);
+                    const mt = NIYET_TANIM[m];
+                    const baskin = m === niyet;
+                    return (
+                      <div key={m} className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "w-[92px] shrink-0 truncate text-[11px]",
+                            baskin ? "font-semibold text-slate-ink" : "text-slate-muted",
+                          )}
+                        >
+                          {mt.ad}
+                        </span>
+                        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-canvas">
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: mt.hex }}
+                            initial={azHareket ? false : { width: 0 }}
+                            animate={azHareket ? undefined : { width: `${oran}%` }}
+                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          />
+                        </div>
+                        <span className="w-8 shrink-0 text-right text-[11px] tabular-nums text-slate-faint">
+                          %{oran}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
         </p>
       )}
     </div>
@@ -496,6 +633,7 @@ export function NiyetBolumu({
   ozet: NiyetOzet;
   azHareket: boolean;
 }) {
+  const [acikId, setAcikId] = useState<string | null>(null);
   const gosterilecek = saldirganlar.slice(0, 8);
   const baskinTanim = ozet.baskinNiyet ? NIYET_TANIM[ozet.baskinNiyet] : null;
   // Üst KPI şeridi verileri (hepsi motordan türetilir).
@@ -615,7 +753,12 @@ export function NiyetBolumu({
             <div className="space-y-2.5">
               {gosterilecek.map((s, i) => (
                 <Bolum key={s.anahtar} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                  <SaldirganKart s={s} azHareket={azHareket} />
+                  <SaldirganKart
+                    s={s}
+                    azHareket={azHareket}
+                    acik={acikId === s.anahtar}
+                    onToggle={() => setAcikId(acikId === s.anahtar ? null : s.anahtar)}
+                  />
                 </Bolum>
               ))}
             </div>

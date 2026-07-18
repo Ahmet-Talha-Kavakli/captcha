@@ -21,7 +21,8 @@
  * (azHareket → sade). whileInView / viewport / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Fingerprint,
   User,
@@ -31,6 +32,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   Gauge,
+  ChevronDown,
   Activity,
   HelpCircle,
   Waves,
@@ -193,7 +195,7 @@ function KatkiBar({
 
 /* ================================================================== Profil kartı */
 
-function ProfilKart({ kart, azHareket }: { kart: BiyometriKart; azHareket: boolean }) {
+function ProfilKart({ kart, azHareket, acik, onToggle }: { kart: BiyometriKart; azHareket: boolean; acik: boolean; onToggle: () => void }) {
   const { tur, sonuc } = kart;
   const turTanim = TUR_TANIM[tur];
   const TurIkon = turTanim.ikon;
@@ -208,10 +210,17 @@ function ProfilKart({ kart, azHareket }: { kart: BiyometriKart; azHareket: boole
       className={cn(
         "rounded-2xl border bg-canvas/40 p-4 transition",
         bot ? "border-red-200 bg-danger-soft/25" : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: profil türü + sınıf + insanlık skoru */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: profil türü + sınıf + insanlık skoru — TIKLANABİLİR (drill-down) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${turTanim.ad} biyometri detayını ${acik ? "kapat" : "aç"}`}
+        className="mb-3.5 flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -232,48 +241,70 @@ function ProfilKart({ kart, azHareket }: { kart: BiyometriKart; azHareket: boole
         </div>
 
         {/* İnsanlık skoru pili */}
-        <div className="flex shrink-0 flex-col items-end">
-          <div className="flex items-center gap-1.5">
-            <Gauge className="size-3.5 text-slate-faint" />
-            <span className="text-[15px] font-bold tabular-nums" style={{ color: hex }}>
-              %{skorYuzde}
-            </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1.5">
+              <Gauge className="size-3.5 text-slate-faint" />
+              <span className="text-[15px] font-bold tabular-nums" style={{ color: hex }}>
+                %{skorYuzde}
+              </span>
+            </div>
+            <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">insanlık skoru</span>
           </div>
-          <span className="text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">insanlık skoru</span>
+          <ChevronDown className={cn("size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
         </div>
-      </div>
+      </button>
 
-      {/* Özellik katkı barları (açıklanabilirlik) */}
-      <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-        {sonuc.katkilar.map((k, i) => (
-          <KatkiBar
-            key={k.ad}
-            ad={k.ad}
-            insanimsilik={k.insanimsilik}
-            band={k.band}
-            aciklama={k.aciklama}
-            azHareket={azHareket}
-            gecikme={0.1 + i * 0.04}
-          />
-        ))}
-      </div>
+      {/* Drill-down: katkı barları + en zayıf sinyal (tıklayınca açılır) */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            {/* Özellik katkı barları (açıklanabilirlik) */}
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+              {sonuc.katkilar.map((k, i) => (
+                <KatkiBar
+                  key={k.ad}
+                  ad={k.ad}
+                  insanimsilik={k.insanimsilik}
+                  band={k.band}
+                  aciklama={k.aciklama}
+                  azHareket={azHareket}
+                  gecikme={0.1 + i * 0.04}
+                />
+              ))}
+            </div>
 
-      {/* En zayıf sinyal + gerekçe */}
-      <div
-        className={cn(
-          "mt-3.5 flex items-start gap-2.5 rounded-xl border px-3 py-2.5",
-          bot ? "border-red-200 bg-danger-soft/50" : "border-line bg-canvas/60",
+            {/* En zayıf sinyal + gerekçe */}
+            <div
+              className={cn(
+                "mt-3.5 flex items-start gap-2.5 rounded-xl border px-3 py-2.5",
+                bot ? "border-red-200 bg-danger-soft/50" : "border-line bg-canvas/60",
+              )}
+            >
+              <Waves className="mt-0.5 size-4 shrink-0" style={{ color: hex }} />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-faint">
+                  En çok ele veren sinyal
+                  <span className="font-semibold normal-case text-slate-ink">{sonuc.zayifSinyal}</span>
+                </div>
+                <p className="mt-0.5 text-[11.5px] leading-snug text-slate-muted">{sonuc.gerekce}</p>
+              </div>
+            </div>
+          </motion.div>
         )}
-      >
-        <Waves className="mt-0.5 size-4 shrink-0" style={{ color: hex }} />
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-faint">
-            En çok ele veren sinyal
-            <span className="font-semibold normal-case text-slate-ink">{sonuc.zayifSinyal}</span>
-          </div>
-          <p className="mt-0.5 text-[11.5px] leading-snug text-slate-muted">{sonuc.gerekce}</p>
-        </div>
-      </div>
+      </AnimatePresence>
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Özellik katkıları ve en zayıf sinyal için tıklayın
+        </p>
+      )}
     </div>
   );
 }
@@ -287,6 +318,7 @@ export function DavranisBiyometriBolumu({
   kartlar: BiyometriKart[];
   azHareket: boolean;
 }) {
+  const [acikTur, setAcikTur] = useState<string | null>(null);
   if (kartlar.length === 0) return null;
 
   const insanSay = kartlar.filter((k) => k.sonuc.sinif === "insan").length;
@@ -328,7 +360,12 @@ export function DavranisBiyometriBolumu({
         <div className="mt-5 space-y-3">
           {kartlar.map((k, i) => (
             <Bolum key={k.tur} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-              <ProfilKart kart={k} azHareket={azHareket} />
+              <ProfilKart
+                kart={k}
+                azHareket={azHareket}
+                acik={acikTur === k.tur}
+                onToggle={() => setAcikTur(acikTur === k.tur ? null : k.tur)}
+              />
             </Bolum>
           ))}
         </div>
