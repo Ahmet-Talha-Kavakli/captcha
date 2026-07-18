@@ -877,7 +877,7 @@ function OlayDrawer({
               {new Date(a.ts).toLocaleString("tr-TR")} · {yasHesap(a.ts, t)}
             </p>
           </div>
-          <button onClick={kapat} className="shrink-0 rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
+          <button onClick={kapat} aria-label="Kapat" className="shrink-0 rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
             <X className="size-5" />
           </button>
         </div>

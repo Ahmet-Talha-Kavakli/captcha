@@ -621,7 +621,7 @@ function OlayDrawer({ ev, kapat, t, botEtiket }: { ev: Ev; kapat: () => void; t:
             <h2 className="text-lg font-semibold text-slate-ink">{t("tr.olayDetayi")}</h2>
             <p className="text-[12px] text-slate-faint">{new Date(ev.ts).toLocaleString("tr-TR")}</p>
           </div>
-          <button onClick={kapat} className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
+          <button onClick={kapat} aria-label="Kapat" className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
             <X className="size-5" />
           </button>
         </div>

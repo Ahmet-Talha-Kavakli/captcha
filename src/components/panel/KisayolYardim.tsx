@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Keyboard } from "lucide-react";
+import { useOdakTuzak } from "@/lib/a11y/odak-tuzak";
 
 const KISAYOLLAR = [
   { tus: ["⌘", "K"], ad: "Komut paletini aç" },
@@ -18,6 +19,9 @@ const HEDEF: Record<string, string> = { h: "/panel", t: "/panel/trafik", k: "/pa
 export function KisayolYardim() {
   const [acik, setAcik] = useState(false);
   const [gBekle, setGBekle] = useState(false);
+  // WCAG 2.4.3: modal açıkken odak tuzağı.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useOdakTuzak(dialogRef, acik);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -46,11 +50,20 @@ export function KisayolYardim() {
     <AnimatePresence>
       {acik && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAcik(false)} className="absolute inset-0 bg-ink-950/40 backdrop-blur-sm" />
-          <motion.div initial={{ opacity: 0, scale: 0.97, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 8 }} className="relative w-full max-w-md overflow-hidden rounded-2xl border border-line bg-white shadow-lift">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAcik(false)} className="absolute inset-0 bg-ink-950/40 backdrop-blur-sm" aria-hidden />
+          <motion.div
+            ref={dialogRef}
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 8 }}
+            className="relative w-full max-w-md overflow-hidden rounded-2xl border border-line bg-white shadow-lift"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="kisayol-yardim-baslik"
+          >
             <div className="flex items-center gap-2 border-b border-line px-5 py-4">
               <span className="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><Keyboard className="size-4" /></span>
-              <h3 className="text-[15px] font-semibold text-slate-ink">Klavye kısayolları</h3>
+              <h3 id="kisayol-yardim-baslik" className="text-[15px] font-semibold text-slate-ink">Klavye kısayolları</h3>
             </div>
             <div className="divide-y divide-line px-5">
               {KISAYOLLAR.map((k) => (

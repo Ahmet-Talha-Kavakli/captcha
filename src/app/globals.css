@@ -41,7 +41,7 @@
   /* --- Metin skalası (Tavily: sıcak siyah/gri) --- */
   --color-slate-ink: #1a1a18; /* ana metin/başlık — neredeyse siyah */
   --color-slate-muted: #6b6a63; /* ikincil (sıcak gri) */
-  --color-slate-faint: #9c9a90; /* placeholder/meta */
+  --color-slate-faint: #6f6d62; /* placeholder/meta — WCAG AA (krem zeminde ≥4.5:1) için koyulaştırıldı (eski #9c9a90 ~2.5:1 fail) */
 
   /* --- Açık yüzeyler (Tavily krem tema) --- */
   --color-canvas: #f4f1ea; /* sayfa zemini — sıcak krem */
@@ -312,7 +312,7 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
   /* metin — açık, okunaklı */
   --color-slate-ink: #f2f3f7;
   --color-slate-muted: #a7abba;
-  --color-slate-faint: #71768a;
+  --color-slate-faint: #868ba0; /* WCAG AA (koyu zeminde ≥4.5:1) için açıldı (eski #71768a ~3.7:1 fail) */
 
   /* border eşlemleri (ink-*) koyu */
   --color-ink-100: #1c1e26;

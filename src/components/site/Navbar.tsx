@@ -84,13 +84,15 @@ export function Navbar() {
           className="text-veylify-950 md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
+          aria-expanded={open}
+          aria-controls="mobil-menu"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
       {open && (
-        <div className="border-t border-veylify-100 bg-white/90 px-5 py-4 backdrop-blur-xl md:hidden">
+        <div id="mobil-menu" className="border-t border-veylify-100 bg-white/90 px-5 py-4 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-1">
             {LINKS.map((l) => (
               <Link

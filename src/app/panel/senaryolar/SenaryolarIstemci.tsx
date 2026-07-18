@@ -644,7 +644,7 @@ function SenaryoDetay({
               <p className="mt-0.5 text-[13px] text-slate-muted">{t(`sen.${senaryo.key}.desc`)}</p>
             </div>
           </div>
-          <button onClick={onKapat} className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
+          <button onClick={onKapat} aria-label="Kapat" className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
             <X className="size-5" />
           </button>
         </div>

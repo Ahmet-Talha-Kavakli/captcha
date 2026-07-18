@@ -14,7 +14,7 @@ export function AyarlarSekme({ aktif, dil = "tr" }: { aktif: string; dil?: Dil }
       {SEKMELER.map((s) => {
         const on = aktif === s.key;
         return (
-          <Link key={s.key} href={s.href} className={cn("relative px-4 py-2.5 text-sm font-medium transition", on ? "text-brand-700" : "text-slate-muted hover:text-slate-ink")}>
+          <Link key={s.key} href={s.href} aria-current={on ? "page" : undefined} className={cn("relative px-4 py-2.5 text-sm font-medium transition", on ? "text-brand-700" : "text-slate-muted hover:text-slate-ink")}>
             {ceviri(s.anahtar, dil)}
             {on && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-brand-600" />}
           </Link>

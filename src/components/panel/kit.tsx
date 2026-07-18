@@ -13,6 +13,7 @@ import { bayrak } from "@/lib/flag";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, MoreHorizontal, Copy, Check, Search } from "lucide-react";
 import { useState, useRef, useEffect, createContext, useContext, useCallback } from "react";
+import { useOdakTuzak } from "@/lib/a11y/odak-tuzak";
 
 /* ------------------------------------------------------------------ Panel */
 export function Panel({
@@ -283,6 +284,13 @@ export function Modal({
   genislik?: string;
 }) {
   useScrollKilit(acik);
+  // Erişilebilir başlık/açıklama için kararlı id'ler (aria-labelledby/-describedby).
+  const baslikId = useRef(`modal-baslik-${Math.random().toString(36).slice(2, 9)}`).current;
+  const aciklamaId = useRef(`modal-aciklama-${Math.random().toString(36).slice(2, 9)}`).current;
+  // WCAG 2.1.2 / 2.4.3: odak tuzağı — modal açıkken Tab döngüsü içeride kalır,
+  // kapanınca odak açılıştan önceki öğeye geri döner.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useOdakTuzak(dialogRef, acik);
   useEffect(() => {
     if (!acik) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && kapat();
@@ -300,21 +308,29 @@ export function Modal({
             exit={{ opacity: 0 }}
             onClick={kapat}
             className="absolute inset-0 bg-ink-950/40 backdrop-blur-sm"
+            aria-hidden
           />
           <motion.div
+            ref={dialogRef}
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className={cn("relative w-full rounded-3xl border border-line bg-surface shadow-lift", genislik)}
+            // WCAG 4.1.2 / 1.3.1: diyalog rolü + erişilebilir ad/açıklama bağla.
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={baslik ? baslikId : undefined}
+            aria-label={baslik ? undefined : "İletişim kutusu"}
+            aria-describedby={aciklama ? aciklamaId : undefined}
           >
             {baslik && (
               <div className="flex items-start justify-between border-b border-line px-6 py-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-ink">{baslik}</h2>
-                  {aciklama && <p className="mt-0.5 text-sm text-slate-muted">{aciklama}</p>}
+                  <h2 id={baslikId} className="text-lg font-semibold text-slate-ink">{baslik}</h2>
+                  {aciklama && <p id={aciklamaId} className="mt-0.5 text-sm text-slate-muted">{aciklama}</p>}
                 </div>
-                <button onClick={kapat} className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
+                <button onClick={kapat} aria-label="Kapat" className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
                   <X className="size-5" />
                 </button>
               </div>
@@ -456,9 +472,22 @@ export function Tablo<T extends { id: string }>({
                 <tr
                   key={satir.id}
                   onClick={() => onSatir?.(satir)}
+                  // WCAG 2.1.1: tıklanabilir satır klavyeden de tetiklenebilir olmalı.
+                  {...(onSatir
+                    ? {
+                        role: "button",
+                        tabIndex: 0,
+                        onKeyDown: (e: React.KeyboardEvent) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onSatir(satir);
+                          }
+                        },
+                      }
+                    : {})}
                   className={cn(
                     "border-b border-line last:border-0 transition hover:bg-canvas/60",
-                    onSatir && "cursor-pointer",
+                    onSatir && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400",
                   )}
                 >
                   {kolonlar.map((k, i) => (
@@ -575,7 +604,13 @@ export function SatirMenu({ aksiyonlar }: { aksiyonlar: { ad: string; onClick: (
   }, []);
   return (
     <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
-      <button onClick={() => setAcik((v) => !v)} className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
+      <button
+        onClick={() => setAcik((v) => !v)}
+        aria-label="Satır işlemleri"
+        aria-haspopup="menu"
+        aria-expanded={acik}
+        className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink"
+      >
         <MoreHorizontal className="size-4" />
       </button>
       {acik && (

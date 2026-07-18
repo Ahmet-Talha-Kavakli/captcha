@@ -1030,7 +1030,7 @@ function OlayModal({
             <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-ink"><Siren className="size-5 text-danger2" /> {t("km.modal.baslik")}</h2>
             <p className="mt-0.5 text-[13px] text-slate-muted">{t("km.modal.altbaslik")}</p>
           </div>
-          <button onClick={kapat} className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink"><X className="size-5" /></button>
+          <button onClick={kapat} aria-label="Kapat" className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink"><X className="size-5" /></button>
         </div>
         <div className="space-y-4 px-6 py-5">
           <label className="block">

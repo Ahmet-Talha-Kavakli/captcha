@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useOdakTuzak } from "@/lib/a11y/odak-tuzak";
 import * as Icons from "lucide-react";
 import { ChevronDown, LogOut, BookOpen, Globe as GlobeIcon, PanelLeftClose, PanelLeftOpen, Languages } from "lucide-react";
 import { SpecterMark } from "@/components/ui/Logo";
@@ -53,6 +54,20 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
   // Rota değişince mobil drawer'ı kapat.
   useEffect(() => { setMobilAcik(false); }, [pathname]);
 
+  // Mobil drawer açıkken Esc ile kapan (WCAG 2.1.2 klavye tuzağı önlemi).
+  useEffect(() => {
+    if (!mobilAcik) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobilAcik(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobilAcik]);
+
+  // WCAG 2.4.3: mobil drawer açıkken odak tuzağı — Tab döngüsü drawer içinde
+  // kalır, açılışta ilk öğeye odak, kapanınca odak hamburger'a geri döner.
+  // Masaüstünde (mobilAcik=false) hook hiçbir şey yapmaz.
+  const drawerRef = useRef<HTMLElement>(null);
+  useOdakTuzak(drawerRef, mobilAcik);
+
   // RBAC: efektif role göre erişilebilir modülleri filtrele.
   const gorunurNav = panelNav.filter((item) => yetkiliMi(me.rol, item.capability));
 
@@ -99,6 +114,8 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
       <button
         onClick={() => setMobilAcik(true)}
         aria-label={t("sidebar.openMenu")}
+        aria-expanded={mobilAcik}
+        aria-controls="mobil-sidebar-drawer"
         className="fixed left-3 top-3 z-40 grid size-10 place-items-center rounded-xl border border-line bg-surface text-slate-ink shadow-card lg:hidden"
       >
         <Icons.Menu className="size-5" />
@@ -114,6 +131,12 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
       )}
 
     <aside
+      ref={drawerRef}
+      id="mobil-sidebar-drawer"
+      // Mobilde açık drawer bir modal gibi davranır; masaüstünde normal gezinme paneli.
+      role={mobilAcik ? "dialog" : undefined}
+      aria-modal={mobilAcik ? true : undefined}
+      aria-label={mobilAcik ? t("sidebar.openMenu") : undefined}
       className={cn(
         "z-40 flex h-screen shrink-0 flex-col bg-surface py-4 transition-transform duration-300",
         // Masaüstü: viewport-kilitli konteynerde TAM sabit (relative + h-screen).
