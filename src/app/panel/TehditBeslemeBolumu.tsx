@@ -228,12 +228,14 @@ function VurusKart({
   acik,
   onToggle,
   siteId,
+  zatenEngelli,
 }: {
   vurus: BeslemeVurus;
   azHareket: boolean;
   acik: boolean;
   onToggle: () => void;
   siteId: string | null;
+  zatenEngelli: boolean;
 }) {
   const tanim = KAYNAK_TANIM[vurus.kaynak];
   const Ikon = tanim.ikon;
@@ -378,6 +380,7 @@ function VurusKart({
                   <IpEngelleButonu
                     ip={vurus.ip}
                     siteId={siteId}
+                    zatenEngelli={zatenEngelli}
                     aciklama={`Tehdit beslemesinden engellendi — ${vurus.ip}`}
                   />
                 </div>
@@ -396,11 +399,14 @@ export function TehditBeslemeBolumu({
   besleme,
   azHareket,
   siteId = null,
+  engelliIpler = [],
 }: {
   besleme: BeslemeGoster;
   azHareket: boolean;
   siteId?: string | null;
+  engelliIpler?: string[];
 }) {
+  const engelliSet = new Set(engelliIpler);
   const { beslemeler, vuruslar } = besleme;
   const siraliBeslemeler = [...beslemeler].sort((a, b) => b.kayitSayisi - a.kayitSayisi);
   const gosterVurus = vuruslar.slice(0, 6);
@@ -549,6 +555,7 @@ export function TehditBeslemeBolumu({
                   acik={acikIp === v.ip}
                   onToggle={() => setAcikIp(acikIp === v.ip ? null : v.ip)}
                   siteId={siteId}
+                  zatenEngelli={engelliSet.has(v.ip)}
                 />
               ))}
             </div>

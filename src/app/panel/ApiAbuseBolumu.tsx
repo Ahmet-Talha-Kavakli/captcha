@@ -417,12 +417,14 @@ function EndpointKart({
   acik,
   onToggle,
   siteId,
+  zatenEngelli,
 }: {
   endpoint: EndpointAbuse;
   azHareket: boolean;
   acik: boolean;
   onToggle: () => void;
   siteId: string | null;
+  zatenEngelli: boolean;
 }) {
   const seviye = SEVIYE_TANIM[endpoint.seviye] ?? SEVIYE_TANIM["düşük"];
   const sRenk = skorRenk(endpoint.abuseSkoru);
@@ -611,6 +613,7 @@ function EndpointKart({
                   <IpEngelleButonu
                     ip={endpoint.enAgresifIpDeger}
                     siteId={siteId}
+                    zatenEngelli={zatenEngelli}
                     aciklama={`API kötüye-kullanımı: ${endpoint.yol}`}
                   />
                 </div>
@@ -632,11 +635,14 @@ export function ApiAbuseBolumu({
   rapor,
   azHareket,
   siteId = null,
+  engelliIpler = [],
 }: {
   rapor: ApiAbuseRapor;
   azHareket: boolean;
   siteId?: string | null;
+  engelliIpler?: string[];
 }) {
+  const engelliSet = new Set(engelliIpler);
   const { endpointler, ozet } = rapor;
   // Motor zaten abuseSkoru'na göre sıralı gönderir; ilk 8'i göster.
   const gosterilecek = endpointler.slice(0, 8);
@@ -728,6 +734,7 @@ export function ApiAbuseBolumu({
                   acik={acikYol === e.yol}
                   onToggle={() => setAcikYol(acikYol === e.yol ? null : e.yol)}
                   siteId={siteId}
+                  zatenEngelli={!!e.enAgresifIpDeger && engelliSet.has(e.enAgresifIpDeger)}
                 />
               </Bolum>
             ))}

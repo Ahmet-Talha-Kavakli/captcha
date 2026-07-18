@@ -401,20 +401,15 @@ function ZincirDetay({ zincir, siteId, zatenEngelli }: { zincir: SaldirganZincir
           </div>
           <p className="text-[11.5px] leading-relaxed opacity-90">{aksiyon.aciklama}</p>
 
-          {/* GERÇEK AKSİYON: tek tıkla bu IP'yi engelle — zaten engelliyse rozet göster */}
+          {/* GERÇEK AKSİYON: tek tıkla bu IP'yi engelle — zaten engelliyse rozet (bileşende) */}
           {siteId && (
             <div className="mt-3">
-              {zatenEngelli ? (
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-ok-soft px-2.5 py-1.5 text-[12px] font-semibold text-green-700 ring-1 ring-inset ring-green-300">
-                  <ShieldCheck className="size-3.5" /> Bu IP zaten engelli
-                </span>
-              ) : (
-                <IpEngelleButonu
-                  ip={zincir.ip}
-                  siteId={siteId}
-                  aciklama={`Kill-Chain'den engellendi — ${ASAMA_TANIM[zincir.ilerlemeAsama].ad} aşamasına ulaşan saldırgan.`}
-                />
-              )}
+              <IpEngelleButonu
+                ip={zincir.ip}
+                siteId={siteId}
+                zatenEngelli={zatenEngelli}
+                aciklama={`Kill-Chain'den engellendi — ${ASAMA_TANIM[zincir.ilerlemeAsama].ad} aşamasına ulaşan saldırgan.`}
+              />
             </div>
           )}
         </div>

@@ -510,7 +510,7 @@ export function GenelBakisIstemci({
       {/* GLOBAL TEHDİT BESLEMESİ — gözlemlenen IP'leri bilinen kötü altyapıyla eşleştir */}
       {besleme.beslemeler.length > 0 && (
         <motion.div {...bolum((bolumSira++) * 0.06)}>
-          <TehditBeslemeBolumu besleme={besleme} azHareket={!!azHareket} siteId={otoSiteId} />
+          <TehditBeslemeBolumu besleme={besleme} azHareket={!!azHareket} siteId={otoSiteId} engelliIpler={engelliIpler} />
         </motion.div>
       )}
 
@@ -529,7 +529,7 @@ export function GenelBakisIstemci({
       {/* API KÖTÜYE-KULLANIM İSTİHBARATI — endpoint başına abuse + rate-limit önerisi */}
       {apiAbuse.endpointler.length > 0 && (
         <motion.div {...bolum((bolumSira++) * 0.06)}>
-          <ApiAbuseBolumu rapor={apiAbuse} azHareket={!!azHareket} siteId={otoSiteId} />
+          <ApiAbuseBolumu rapor={apiAbuse} azHareket={!!azHareket} siteId={otoSiteId} engelliIpler={engelliIpler} />
         </motion.div>
       )}
 

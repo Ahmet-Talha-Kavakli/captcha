@@ -12,7 +12,7 @@
  */
 
 import { useState } from "react";
-import { Ban, Check, Undo2 } from "lucide-react";
+import { Ban, Check, Undo2, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export function IpEngelleButonu({
@@ -20,18 +20,34 @@ export function IpEngelleButonu({
   siteId,
   aciklama,
   boyut = "md",
+  zatenEngelli = false,
 }: {
   ip: string;
   siteId: string | null;
   /** Kural açıklaması (nereden engellendiği). */
   aciklama?: string;
   boyut?: "sm" | "md";
+  /** Bu IP dashboard verisine göre HALİHAZIRDA engelli mi? → rozet göster. */
+  zatenEngelli?: boolean;
 }) {
   const [durum, setDurum] = useState<"bos" | "gonderiliyor" | "engellendi" | "hata" | "geri_aliniyor">("bos");
   // Engelleme başarılıysa oluşan kural id'si — geri almak (kaldırmak) için.
   const [kuralId, setKuralId] = useState<string | null>(null);
 
   if (!siteId) return null;
+
+  const kucukRozet = boyut === "sm";
+  // Sayfa yüklendiğinde zaten engelliyse (ve bu oturumda biz engellemediyse) rozet.
+  if (zatenEngelli && durum === "bos") {
+    return (
+      <span className={cn(
+        "inline-flex items-center gap-1.5 rounded-lg font-semibold bg-ok-soft text-green-700 ring-1 ring-inset ring-green-300",
+        kucukRozet ? "px-2 py-1 text-[11px]" : "px-2.5 py-1.5 text-[12px]",
+      )}>
+        <ShieldCheck className={kucukRozet ? "size-3" : "size-3.5"} /> Bu IP zaten engelli
+      </span>
+    );
+  }
 
   const engelle = async () => {
     if (durum === "gonderiliyor" || durum === "engellendi") return;
