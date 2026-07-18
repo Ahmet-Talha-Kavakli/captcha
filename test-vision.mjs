@@ -65,12 +65,18 @@ const PROFILLER = {
  * render metoduyla aynı eşik matematiği). Botun gördüğü statik screenshot.
  * `zorluk` gerçek profili seçer → her seviyenin OCR direnci ayrı ölçülür.
  */
-function ghostFrame(text, seed, zorluk = "medium", W = 400, H = 130) {
+// Decoy tuzak metinleri — veylify.js DECOY_METINLER ile birebir.
+const DECOY_METINLER = ["ERISIM RED", "BASARISIZ", "GECERSIZ", "ENGELLENDI", "ACCESS DENIED", "BLOCKED", "ROBOT", "HATA 403", "REDDEDILDI"];
+function decoyContent(seed) { return DECOY_METINLER[(seed >>> 3) % DECOY_METINLER.length]; }
+
+function ghostFrame(text, seed, zorluk = "medium", decoyKullan = false, W = 400, H = 130) {
   const p = PROFILLER[zorluk] || PROFILLER.medium;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext("2d");
   const cell = p.cell, cols = Math.floor(W / cell), rows = Math.floor(H / cell);
   const mask = buildMask(ctx, text, cols, rows, cell);
+  // Decoy mask: statik sahte metin, sadece BOŞ bölgeleri kaplar (gerçek kod kazanır).
+  const decoyMask = decoyKullan ? buildMask(ctx, decoyContent(seed), cols, rows, cell) : null;
   const phase = new Float32Array(cols * rows);
   let s = 0x9e3779b9;
   for (let i = 0; i < phase.length; i++) { s = (s * 1103515245 + 12345) & 0x7fffffff; phase[i] = s / 0x7fffffff; }
@@ -81,6 +87,12 @@ function ghostFrame(text, seed, zorluk = "medium", W = 400, H = 130) {
   ctx.fillStyle = "#0b1120";
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
     const i = r * cols + c, harf = mask[i] === 1;
+    // TUZAK: hücre decoy'a ait ve gerçek harf değilse → STATİK yoğun desen
+    // (ghostfont.ts ile birebir: eşik 0.74, akış yok → OCR "yazı" sanır).
+    if (decoyMask && decoyMask[i] === 1 && !harf) {
+      if (pseudoNoise(c * 2 + 1, r * 2 + 1, 0) < 0.74) ctx.fillRect(c * cell, r * cell, cell, cell);
+      continue;
+    }
     const akisSatir = harf ? r + yukari : r - asagi;
     const satirTam = Math.floor(akisSatir), satirKesir = akisSatir - satirTam;
     const g0 = pseudoNoise(c, satirTam, 0), g1 = pseudoNoise(c, satirTam + 1, 0);
@@ -160,6 +172,27 @@ async function main() {
     sonuc[z] = (ghostTop / N) * 100;
   }
 
+  // ── DECOY TUZAK KANITI ────────────────────────────────────────────
+  // Decoy açıkken OCR, hareketsiz sahte metni (ör. "ROBOT"/"BLOCKED") "gerçek
+  // kod" sanıp okur; gerçek kodu HÂLÂ bulamaz. Kanıt: (a) gerçek kod doğruluğu
+  // yine düşük, (b) OCR çıktısında decoy metninin harfleri beliriyor → bot
+  // yanlış yöne sürülüyor (sadece körleme değil, aktif YANILTMA).
+  console.log("\n  [DECOY TUZAK] gerçek kod gizli + statik sahte metin:");
+  let decoyGercekTop = 0, decoyIziSayaci = 0;
+  for (let k = 0; k < N; k++) {
+    const { kod, seed } = testler[k];
+    const decoyMetin = decoyContent(seed).replace(/[^A-Z0-9]/g, "");
+    const gOku = await ocr(worker, ghostFrame(kod, seed, "medium", true), `decoy-${k}`);
+    const temiz = gOku.replace(/[^0-9A-Z]/g, "").toUpperCase();
+    decoyGercekTop += benzerlik(gOku, kod);
+    // decoy izi: OCR çıktısındaki harflerin decoy metninde geçme oranı
+    const decoyHarfSet = new Set(decoyMetin.split(""));
+    const iz = temiz.length ? temiz.split("").filter((ch) => decoyHarfSet.has(ch)).length / temiz.length : 0;
+    if (iz >= 0.5) decoyIziSayaci++;
+    console.log(`    "${kod}" (tuzak:"${decoyMetin}") → OCR: "${temiz || "(gürültü)"}" | gerçek-kod %${(benzerlik(gOku, kod) * 100).toFixed(0)}, tuzak-izi %${(iz * 100).toFixed(0)}`);
+  }
+  const decoyGercek = (decoyGercekTop / N) * 100;
+
   await worker.terminate();
 
   console.log("\n--- SONUÇ ---");
@@ -167,11 +200,14 @@ async function main() {
   for (const z of ZORLUKLAR) {
     console.log(`  Ghost-font [${z}] OCR doğruluğu: %${sonuc[z].toFixed(1)}`);
   }
+  console.log(`  Decoy'lu ghost gerçek-kod doğruluğu: %${decoyGercek.toFixed(1)}  (tuzak izi ${decoyIziSayaci}/${N} karede baskın)`);
 
   // Kanıt: normal yüksek (OCR çalışıyor) VE HER zorluk düşük (en zayıf 'low' dahil
   // bot kör). low OCR'a en dirençsiz seviyedir; o bile ≤%40 ise sistem sağlam.
   const enKotu = Math.max(...ZORLUKLAR.map((z) => sonuc[z]));
-  const basarili = nOrt >= 60 && enKotu <= 40;
+  // Başarı: OCR kontrolü sağlıklı (≥%60) + her zorluk düşük (≤%40) + decoy'lu
+  // frame'de gerçek kod da bulunamıyor (≤%40) → decoy körlemeyi bozmuyor, güçlendiriyor.
+  const basarili = nOrt >= 60 && enKotu <= 40 && decoyGercek <= 40;
   console.log(`\n  En yüksek (en zayıf) ghost doğruluğu: %${enKotu.toFixed(1)} (${enKotu <= 40 ? "≤%40 hedef ✓" : "RİSK: OCR okuyabiliyor"})`);
   console.log(`\n=== ${basarili ? "✓ KANITLANDI: Ghost-font TÜM zorluklarda OCR'ı kör ediyor" : "✗ beklenmeyen sonuç"} ===\n`);
   process.exit(basarili ? 0 : 1);

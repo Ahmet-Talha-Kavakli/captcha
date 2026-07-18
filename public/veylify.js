@@ -1004,14 +1004,35 @@
         for (var k = 0; k < n; k++) { ton(660, t, 0.16, audioCtx); t += 0.42; }
         if (duyuru) duyuru.textContent = T.audioSec;
       } else {
-        // kod / sayi: her karakter, CHARSET/rakam index'ine göre yükselen frekans.
+        // kod / sayi — ERİŞİLEBİLİRLİK: görme engelli kullanıcının kodu GERÇEKTEN
+        // anlaması için karakterleri KONUŞARAK oku (speechSynthesis). Yükselen
+        // frekans tonu tek başına kodu iletmez (kimse ton dizisinden "TXY44"
+        // çıkaramaz) — o yüzden konuşma asıl kanaldır; ton, konuşma yoksa
+        // (tarayıcı desteklemiyorsa) geri-bildirim fallback'i olarak kalır.
         var pool = type === "sayi" ? NUMERIC_CHARSET : CHARSET;
-        for (var i = 0; i < cevap.length; i++) {
-          var idx = pool.indexOf(cevap[i]); if (idx < 0) idx = 0;
-          var frekans = 300 + (idx / pool.length) * 800;
-          ton(frekans, t, 0.18, audioCtx);
-          ton(frekans, t + 0.24, 0.18, audioCtx);
-          t += 0.62;
+        var konusmaVar = false;
+        try {
+          if (window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function") {
+            window.speechSynthesis.cancel();
+            // Harfleri tek tek, aralarında kısa duraklamayla oku: "T. X. Y. 4. 4."
+            var seslendir = cevap.split("").join(". ") + ".";
+            var u = new window.SpeechSynthesisUtterance(seslendir);
+            u.lang = lang === "tr" ? "tr-TR" : lang === "en" ? "en-US" : lang;
+            u.rate = 0.7;   // yavaş — her karakter net duyulsun
+            u.pitch = 1;
+            window.speechSynthesis.speak(u);
+            konusmaVar = true;
+          }
+        } catch (e) { konusmaVar = false; }
+        // Ton: konuşma desteği yoksa kod-taşıyıcı; varsa yalnızca ritim eşliği.
+        if (!konusmaVar) {
+          for (var i = 0; i < cevap.length; i++) {
+            var idx = pool.indexOf(cevap[i]); if (idx < 0) idx = 0;
+            var frekans = 300 + (idx / pool.length) * 800;
+            ton(frekans, t, 0.18, audioCtx);
+            ton(frekans, t + 0.24, 0.18, audioCtx);
+            t += 0.62;
+          }
         }
         // Karakter sayısı son eki: tr/en için mevcut davranış korunur; diğer
         // dillerde T.audioPlaying zaten tam bir cümledir, sayı eki eklenmez.
