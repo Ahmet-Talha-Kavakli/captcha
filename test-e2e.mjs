@@ -280,6 +280,19 @@ async function main() {
   const rTemiz = await simEt({ asn: "AS100 Good", score: 0.9, path: "/" });
   check("Kural: eşleşmeyen temiz istek → allow", rTemiz.action === "allow");
 
+  // 18b) SİTE SİLME CASCADE — silinen sitenin bağlı verisi orphan kalmamalı.
+  // AYRI hesap (free plan site-limiti 1 olduğu için mevcut jar dolu olabilir).
+  const silEmail = `sil${Date.now()}@x.dev`;
+  const silReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: silEmail, name: "U", password: "test1234" }) });
+  const silJar = (silReg.headers.get("set-cookie") || "").split(";")[0];
+  const { site: silSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: silJar }, body: JSON.stringify({ name: "sil.com", domains: "localhost" }) })).json();
+  await fetch(`${BASE}/api/rules`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: silJar }, body: JSON.stringify({ siteId: silSite.id, name: "k", field: "score", op: "lt", value: "0.2", action: "block" }) });
+  const chVar = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: silSite.siteKey }) });
+  check("Silmeden önce site challenge veriyor", chVar.status === 200);
+  await fetch(`${BASE}/api/sites/${silSite.id}`, { method: "DELETE", headers: { Cookie: silJar } });
+  const chYok = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: silSite.siteKey }) });
+  check("Site silinince siteKey geçersiz → challenge 403 (cascade temizlik)", chYok.status === 403);
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;

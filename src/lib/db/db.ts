@@ -546,8 +546,17 @@ export const Sites = {
   remove(sid: string): void {
     const db = load();
     db.sites = db.sites.filter((s) => s.id !== sid);
+    // CASCADE: siteye bağlı TÜM veriyi temizle — orphan (sahipsiz) kayıt
+    // bırakma. Daha önce yalnızca events+rules siliniyordu; webhooks/campaigns/
+    // alerts/usage orphan kalıyordu (silinen siteye ait webhook tetiklenmeye
+    // çalışabilir, panelde sahipsiz kayıt görünürdü). deleteUser cascade'iyle
+    // aynı kapsam.
     db.events = db.events.filter((e) => e.siteId !== sid);
     db.rules = db.rules.filter((r) => r.siteId !== sid);
+    db.campaigns = db.campaigns.filter((c) => c.siteId !== sid);
+    db.alerts = db.alerts.filter((a) => a.siteId !== sid);
+    db.webhooks = db.webhooks.filter((w) => w.siteId !== sid);
+    db.usage = db.usage.filter((x) => x.siteId !== sid);
     persist();
   },
 };
