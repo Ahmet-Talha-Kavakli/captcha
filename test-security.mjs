@@ -484,6 +484,28 @@ async function main() {
   check("Mobil çelişkisi: UA iPhone + sec-ch-ua-mobile ?1 → automation değil (FP yok)",
     mobTutarli.reason !== "automation_detected");
 
+  // ---- SEC-FETCH-* METADATA (gerçek tarayıcı fetch'i gönderir, tool göndermez) ----
+  // Chromium UA + Client Hints YOK + Sec-Fetch YOK (accept-language olsa bile) →
+  // tool sinyali. Gerçek Chromium fetch'i ikisini de gönderir; curl/python hiçbirini.
+  const CH_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  const secFetchPassive = (extraHeaders) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: iyiSig2 });
+    const req = http.request(`${BASE}/api/v1/passive`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "User-Agent": CH_UA, "accept-language": "tr", "accept": "text/html", ...extraHeaders },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  // Chrome-UA + Client Hints YOK + Sec-Fetch YOK → automation (accept-language var ama yetmez).
+  const toolSinyal = await secFetchPassive({});
+  check("Sec-Fetch: Chrome-UA + ClientHints yok + Sec-Fetch yok → automation_detected",
+    toolSinyal.passed === false && toolSinyal.reason === "automation_detected");
+  // Gerçek tarayıcı: Client Hints + Sec-Fetch var → automation DEĞİL (FP yok).
+  const gercekTarayici = await secFetchPassive({ "sec-ch-ua": '"Chromium";v="120"', "sec-ch-ua-platform": '"Windows"', "sec-fetch-mode": "cors", "sec-fetch-site": "same-origin" });
+  check("Sec-Fetch: Chrome-UA + ClientHints + Sec-Fetch → automation değil (FP yok)",
+    gercekTarayici.reason !== "automation_detected");
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

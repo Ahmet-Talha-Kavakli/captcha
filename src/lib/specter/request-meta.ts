@@ -46,6 +46,13 @@ export interface HeaderSinyal {
    * tutarlı gönderir. true = tutarsız (sahte sinyali).
    */
   mobilCeliskisi: boolean;
+  /**
+   * Sec-Fetch-* metadata header'ları var mı? Gerçek tarayıcının fetch/XHR'ı
+   * (widget'ın doğrulama çağrısı dahil) Sec-Fetch-Mode/Site/Dest gönderir;
+   * curl/python/basit HTTP botları göndermez. Chromium iddiası + bunların
+   * yokluğu ek bot kanıtıdır (tek başına değil — bazı proxy'ler düşürebilir).
+   */
+  secFetchVar: boolean;
 }
 
 /** UA'daki OS ailesini kaba çıkar (windows/mac/linux/android/ios/?). */
@@ -98,6 +105,7 @@ function headerSinyalCikar(h: Headers, ua: string): HeaderSinyal {
       !/python|curl|go-http|node-fetch|axios|scrapy|wget|okhttp|libwww/.test(u),
     platformCeliskisi,
     mobilCeliskisi,
+    secFetchVar: !!(h.get("sec-fetch-mode") || h.get("sec-fetch-site") || h.get("sec-fetch-dest")),
   };
 }
 
@@ -146,6 +154,9 @@ export function baslikSahtekarligi(s: HeaderSinyal): boolean {
   if (!s.uaChromiumIddiasi) return false; // gerisi yalnızca Chromium-iddiası için
   // Tarayıcı-benzeri Accept HİÇ yoksa (text/html de */* de değil) tek başına güçlü.
   if (!s.acceptTarayiciBenzeri && !s.acceptLanguageVar) return true;
+  // Chromium iddiası + Client Hints YOK + Sec-Fetch YOK → çok güçlü tool sinyali
+  // (gerçek Chromium fetch'i her ikisini de gönderir; curl/python hiçbirini).
+  if (!s.clientHintsVar && !s.secFetchVar) return true;
   // Aksi halde: hem Accept-Language HEM Client Hints eksikse (ikisi birden).
   return !s.acceptLanguageVar && !s.clientHintsVar;
 }
