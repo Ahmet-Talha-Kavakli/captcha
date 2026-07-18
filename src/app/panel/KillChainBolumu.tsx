@@ -40,6 +40,7 @@ import {
   Copy,
   Check,
   Filter,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -221,6 +222,71 @@ function KillChainBar({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/* ============================================================ Aktif engel bandı */
+
+/** Dashboard'dan eklenen aktif IP engellerinin özeti — her chip tek tıkla
+ *  kaldırılabilir (DELETE /api/rules/{id}). Analist kurallar sayfasına gitmeden
+ *  yanlış/gereksiz engeli buradan çözer. */
+function EngelBandi({ engelKurallari }: { engelKurallari: { ip: string; kuralId: string }[] }) {
+  // Bu oturumda kaldırılanları gizle (sunucu-tazeleme beklemeden anında geri-bildirim).
+  const [kaldirilan, setKaldirilan] = useState<Set<string>>(new Set());
+  const [siliniyor, setSiliniyor] = useState<string | null>(null);
+
+  const gorunen = engelKurallari.filter((e) => !kaldirilan.has(e.kuralId));
+  if (gorunen.length === 0) return null;
+
+  const kaldir = async (kuralId: string) => {
+    if (siliniyor) return;
+    setSiliniyor(kuralId);
+    try {
+      const r = await fetch(`/api/rules/${kuralId}`, { method: "DELETE" });
+      if (r.ok) setKaldirilan((s) => new Set(s).add(kuralId));
+    } catch { /* sessiz — chip kalır */ } finally {
+      setSiliniyor(null);
+    }
+  };
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-green-200 bg-ok-soft/30 px-3.5 py-2.5">
+      <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-green-800">
+        <Ban className="size-3.5" />
+        {sayi(gorunen.length)} IP engelli
+      </span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {gorunen.slice(0, 6).map((e) => (
+          <span
+            key={e.kuralId}
+            className="inline-flex items-center gap-1 rounded-md bg-surface py-0.5 pl-1.5 pr-0.5 font-mono text-[11px] text-slate-muted ring-1 ring-inset ring-green-200"
+          >
+            {e.ip}
+            <button
+              type="button"
+              onClick={() => kaldir(e.kuralId)}
+              disabled={siliniyor === e.kuralId}
+              aria-label={`${e.ip} engelini kaldır`}
+              className={cn(
+                "grid size-4 place-items-center rounded text-slate-faint transition hover:bg-danger-soft hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400",
+                siliniyor === e.kuralId && "cursor-wait opacity-50",
+              )}
+            >
+              <X className="size-3" />
+            </button>
+          </span>
+        ))}
+        {gorunen.length > 6 && (
+          <span className="text-[11px] text-slate-faint">+{sayi(gorunen.length - 6)}</span>
+        )}
+      </div>
+      <a
+        href="/panel/kurallar"
+        className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-medium text-green-800 ring-1 ring-inset ring-green-300 transition hover:bg-ok-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+      >
+        Engelleri yönet <ArrowRight className="size-3" />
+      </a>
     </div>
   );
 }
@@ -532,12 +598,14 @@ export function KillChainBolumu({
   azHareket,
   siteId = null,
   engelliIpler = [],
+  engelKurallari = [],
 }: {
   zincirler: SaldirganZincir[];
   ozet: KillChainOzet;
   azHareket: boolean;
   siteId?: string | null;
   engelliIpler?: string[];
+  engelKurallari?: { ip: string; kuralId: string }[];
 }) {
   const engelliSet = useMemo(() => new Set(engelliIpler), [engelliIpler]);
   // Açık drill-down zinciri (IP) + tehdit-seviyesi filtresi (null = hepsi).
@@ -629,32 +697,9 @@ export function KillChainBolumu({
           </div>
         </div>
 
-        {/* AKTİF IP ENGELLERİ — analistin dashboard'dan eklediği engellerin özeti.
-            Kaç IP engelli + ilk birkaçı + kurallar sayfasına git (hepsini yönet). */}
-        {engelliIpler.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-green-200 bg-ok-soft/30 px-3.5 py-2.5">
-            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-green-800">
-              <Ban className="size-3.5" />
-              {sayi(engelliIpler.length)} IP engelli
-            </span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {engelliIpler.slice(0, 5).map((ip) => (
-                <span key={ip} className="rounded-md bg-surface px-1.5 py-0.5 font-mono text-[11px] text-slate-muted ring-1 ring-inset ring-green-200">
-                  {ip}
-                </span>
-              ))}
-              {engelliIpler.length > 5 && (
-                <span className="text-[11px] text-slate-faint">+{sayi(engelliIpler.length - 5)}</span>
-              )}
-            </div>
-            <a
-              href="/panel/kurallar"
-              className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-medium text-green-800 ring-1 ring-inset ring-green-300 transition hover:bg-ok-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
-            >
-              Engelleri yönet <ArrowRight className="size-3" />
-            </a>
-          </div>
-        )}
+        {/* AKTİF IP ENGELLERİ — analistin dashboard'dan eklediği engeller; her chip
+            tek tıkla kaldırılabilir (EngelBandi client bileşeni). */}
+        <EngelBandi engelKurallari={engelKurallari} />
 
         {/* İki kolonlu derinlik: sol = gerçek dikey HUNİ, sağ = tehdit segment şeridi.
             Monoton yatay-bar ızgarası yerine iki farklı görsel dil. */}
