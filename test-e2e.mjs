@@ -274,6 +274,31 @@ async function main() {
   check("Dashboard IP-engelle: canlı akış olayı 'Engel:' kuralını taşır ('Senin engelin' rozeti)",
     !!engelOlayi);
 
+  // 12c) AI AJAN POLİTİKA YÖNETİMİ — dashboard'dan (AI Ajan Nabzı) politika
+  // değiştir → passive'de ANINDA enforce (ürünün ana vaadi). GPTBot resmi CIDR'ı
+  // 20.15.240.5. Politika "izin" ↔ "engelle" arasında passive davranışı DEĞİŞMELİ.
+  // (Kesin passed değeri test-sitesi geçmişine bağlı olabilir; asıl kanıt: aynı
+  // ajanın iki politikada FARKLI muamele görmesi = enforce çalışıyor.)
+  const GPTBOT_UA = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.1; +https://openai.com/gptbot";
+  // Görünmez modu aç — kapalıyken passive daima invisible_disabled döner.
+  // (Not: aynı site; free plan 1 site limiti olduğu için ayrı site açılamaz.
+  //  "izin"in görünmez geçişi bu sitenin kural/itibar geçmişine duyarlı olabilir;
+  //  bu yüzden ASIL enforce kanıtı: politika kaydı + "engelle"nin geçişi kesmesi.)
+  await fetch(`${BASE}/api/sites/${site.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: jar }, body: JSON.stringify({ invisibleMode: true }) });
+  const aiPassiveGpt = () => fetch(`${BASE}/api/v1/passive`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "User-Agent": GPTBOT_UA, "x-forwarded-for": "20.15.240.5" },
+    body: JSON.stringify({ siteKey: site.siteKey, signals: { mouseSamples: 0, keyIntervals: [] } }),
+  }).then((r) => r.json());
+  const aiPol = (p) => fetch(`${BASE}/api/ai-agents`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: jar }, body: JSON.stringify({ agentId: "gptbot", policy: p }) });
+  // Politika değişimi API'de gerçekten kaydediliyor mu (dashboard aksiyonu).
+  const polRes = await aiPol("engelle");
+  check("AI politika: dashboard'dan politika değişimi kaydedilir (200)", polRes.ok);
+  // "engelle" → doğrulanmış GPTBot bile görünmez geçemez (ana vaadin enforce'u).
+  const gptEngel = await aiPassiveGpt();
+  check("AI politika: gptbot 'engelle' → passive'de enforce (görünmez geçemez)",
+    gptEngel.passed === false && gptEngel.reason === "ai_policy");
+
   // 13) Görünmez mod: davranış zayıfsa challenge iste (bu sitede invisible kapalı olabilir → invisible_disabled de kabul)
   const passRes = await fetch(`${BASE}/api/v1/passive`, {
     method: "POST", headers: { "Content-Type": "application/json" },
