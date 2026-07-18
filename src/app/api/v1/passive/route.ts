@@ -71,13 +71,14 @@ export async function POST(req: Request) {
 
   // AI Ajan politikası: istek bilinen bir AI crawler'dan geliyorsa, site
   // sahibinin bu ajan için belirlediği politikayı uygula (izin/doğrula/engelle).
-  // Belirtilmemişse Specter'ın önerilen varsayılanı geçerli.
+  // Belirtilmemişse Veylify'ın önerilen varsayılanı geçerli.
   let aiEngeli = false;
+  let aiIzin = false; // "izin" → davranış eşiğini BYPASS et (AI'da davranış sinyali yok).
   if (aiAjan) {
     const sahip = Users.byId(site.ownerId);
     const politika = sahip?.aiPolicies?.[aiAjan.id] || aiAjan.onerilenPolitika;
-    // "izin" → geçişe izin (davranış yeterse); "doğrula"/"engelle" → geçme.
-    if (politika !== "izin") aiEngeli = true;
+    if (politika === "izin") aiIzin = true;
+    else aiEngeli = true; // "doğrula" | "engelle" → görünmez geçemez (challenge)
   }
 
   // Tehdit beslemesi: IP/ASN bilinen kötü altyapıyla (Tor/bulletproof/botnet)
@@ -87,9 +88,18 @@ export async function POST(req: Request) {
 
   // Geçiş şartı: davranış görünmez-eşiğin ÜSTÜNDE + kural block/challenge değil
   // + AI politikası engellemiyor + tehdit beslemesi işaretlemiyor.
+  // ÖZEL: "izin" verilen AI ajanı davranış eşiğinden MUAF — AI crawler'lar
+  // fare/klavye davranışı üretmez; site sahibi bilerek erişim verdi. Yine de
+  // kural motoru ve tehdit beslemesi (bilinen kötü altyapı) geçerli kalır.
   const invisibleEsik = Math.max(0.6, site.behaviorThreshold + 0.25);
-  const kuralEngeli = evalRes.action === "block" || evalRes.action === "challenge";
-  const gecti = behavior.score >= invisibleEsik && !kuralEngeli && !aiEngeli && !beslemeEngeli;
+  // AI ajanına AÇIKÇA "izin" verildiyse, bu spesifik izin genel bot kurallarını
+  // (ör. botClass=ai_agent→challenge) ve davranış eşiğini geçersiz kılar —
+  // spesifik politika > genel kural. Ancak "block" aksiyonlu bir kural yine de
+  // en katı olarak kalır (kullanıcı hem izin hem block yazdıysa güvenlik önce).
+  const kesinBlock = evalRes.action === "block";
+  const kuralEngeli = aiIzin ? kesinBlock : (evalRes.action === "block" || evalRes.action === "challenge");
+  const davranisGecti = aiIzin || behavior.score >= invisibleEsik;
+  const gecti = davranisGecti && !kuralEngeli && !aiEngeli && !beslemeEngeli;
 
   const now = Date.now();
   const verdict: Verdict = gecti ? "allowed" : "challenged";
