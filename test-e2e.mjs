@@ -298,6 +298,12 @@ async function main() {
   const gptEngel = await aiPassiveGpt();
   check("AI politika: gptbot 'engelle' → passive'de enforce (görünmez geçemez)",
     gptEngel.passed === false && gptEngel.reason === "ai_policy");
+  // Aynı dashboard politikası robots.txt'e de yansımalı (aktif engel + nazik beyan
+  // iki yönden tutarlı). /api/ai-robots kullanıcının aiPolicies'inden üretir.
+  const robotsRes = await fetch(`${BASE}/api/ai-robots`, { headers: { Cookie: jar } });
+  const robotsTxt = await robotsRes.text();
+  check("AI politika: 'engelle' robots.txt'e yansır (User-agent: GPTBot / Disallow: /)",
+    /User-agent:\s*GPTBot/i.test(robotsTxt) && /GPTBot[\s\S]*?Disallow:\s*\//i.test(robotsTxt));
 
   // 13) Görünmez mod: davranış zayıfsa challenge iste (bu sitede invisible kapalı olabilir → invisible_disabled de kabul)
   const passRes = await fetch(`${BASE}/api/v1/passive`, {
