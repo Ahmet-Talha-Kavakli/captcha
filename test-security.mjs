@@ -409,6 +409,30 @@ async function main() {
   check("Başlık-sahtekârlığı (canlı, header'sız Chrome-UA) → automation_detected",
     spoofReason === "automation_detected");
 
+  // ---- AI-AJAN ANTI-SPOOFING (ürünün ana vaadi: "siteleri AI'dan koru") ----
+  // AI ajanı SADECE UA'dan tespit edilir; UA trivial taklit edilir. "izin"
+  // politikalı bir ajan davranış eşiğini BYPASS ettiğinden, izin ancak kaynak IP
+  // operatörün resmi CIDR'ında ise verilmeli. Aksi halde "OAI-SearchBot" UA'sıyla
+  // gelen kazıyıcı korumayı tamamen atlardı. Kaynak: passive route + ai-verify.ts.
+  const OAI_UA = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot";
+  const aiPassive = (ua, ip) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: { mouseSamples: 0, keyIntervals: [] } });
+    const req = http.request(`${BASE}/api/v1/passive`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "User-Agent": ua, "x-forwarded-for": ip },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  // 1) SAHTE OAI-SearchBot (UA taklidi + rastgele kötü IP) → izin ALMAZ (görünmez geçemez).
+  const sahteAi = await aiPassive(OAI_UA, "6.6.6.6");
+  check("AI anti-spoof: sahte OAI-SearchBot (UA taklidi, rastgele IP) → görünmez geçemez",
+    sahteAi.passed === false);
+  // 2) GERÇEK OAI-SearchBot (UA + OpenAI resmi CIDR 20.42.10.x) → izinli geçer (FP yok).
+  const gercekAi = await aiPassive(OAI_UA, "20.42.10.5");
+  check("AI anti-spoof: gerçek OAI-SearchBot (resmi CIDR IP) → izinli geçer (yanlış-pozitif yok)",
+    gercekAi.passed === true);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

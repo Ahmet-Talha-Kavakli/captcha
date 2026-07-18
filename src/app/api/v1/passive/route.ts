@@ -17,6 +17,7 @@ import { extractMeta, classifyUA, baslikSahtekarligi } from "@/lib/specter/reque
 import { evaluateRules } from "@/lib/specter/rule-engine";
 import { Rules } from "@/lib/db/db";
 import { aiAjanTespit } from "@/lib/specter/ai-agents";
+import { aiAjanDogrula } from "@/lib/specter/ai-verify";
 import { fingerprintUret } from "@/lib/specter/fingerprint";
 import { tehditBeslemeEslestir } from "@/lib/specter/threat-feed";
 import { originIzinli } from "@/lib/specter/origin-esles";
@@ -96,8 +97,19 @@ export async function POST(req: Request) {
   if (aiAjan) {
     const sahip = Users.byId(site.ownerId);
     const politika = sahip?.aiPolicies?.[aiAjan.id] || aiAjan.onerilenPolitika;
-    if (politika === "izin") aiIzin = true;
-    else aiEngeli = true; // "doğrula" | "engelle" → görünmez geçemez (challenge)
+    // ANTI-SPOOFING (kritik): AI ajanı SADECE User-Agent'tan tespit edilir; UA
+    // trivial taklit edilir. "izin" politikası davranış eşiğini bypass ettiğinden,
+    // izni ancak ajan GERÇEKTEN doğrulanırsa (kaynak IP operatörün resmi CIDR'ında
+    // / reverse-DNS operatör alanına çözülüyor) veririz. Doğrulanamayan/SAHTE bir
+    // "izin"li ajan (UA taklidi) izin ALMAZ → görünmez geçemez, challenge'a düşer.
+    // (Aksi halde kazıyıcı "OAI-SearchBot" UA'sıyla korumayı tamamen atlardı.)
+    const dogrulama = aiAjanDogrula(aiAjan.id, aiAjan.dogrulama, meta.ip);
+    if (politika === "izin") {
+      if (dogrulama.durum === "dogrulandi") aiIzin = true;
+      else aiEngeli = true; // UA "izin"li ajan iddia ediyor ama IP doğrulanamadı → challenge
+    } else {
+      aiEngeli = true; // "doğrula" | "engelle" → görünmez geçemez (challenge)
+    }
   }
 
   // Tehdit beslemesi: IP/ASN bilinen kötü altyapıyla (Tor/bulletproof/botnet)
