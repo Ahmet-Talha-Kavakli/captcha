@@ -181,6 +181,30 @@ async function main() {
   check("Token bütünlüğü: tamamen sahte token → reddedilir (malformed/bad_signature)",
     sahte.success === false && /malformed|bad_signature|invalid/.test(sahte.reason || ""));
 
+  // 8c) VERIFY BAŞLIK-SAHTEKÂRLIĞI VETOSU — en güçlü saldırı: DOĞRU cevap +
+  // MÜKEMMEL uydurma davranış + Chrome-UA ama gerçek tarayıcı başlık seti YOK.
+  // Bu bot eskiden geçerdi (doğru cevap + iyi davranış yeterdi); artık
+  // spoofed_browser ile reddedilir. http.request (undici header enjeksiyonu yok).
+  const chSp = await (await fetch(`${BASE}/api/v1/challenge`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ siteKey: site.siteKey }),
+  })).json();
+  const ansSp = deriveAnswer(chSp.params.seed, chSp.params.length);
+  // NOT: JS sinyalleri TUTARLI verilir (chromeNesnesi vb. YOK) — böylece mevcut
+  // JS-tabanlı sahte-tarayıcı vetosu (satır ~121) DEĞİL, BAŞLIK-tabanlı veto test edilir.
+  const baslikSig = { mouseSamples: 120, mousePathLength: 1500, mouseSpeedVariance: 0.35, mouseCorners: 8, mouseAccelVariance: 0.28, keyIntervals: [95, 130, 88, 142, 110, 99], chromeNesnesi: true, deviceMemory: 8, hardwareConcurrency: 8, webglRenderer: "Intel Iris" };
+  const baslikVetoRes = await new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: site.siteKey, token: chSp.token, input: ansSp, signals: baslikSig });
+    const rq = http.request(`${BASE}/api/v1/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "User-Agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/120.0.0.0 Safari/537.36" },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { const j = JSON.parse(b); resolve({ ok: j.success, reason: j.reason }); } catch { resolve({}); } }); });
+    rq.on("error", () => resolve({}));
+    rq.end(body);
+  });
+  check("Verify başlık-vetosu: doğru cevap + JS-tutarlı ama Chrome-UA(header'sız) → spoofed_browser",
+    baslikVetoRes.ok === false && baslikVetoRes.reason === "spoofed_browser");
+
   // 9) Geçersiz site key
   const badKey = await fetch(`${BASE}/api/v1/challenge`, {
     method: "POST", headers: { "Content-Type": "application/json" },
