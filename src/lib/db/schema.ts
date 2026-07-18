@@ -47,6 +47,9 @@ export interface User {
   timezone?: string;
   /** İki-adımlı doğrulama (TOTP) etkin mi. */
   twoFactorEnabled?: boolean;
+  /** Gerçek TOTP secret (base32). Setup'ta üretilir, enable doğrulamasında
+   * ve giriş 2FA kontrolünde kullanılır. Kapatılınca temizlenir. */
+  totpSecret?: string;
   /** Şifrenin son değiştirildiği an (epoch ms). */
   passwordChangedAt?: number;
   /** Bildirim tercihleri (olay × kanal matrisi). */

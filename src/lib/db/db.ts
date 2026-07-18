@@ -406,8 +406,21 @@ export const Users = {
     const u = db.users.find((x) => x.id === uid);
     if (!u) return null;
     u.twoFactorEnabled = enabled;
+    // Kapatılınca TOTP secret'ı temizle (yeniden açılırken yeni secret üretilir).
+    if (!enabled) u.totpSecret = undefined;
     const own = db.team.find((t) => t.ownerId === uid && t.role === "owner");
     if (own) own.mfaEnabled = enabled;
+    persist();
+    return u;
+  },
+
+  /** 2FA kurulumu başlat: yeni TOTP secret üretip sakla (henüz enable etme).
+   * Kullanıcı authenticator'ına ekleyip bir kod ile doğrulayınca aktifleşir. */
+  setTotpSecret(uid: string, secret: string): User | null {
+    const db = load();
+    const u = db.users.find((x) => x.id === uid);
+    if (!u) return null;
+    u.totpSecret = secret;
     persist();
     return u;
   },

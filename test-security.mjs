@@ -3,7 +3,13 @@
  * İki ayrı kullanıcı oluşturup birinin diğerinin kaynaklarına
  * erişemediğini kanıtlar. Bir bot-koruma ürününde bu kritiktir.
  */
+import crypto from "node:crypto";
 const BASE = "http://127.0.0.1:3033";
+
+// TOTP kod üretici (authenticator uygulaması simülasyonu — RFC 6238).
+const _B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function _b32dec(s) { let bits = ""; for (const ch of s.toUpperCase()) { const i = _B32.indexOf(ch); if (i < 0) continue; bits += i.toString(2).padStart(5, "0"); } const by = []; for (let i = 0; i + 8 <= bits.length; i += 8) by.push(parseInt(bits.slice(i, i + 8), 2)); return Buffer.from(by); }
+function totpKodUret(secret, now = Date.now()) { const key = _b32dec(secret); const sayac = Math.floor(now / 1000 / 30); const buf = Buffer.alloc(8); buf.writeUInt32BE(Math.floor(sayac / 0x100000000), 0); buf.writeUInt32BE(sayac >>> 0, 4); const h = crypto.createHmac("sha1", key).update(buf).digest(); const o = h[h.length - 1] & 0xf; const k = ((h[o] & 0x7f) << 24) | ((h[o + 1] & 0xff) << 16) | ((h[o + 2] & 0xff) << 8) | (h[o + 3] & 0xff); return (k % 1000000).toString().padStart(6, "0"); }
 let pass = 0, fail = 0;
 function check(name, cond) {
   if (cond) { pass++; console.log(`  ✓ ${name}`); }
@@ -99,6 +105,24 @@ async function main() {
   });
   const revoked = await fetch(`${BASE}/api/v1/stats`, { headers: { Authorization: "Bearer " + secret } });
   check("İptal edilen token → 401 (revoke gerçekten erişimi keser)", revoked.status === 401);
+
+  // GERÇEK 2FA (TOTP RFC 6238) — yanlış kod GEÇEMEMELİ, doğru kod kabul edilmeli.
+  // (Eskiden yalnızca "6 hane mi" bakılıyordu — herhangi rakam 2FA'yı açıyordu.)
+  const setup2fa = await (await fetch(`${BASE}/api/account/2fa`, { headers: { Cookie: jarA } })).json();
+  check("2FA kurulum → gerçek TOTP secret + otpauth URI", typeof setup2fa.secret === "string" && String(setup2fa.otpauth || "").startsWith("otpauth://"));
+
+  const yanlisKod = await fetch(`${BASE}/api/account/2fa`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
+    body: JSON.stringify({ enabled: true, code: "000000" }),
+  });
+  check("2FA yanlış kod (000000) → 400 reddedilir (gerçek TOTP doğrulama)", yanlisKod.status === 400);
+
+  const dogruKod = totpKodUret(setup2fa.secret);
+  const dogru2fa = await (await fetch(`${BASE}/api/account/2fa`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
+    body: JSON.stringify({ enabled: true, code: dogruKod }),
+  })).json();
+  check("2FA doğru TOTP kodu → aktifleşir", dogru2fa.twoFactorEnabled === true);
 
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
