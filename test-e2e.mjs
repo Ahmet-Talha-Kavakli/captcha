@@ -367,6 +367,15 @@ async function main() {
   const use2 = await fetch(`${BASE}/api/promo/kullan`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ promoId, planId: "pro", hamFiyat: 490 }) });
   check("Promo 2. kullanım (aynı kullanıcı) → 400 çift-kullanım engellendi", use2.status === 400);
 
+  // 18i) TEHDİT AVI — SIEM sorgu dili gerçekten filtreliyor (tüm olay değil).
+  // Demo hesabı zengin veriye sahip; farklı sorgular farklı eşleşme vermeli.
+  const demoReg = await fetch(`${BASE}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: "demo@specter.dev", password: "specter123" }) });
+  const demoJar = (demoReg.headers.get("set-cookie") || "").split(";")[0];
+  const avBlocked = await (await fetch(`${BASE}/api/tehdit-avi`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: demoJar }, body: JSON.stringify({ sorgu: "verdict:blocked" }) })).json();
+  const avAll = await (await fetch(`${BASE}/api/tehdit-avi`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: demoJar }, body: JSON.stringify({ sorgu: "score>0" }) })).json();
+  check("Tehdit avı: SIEM sorgusu gerçekten filtreliyor (eşleşme < toplam)",
+    typeof avBlocked.eslesme === "number" && avBlocked.eslesme > 0 && avBlocked.eslesme <= avBlocked.toplam && avBlocked.eslesme !== avAll.eslesme);
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;
