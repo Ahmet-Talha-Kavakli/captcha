@@ -40,6 +40,12 @@ export interface HeaderSinyal {
    * yeri tutarlı yalanlamak gerekir). true = tutarsız (sahte sinyali).
    */
   platformCeliskisi: boolean;
+  /**
+   * MOBİL ÇELİŞKİSİ: UA "mobil cihaz" (iPhone/Android/Mobile) diyor ama Client
+   * Hints `sec-ch-ua-mobile: ?0` (masaüstü) — veya tersi. Gerçek tarayıcı ikisini
+   * tutarlı gönderir. true = tutarsız (sahte sinyali).
+   */
+  mobilCeliskisi: boolean;
 }
 
 /** UA'daki OS ailesini kaba çıkar (windows/mac/linux/android/ios/?). */
@@ -74,6 +80,13 @@ function headerSinyalCikar(h: Headers, ua: string): HeaderSinyal {
   // Her ikisi de bilinen bir platforma çözülüyor VE farklılarsa → çelişki.
   // "?" (bilinmeyen) veya boş → çelişki sayma (yanlış-pozitif önleme).
   const platformCeliskisi = !!chPlatformHam && uaPl !== "?" && chPl !== "?" && uaPl !== chPl;
+  // Mobil çelişkisi: sec-ch-ua-mobile "?1"=mobil, "?0"=masaüstü. UA mobil-cihaz
+  // işareti taşıyor mu? İkisi çelişirse → sahte. Header yoksa sayma.
+  const chMobilHam = h.get("sec-ch-ua-mobile") || "";
+  const uaMobil = /iphone|ipad|android|mobile|windows phone/.test(u);
+  const mobilCeliskisi =
+    (chMobilHam === "?1" && !uaMobil && uaPl !== "?") || // CH mobil ama UA masaüstü
+    (chMobilHam === "?0" && uaMobil);                     // CH masaüstü ama UA mobil
   return {
     clientHintsVar: !!(h.get("sec-ch-ua") || h.get("sec-ch-ua-platform")),
     acceptLanguageVar: !!h.get("accept-language"),
@@ -84,6 +97,7 @@ function headerSinyalCikar(h: Headers, ua: string): HeaderSinyal {
       !u.includes("headless") &&
       !/python|curl|go-http|node-fetch|axios|scrapy|wget|okhttp|libwww/.test(u),
     platformCeliskisi,
+    mobilCeliskisi,
   };
 }
 
@@ -123,11 +137,12 @@ export function extractMeta(req: Request): RequestMeta {
  * sinyalleri onları zaten yakalar.
  */
 export function baslikSahtekarligi(s: HeaderSinyal): boolean {
-  // PLATFORM ÇELİŞKİSİ tek başına güçlü kanıttır (UA "Windows" ama Client Hints
-  // platform "Linux" gibi) — Chromium iddiası olmasa bile geçerli: iki ayrı
-  // yeri tutarlı yalanlamayı beceremeyen bir bot burada yakalanır. Gerçek
-  // çapraz-doğrulama, düşük yanlış-pozitif (yalnızca ikisi de bilinen+farklı).
-  if (s.platformCeliskisi) return true;
+  // PLATFORM/MOBİL ÇELİŞKİSİ tek başına güçlü kanıttır (UA "Windows" ama Client
+  // Hints platform "Linux"; ya da UA "iPhone" ama sec-ch-ua-mobile "?0") —
+  // Chromium iddiası olmasa bile geçerli: iki ayrı ham header'ı tutarlı
+  // yalanlamayı beceremeyen bir bot burada yakalanır. Gerçek çapraz-doğrulama,
+  // düşük yanlış-pozitif (yalnızca ikisi de bilinen+farklı).
+  if (s.platformCeliskisi || s.mobilCeliskisi) return true;
   if (!s.uaChromiumIddiasi) return false; // gerisi yalnızca Chromium-iddiası için
   // Tarayıcı-benzeri Accept HİÇ yoksa (text/html de */* de değil) tek başına güçlü.
   if (!s.acceptTarayiciBenzeri && !s.acceptLanguageVar) return true;

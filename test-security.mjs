@@ -461,6 +461,29 @@ async function main() {
   check("Platform çelişkisi: UA Windows + Client Hints Windows → automation değil (FP yok)",
     tutarli.reason !== "automation_detected");
 
+  // ---- MOBİL ÇELİŞKİSİ (sec-ch-ua-mobile ↔ UA cihaz tipi) ----
+  const IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+  const mobilPassive = (chMobile, sig) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: sig });
+    const req = http.request(`${BASE}/api/v1/passive`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body),
+        "User-Agent": IPHONE_UA, "sec-ch-ua-mobile": chMobile, "accept-language": "tr", "accept": "text/html",
+      },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  // UA iPhone ama sec-ch-ua-mobile ?0 (masaüstü) → çelişki → automation_detected.
+  const mobCelisik = await mobilPassive("?0", iyiSig2);
+  check("Mobil çelişkisi: UA iPhone + sec-ch-ua-mobile ?0 → automation_detected",
+    mobCelisik.passed === false && mobCelisik.reason === "automation_detected");
+  // UA iPhone + ?1 (tutarlı) → automation DEĞİL (yanlış-pozitif yok).
+  const mobTutarli = await mobilPassive("?1", { hadTouch: true, mouseSamples: 0, keyIntervals: [100, 120, 90, 110] });
+  check("Mobil çelişkisi: UA iPhone + sec-ch-ua-mobile ?1 → automation değil (FP yok)",
+    mobTutarli.reason !== "automation_detected");
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
