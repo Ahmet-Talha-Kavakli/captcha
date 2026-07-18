@@ -592,6 +592,7 @@
         canvasLabel: "Ghost-font doğrulama kodu — hareketli görüntüde beliren karakterleri girin",
         success: "İnsan olduğun doğrulandı", successHint: "Formu gönderebilirsin",
         fail: "Doğrulama başarısız", failHint: "Tekrar deneyin",
+        hata: "Doğrulama şu an kullanılamıyor", hataHint: "Site yapılandırması veya bağlantı sorunu — lütfen sonra tekrar deneyin.",
         checking: "İnsan olduğun kontrol ediliyor…", checkingHint: "Bir saniye sürebilir",
         protected: "Veylify ile korunuyor", privacy: "Gizlilik", terms: "Şartlar",
         reducedMotion: "Hareket kapalı — kodu sesli dinleyin", wrong: "Yanlış kod",
@@ -613,6 +614,7 @@
         canvasLabel: "Ghost-font verification code — enter the characters that appear in the moving image",
         success: "You're verified as human", successHint: "You can submit the form",
         fail: "Verification failed", failHint: "Please try again",
+        hata: "Verification unavailable", hataHint: "Site configuration or connection issue — please try again later.",
         checking: "Verifying you're human…", checkingHint: "This may take a second",
         protected: "Protected by Veylify", privacy: "Privacy", terms: "Terms",
         reducedMotion: "Motion off — listen to the code", wrong: "Wrong code",
@@ -797,10 +799,12 @@
       h("div", { class: "msg" }, [T.success]),
       h("div", { class: "hint" }, [T.successHint])
     ]);
+    var failMsg = h("div", { class: "msg" }, [T.fail]);
+    var failHint = h("div", { class: "hint" }, [T.failHint]);
     var failState = h("div", { class: "state", role: "alert", "aria-live": "assertive" }, [
       h("div", { class: "xmark" }, ["✕"]),
-      h("div", { class: "msg" }, [T.fail]),
-      h("div", { class: "hint" }, [T.failHint])
+      failMsg,
+      failHint
     ]);
 
     // Görünmez mod kontrol durumu (Turnstile tarzı "kontrol ediliyor").
@@ -936,6 +940,12 @@
           }, (ttlSn - 8) * 1000);
         })
         .catch(function () {
+          // YAPILANDIRMA/BAĞLANTI HATASI — kullanıcı hatası DEĞİL (geçersiz
+          // site-key, API erişilemez, 500). Kullanıcıya "başarısız, tekrar dene"
+          // göstermek yanıltıcıydı (sonsuz döngü). Bunun yerine net "kullanılamıyor"
+          // mesajı; tekrar-dene otomasyonu tetiklenmez (submit akışına girilmez).
+          failMsg.textContent = T.hata || T.fail;
+          failHint.textContent = T.hataHint || T.failHint;
           show("fail");
         });
     }
@@ -994,6 +1004,10 @@
             target.dispatchEvent(new CustomEvent("veylify-verified", { detail: res, bubbles: true }));
               target.dispatchEvent(new CustomEvent("specter-verified", { detail: res, bubbles: true }));
           } else {
+            // Normal kullanıcı hatası (yanlış cevap) → "başarısız, tekrar dene"
+            // (config-hata modundan sonra metni normale döndür).
+            failMsg.textContent = T.fail;
+            failHint.textContent = T.failHint;
             show("fail");
             setTimeout(load, 1200);
           }
