@@ -74,6 +74,32 @@ async function main() {
   const wv = await wrongVerify.json();
   check("Sahte secret ile siteverify → başarısız", wv.success === false);
 
+  // Public API Bearer token — programatik erişim auth + iptal enforcement.
+  // A bir API anahtarı oluşturur (stats scope); anahtarla /api/v1/stats çeker.
+  const tk = await (await fetch(`${BASE}/api/tokens`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
+    body: JSON.stringify({ name: "sec-test", scopes: ["stats"], environment: "test" }),
+  })).json();
+  const secret = tk.secret;
+  check("API anahtarı oluşturuldu (sk_ secret döndü)", typeof secret === "string" && secret.startsWith("sk_"));
+
+  const okStats = await fetch(`${BASE}/api/v1/stats`, { headers: { Authorization: "Bearer " + secret } });
+  check("Geçerli Bearer token → 200 (programatik erişim çalışıyor)", okStats.status === 200);
+
+  const noToken = await fetch(`${BASE}/api/v1/stats`);
+  check("Token'sız /api/v1/stats → 401", noToken.status === 401);
+
+  const fakeToken = await fetch(`${BASE}/api/v1/stats`, { headers: { Authorization: "Bearer sk_test_sahtekey" } });
+  check("Sahte Bearer token → 401", fakeToken.status === 401);
+
+  // Anahtarı iptal et → aynı anahtar artık erişememeli (revoke enforcement).
+  await fetch(`${BASE}/api/tokens`, {
+    method: "DELETE", headers: { "Content-Type": "application/json", Cookie: jarA },
+    body: JSON.stringify({ id: tk.token.id }),
+  });
+  const revoked = await fetch(`${BASE}/api/v1/stats`, { headers: { Authorization: "Bearer " + secret } });
+  check("İptal edilen token → 401 (revoke gerçekten erişimi keser)", revoked.status === 401);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

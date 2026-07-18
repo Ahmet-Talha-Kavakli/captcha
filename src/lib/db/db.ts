@@ -991,14 +991,16 @@ export const Tokens = {
     environment: "live" | "test" = "live",
   ): { token: ApiToken; secret: string } {
     const db = load();
-    // Gerçek gizli anahtar yalnızca bir kez döner; DB'de sadece maskeli
-    // prefix (ilk 20 karakter) tutulur.
+    // Gerçek gizli anahtar yalnızca bir kez döner; DB'de maskeli prefix (ilk 20
+    // karakter, gösterim için) + tam anahtarın SHA-256 HASH'i tutulur. Düz metin
+    // secret ASLA saklanmaz → sızıntı olsa bile anahtarlar geri elde edilemez.
     const secret = `sk_${environment}_` + crypto.randomBytes(24).toString("hex");
     const token: ApiToken = {
       id: id("tok"),
       ownerId,
       name,
       prefix: secret.slice(0, 20),
+      secretHash: crypto.createHash("sha256").update(secret).digest("hex"),
       scopes,
       environment,
       createdAt: Date.now(),
@@ -1010,12 +1012,33 @@ export const Tokens = {
     persist();
     return { token, secret };
   },
+  /**
+   * Bir Bearer secret'ından iptal edilmemiş token'ı bulur (SHA-256 hash
+   * karşılaştırması, timing-safe). Public API auth'unun tek doğrulama noktası.
+   * Bulunursa lastUsed + requests30d güncellenir. Geçersiz/iptal → null.
+   */
+  byToken(secret: string): ApiToken | null {
+    if (!secret || !secret.startsWith("sk_")) return null;
+    const hash = crypto.createHash("sha256").update(secret).digest("hex");
+    const hb = Buffer.from(hash, "hex");
+    const t = load().apiTokens.find((x) => {
+      if (x.revoked || !x.secretHash) return false;
+      const xb = Buffer.from(x.secretHash, "hex");
+      return xb.length === hb.length && crypto.timingSafeEqual(xb, hb);
+    });
+    if (!t) return null;
+    t.lastUsed = Date.now();
+    t.requests30d = (t.requests30d ?? 0) + 1;
+    persist();
+    return t;
+  },
   /** Anahtarı döndürür: yeni gizli anahtar üretir, prefix'i günceller, kullanımı sıfırlar. */
   rotate(ownerId: string, tokenId: string): { token: ApiToken; secret: string } | null {
     const t = Tokens.byId(ownerId, tokenId);
     if (!t || t.revoked) return null;
     const secret = `sk_${t.environment}_` + crypto.randomBytes(24).toString("hex");
     t.prefix = secret.slice(0, 20);
+    t.secretHash = crypto.createHash("sha256").update(secret).digest("hex");
     const now = Date.now();
     t.createdAt = now;
     t.lastUsed = null;

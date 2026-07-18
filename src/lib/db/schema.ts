@@ -417,6 +417,9 @@ export interface ApiToken {
   ownerId: string;
   name: string;
   prefix: string; // sk_live_xxxx (görünen kısım)
+  /** Gizli anahtarın SHA-256 hash'i (düz metin ASLA saklanmaz). Bearer-auth
+   * doğrulaması bu hash ile yapılır; secret yalnızca oluşturma anında döner. */
+  secretHash?: string;
   scopes: string[];
   /** Anahtar ortamı: canlı (production) veya test (sandbox). */
   environment: "live" | "test";
