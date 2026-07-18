@@ -286,6 +286,16 @@ async function main() {
   check("Tor IP → PoW dayatılır (CPU maliyeti, bot ekonomik caydırma)",
     !!torPow.pow && torPow.pow.hedefBit > 0);
 
+  // 17b) PoW ENFORCEMENT — PoW zorunluyken ÇÖZMEDEN verify reddedilmeli. Doğru
+  // cevap + iyi fare olsa bile PoW çözülmediyse geçememeli (yoksa CPU maliyeti süs).
+  const powGood = { mouseSamples: 40, mousePathLength: 300, mouseSpeedVariance: 0.3, keyIntervals: [120, 180, 95, 210], timeToSubmit: 3200, chromeNesnesi: true, deviceMemory: 8, hardwareConcurrency: 8 };
+  const powVer = await (await fetch(`${BASE}/api/v1/verify`, {
+    method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "185.220.101.9" },
+    body: JSON.stringify({ siteKey: DEMO, token: torPow.token, input: deriveAnswer(torPow.params.seed, torPow.params.length), signals: powGood }),
+  })).json();
+  check("Tor IP: PoW çözmeden verify → pow_failed (CPU maliyeti gerçekten zorunlu)",
+    powVer.success === false && powVer.reason === "pow_failed");
+
   // 18) KURAL MOTORU KAPSAMI — site sahibinin yazdığı kurallar enforcement'a
   // yansımalı: farklı alanlar (asn/path/score) + block vs challenge ayrımı.
   // simulate endpoint'i GERÇEK rule-engine mantığını çalıştırır (mock değil).
