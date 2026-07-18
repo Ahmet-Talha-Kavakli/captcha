@@ -191,7 +191,10 @@ export function buildSeed(now: number): Database {
     workspaceName: "Acme Güvenlik",
     locale: "tr",
     timezone: "Europe/Istanbul",
-    twoFactorEnabled: true,
+    // Demo hesap: 2FA KAPALI (test için sürtünmesiz giriş; gerçek TOTP secret
+    // olmadan enabled:true tutmak login akışında tutarsızlık yaratırdı). 2FA
+    // vitrin akışı panelin ayarlar/güvenlik ekranından denenebilir.
+    twoFactorEnabled: false,
     passwordChangedAt: now - 40 * 86400000,
     notificationPrefs: {
       kritik_uyari: { email: true, webhook: true, panel: true },

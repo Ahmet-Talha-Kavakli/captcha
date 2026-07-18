@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { Users, verifyPassword } from "@/lib/db/db";
 import { startSession } from "@/lib/auth";
+import { totpDogrula } from "@/lib/specter/totp";
 
 export async function POST(req: Request) {
-  const { email, password } = await req.json().catch(() => ({}));
+  const { email, password, code } = await req.json().catch(() => ({}));
 
   if (!email || !password) {
     return NextResponse.json(
@@ -18,6 +19,23 @@ export async function POST(req: Request) {
       { error: "E-posta veya şifre hatalı." },
       { status: 401 },
     );
+  }
+
+  // İKİNCİ FAKTÖR: hesapta 2FA açık VE gerçek bir TOTP secret varsa, şifre doğru
+  // olsa bile TOTP kodu ZORUNLU. Şifre sızsa bile authenticator olmadan giriş
+  // engellenir. (Eski/bozuk durum: enabled=true ama secret yok → 2FA yok sayılır,
+  // giriş normal ilerler; böylece secret'sız eski hesaplar kilitlenmez.)
+  if (user.twoFactorEnabled && user.totpSecret) {
+    if (!code) {
+      // Session BAŞLATILMAZ — istemciye ikinci adımı iste.
+      return NextResponse.json({ requires2fa: true }, { status: 200 });
+    }
+    if (typeof code !== "string" || !totpDogrula(user.totpSecret, code)) {
+      return NextResponse.json(
+        { error: "Doğrulama kodu geçersiz.", requires2fa: true },
+        { status: 401 },
+      );
+    }
   }
 
   await startSession(user.id);

@@ -743,7 +743,7 @@ export interface IletisimMesaji {
   ip?: string;
 }
 
-export const SCHEMA_VERSION = 28;
+export const SCHEMA_VERSION = 29;
 
 export function emptyDatabase(): Database {
   return {

@@ -106,23 +106,44 @@ async function main() {
   const revoked = await fetch(`${BASE}/api/v1/stats`, { headers: { Authorization: "Bearer " + secret } });
   check("İptal edilen token → 401 (revoke gerçekten erişimi keser)", revoked.status === 401);
 
-  // GERÇEK 2FA (TOTP RFC 6238) — yanlış kod GEÇEMEMELİ, doğru kod kabul edilmeli.
-  // (Eskiden yalnızca "6 hane mi" bakılıyordu — herhangi rakam 2FA'yı açıyordu.)
-  const setup2fa = await (await fetch(`${BASE}/api/account/2fa`, { headers: { Cookie: jarA } })).json();
+  // GERÇEK 2FA (TOTP RFC 6238) — bağımsız hesap (login enforcement'ı da test eder).
+  // Eskiden yalnızca "6 hane mi" bakılıyordu — herhangi rakam 2FA'yı açıyordu VE
+  // giriş 2FA'yı hiç dayatmıyordu (şifre yeterliydi). İkisi de düzeltildi.
+  const email2fa = `mfa${Date.now()}@x.dev`;
+  const jar2fa = await kayit(email2fa);
+  const setup2fa = await (await fetch(`${BASE}/api/account/2fa`, { headers: { Cookie: jar2fa } })).json();
   check("2FA kurulum → gerçek TOTP secret + otpauth URI", typeof setup2fa.secret === "string" && String(setup2fa.otpauth || "").startsWith("otpauth://"));
 
   const yanlisKod = await fetch(`${BASE}/api/account/2fa`, {
-    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jar2fa },
     body: JSON.stringify({ enabled: true, code: "000000" }),
   });
   check("2FA yanlış kod (000000) → 400 reddedilir (gerçek TOTP doğrulama)", yanlisKod.status === 400);
 
-  const dogruKod = totpKodUret(setup2fa.secret);
   const dogru2fa = await (await fetch(`${BASE}/api/account/2fa`, {
-    method: "POST", headers: { "Content-Type": "application/json", Cookie: jarA },
-    body: JSON.stringify({ enabled: true, code: dogruKod }),
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jar2fa },
+    body: JSON.stringify({ enabled: true, code: totpKodUret(setup2fa.secret) }),
   })).json();
   check("2FA doğru TOTP kodu → aktifleşir", dogru2fa.twoFactorEnabled === true);
+
+  // 2FA GİRİŞ DAYATMASI — hesap 2FA açıkken şifre TEK BAŞINA yetmemeli.
+  const loginTotpsuz = await (await fetch(`${BASE}/api/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email2fa, password: "test123" }),
+  })).json();
+  check("2FA açık: şifre doğru ama TOTP yok → requires2fa (giriş tamamlanmaz)", loginTotpsuz.requires2fa === true && !loginTotpsuz.ok);
+
+  const loginYanlisTotp = await fetch(`${BASE}/api/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email2fa, password: "test123", code: "000000" }),
+  });
+  check("2FA açık: yanlış TOTP → 401", loginYanlisTotp.status === 401);
+
+  const loginDogru = await (await fetch(`${BASE}/api/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email2fa, password: "test123", code: totpKodUret(setup2fa.secret) }),
+  })).json();
+  check("2FA açık: doğru TOTP → giriş başarılı", loginDogru.ok === true);
 
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
