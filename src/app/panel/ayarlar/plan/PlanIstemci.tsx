@@ -22,17 +22,20 @@ interface PlanTanim {
   kotalar: { dogrulama: number; site: number; ekip: number };
 }
 
+// Değerler backend plans.ts (PLANLAR) + landing fiyatlandırma ile TUTARLI olmalı.
+// Daha önce burada ayrı bir kopya vardı (Pro ₺490/100K/999site) ve dashboard'la
+// (Büyüme) + landing'le (₺990/1M/10site) çelişiyordu — müşteri kafa karışıklığı.
 const PLANLAR: PlanTanim[] = [
-  { key: "free", ad: "Free", fiyat: 0, fiyatEtiket: "₺0", ozet: "Kişisel projeler ve deneme için.", kotalar: { dogrulama: 1000, site: 1, ekip: 1 } },
-  { key: "pro", ad: "Pro", fiyat: 490, fiyatEtiket: "₺490", ozet: "Büyüyen ekipler ve üretim trafiği.", kotalar: { dogrulama: 100000, site: 999, ekip: 10 } },
-  { key: "scale", ad: "Scale", fiyat: null, fiyatEtiket: "Özel", ozet: "Yüksek hacim, SLA ve kurumsal gereksinimler.", kotalar: { dogrulama: 1000000, site: 9999, ekip: 999 } },
+  { key: "free", ad: "Başlangıç", fiyat: 0, fiyatEtiket: "₺0", ozet: "Kişisel projeler ve deneme için.", kotalar: { dogrulama: 10000, site: 1, ekip: 1 } },
+  { key: "pro", ad: "Büyüme", fiyat: 990, fiyatEtiket: "₺990", ozet: "Büyüyen ekipler ve üretim trafiği.", kotalar: { dogrulama: 1000000, site: 10, ekip: 10 } },
+  { key: "scale", ad: "Ölçek", fiyat: null, fiyatEtiket: "Özel", ozet: "Yüksek hacim, SLA ve kurumsal gereksinimler.", kotalar: { dogrulama: 100000000, site: 9999, ekip: 999 } },
 ];
 
 /* Özellik karşılaştırma matrisi. */
 const OZELLIKLER: { ad: string; free: boolean | string; pro: boolean | string; scale: boolean | string }[] = [
   { ad: "Ghost-font CAPTCHA koruması", free: true, pro: true, scale: true },
-  { ad: "Aylık doğrulama", free: "1.000", pro: "100.000", scale: "Sınırsız" },
-  { ad: "Korunan site", free: "1 site", pro: "Sınırsız", scale: "Sınırsız" },
+  { ad: "Aylık doğrulama", free: "10.000", pro: "1.000.000", scale: "Sınırsız" },
+  { ad: "Korunan site", free: "1 site", pro: "10 site", scale: "Sınırsız" },
   { ad: "Ekip üyesi", free: "1", pro: "10", scale: "Sınırsız" },
   { ad: "Davranışsal analiz", free: false, pro: true, scale: true },
   { ad: "Kural motoru", free: false, pro: true, scale: true },
@@ -61,10 +64,10 @@ interface KrediPaketVM {
 }
 
 const FATURALAR = [
-  { id: "f1", tarih: "01.07.2026", aciklama: "Pro plan — Temmuz", tutar: 490, no: "SPC-2026-0007" },
-  { id: "f2", tarih: "01.06.2026", aciklama: "Pro plan — Haziran", tutar: 490, no: "SPC-2026-0006" },
-  { id: "f3", tarih: "01.05.2026", aciklama: "Pro plan — Mayıs", tutar: 490, no: "SPC-2026-0005" },
-  { id: "f4", tarih: "01.04.2026", aciklama: "Free → Pro yükseltme", tutar: 490, no: "SPC-2026-0004" },
+  { id: "f1", tarih: "01.07.2026", aciklama: "Büyüme plan — Temmuz", tutar: 990, no: "VYF-2026-0007" },
+  { id: "f2", tarih: "01.06.2026", aciklama: "Büyüme plan — Haziran", tutar: 990, no: "VYF-2026-0006" },
+  { id: "f3", tarih: "01.05.2026", aciklama: "Büyüme plan — Mayıs", tutar: 990, no: "VYF-2026-0005" },
+  { id: "f4", tarih: "01.04.2026", aciklama: "Başlangıç → Büyüme yükseltme", tutar: 990, no: "VYF-2026-0004" },
 ];
 
 /* ------------------------------------------------------------------ ana */
