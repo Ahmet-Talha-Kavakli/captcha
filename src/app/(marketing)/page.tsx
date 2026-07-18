@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight, Eye, Check, ShieldCheck, Bot, Zap, Gauge, Code2, Globe,
-  Fingerprint, GitBranch, Sparkles, Lock, Activity, Server, Layers, Star,
+  Fingerprint, GitBranch, Sparkles, Lock, Activity, Server, Layers,
 } from "lucide-react";
 import { Badge, Highlight, Reveal } from "@/components/site/primitives";
 import { HeroGorsel, GhostFontGorsel, IzgaraArka, UrunEkranGorseli, AiAjanKoruma } from "@/components/site/gorseller";
@@ -410,39 +410,40 @@ function Compare() {
 function Testimonials() {
   const yorumlar = [
     {
-      metin: "reCAPTCHA'dan Veylify'e geçtik ve bot trafiğimiz bir gecede %92 düştü. Görünmez mod sayesinde gerçek kullanıcılarımız hiçbir sürtünme yaşamadı.",
-      ad: "Elif K.", unvan: "Platform Lideri, E-ticaret", bas: "EK", renk: "#4f46e5",
+      metin: "reCAPTCHA'dan geçiş: görünmez mod ile gerçek kullanıcılar hiç sürtünme yaşamadan, bot trafiği davranış skoru + kural motoruyla eleniyor.",
+      ad: "E-ticaret", unvan: "Yüksek trafikli kayıt/checkout", bas: "🛒", renk: "#4f46e5",
     },
     {
-      metin: "İçeriğimiz sürekli AI kazıyıcılar tarafından çalınıyordu. Veylify, GPTBot ve ClaudeBot'u TLS parmak izinden yakalıyor — artık eğitim verisi olmaktan çıktık.",
-      ad: "Mert A.", unvan: "CTO, İçerik Platformu", bas: "MA", renk: "#7c3aed",
+      metin: "İçerik kazıma savunması: GPTBot ve ClaudeBot TLS/JA3 parmak izi + AI-ajan politikasıyla yakalanır — içeriğiniz AI eğitim verisi olmaktan çıkar.",
+      ad: "İçerik Platformu", unvan: "AI kazıyıcı koruması", bas: "📰", renk: "#7c3aed",
     },
     {
-      metin: "Kimlik doldurma saldırıları login sayfamızı bombalıyordu. Kural motoru + davranış biyometrisi ile kaçan istek oranı %0.3'e indi. Kurulum gerçekten 10 dakika.",
-      ad: "Selin D.", unvan: "Güvenlik Mühendisi, SaaS", bas: "SD", renk: "#db2777",
+      metin: "Kimlik doldurma (credential stuffing): kural motoru + davranış biyometrisi + PoW ile login sayfası korunur; kurulum ortalama 10 dakika.",
+      ad: "SaaS / Giriş", unvan: "Hesap ele geçirme önleme", bas: "🔐", renk: "#db2777",
     },
   ];
   return (
     <section className="px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <Badge variant="indigo">Müşteri hikayeleri</Badge>
+          <Badge variant="indigo">Kullanım senaryoları</Badge>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
-            Ekipler botları <Highlight variant="gradient">Veylify ile</Highlight> durduruyor
+            Veylify ile botları <Highlight variant="gradient">nasıl durdurursunuz</Highlight>
           </h2>
+          <p className="mt-3 text-[15px] text-veylify-600">
+            Aşağıdaki senaryolar, Veylify'ın gerçek yeteneklerini gösteren temsili örneklerdir.
+          </p>
         </Reveal>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {yorumlar.map((y, i) => (
             <Reveal key={y.ad} delay={((i % 3) + 1) as 1 | 2 | 3}>
               <figure className="flex h-full flex-col rounded-2xl border border-veylify-100 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-30px_rgba(79,70,229,0.35)]">
-                <div className="mb-3 flex gap-0.5 text-amber-400">
-                  {Array.from({ length: 5 }).map((_, s) => (
-                    <Star key={s} className="size-4 fill-current" />
-                  ))}
+                <div className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-veylify-50 px-2.5 py-1 text-[11px] font-semibold text-veylify-700">
+                  <ShieldCheck className="size-3.5" /> Kullanım senaryosu
                 </div>
-                <blockquote className="flex-1 text-[14.5px] leading-relaxed text-slate-700">
-                  “{y.metin}”
-                </blockquote>
+                <p className="flex-1 text-[14.5px] leading-relaxed text-slate-700">
+                  {y.metin}
+                </p>
                 <figcaption className="mt-5 flex items-center gap-3 border-t border-veylify-100 pt-4">
                   <span
                     className="grid size-10 shrink-0 place-items-center rounded-full text-[13px] font-bold text-white"
