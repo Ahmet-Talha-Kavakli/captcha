@@ -181,6 +181,20 @@ async function main() {
   const repAnon = await fetch(`${BASE}/api/reports/download?type=trafik`);
   check("Oturumsuz rapor indirme → 401 (izolasyon)", repAnon.status === 401);
 
+  // CORS ORIGIN GÜVENLİĞİ — challenge CORS'u site domain'ine SIKI kısıtlı olmalı;
+  // origin.includes() spoof'una (evil-domain.com.attacker.net) açık DEĞİL.
+  const corsBasi = async (origin) => {
+    const r = await fetch(`${BASE}/api/v1/challenge`, {
+      method: "POST", headers: { "Content-Type": "application/json", Origin: origin },
+      body: JSON.stringify({ siteKey: "pk_demo_veylify_public" }),
+    });
+    return r.headers.get("access-control-allow-origin");
+  };
+  check("CORS: meşru domain (acme-shop.com) → yansıtılır", (await corsBasi("https://acme-shop.com")) === "https://acme-shop.com");
+  check("CORS: gerçek subdomain (www.acme-shop.com) → yansıtılır", (await corsBasi("https://www.acme-shop.com")) === "https://www.acme-shop.com");
+  check("CORS: prefix-spoof (evil-acme-shop.com.x.net) → reddedilir (null)", (await corsBasi("https://evil-acme-shop.com.attacker.net")) === "null");
+  check("CORS: suffix-spoof (acme-shop.com.evil.net) → reddedilir (null)", (await corsBasi("https://acme-shop.com.evil.net")) === "null");
+
   // PLAN LİMİTLERİ — free plan (site 1, ekip 1) aşımı reddedilmeli; aksi halde
   // plan farkı anlamsız olurdu (gelir kaçağı). Pro yükseltince limit açılmalı.
   const planEmail = `plan${Date.now()}@x.dev`;

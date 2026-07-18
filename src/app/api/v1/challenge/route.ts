@@ -16,6 +16,7 @@ import {
   type ChallengeType,
 } from "@/lib/specter/challenge";
 import { signToken, secureSeed, randomNonce, type TokenPayload } from "@/lib/specter/crypto";
+import { originIzinli } from "@/lib/specter/origin-esles";
 import { powZorluk, TABAN_ZORLUK_BIT } from "@/lib/specter/proof-of-work";
 import { kotaDurumu } from "@/lib/specter/plans";
 import { extractMeta } from "@/lib/specter/request-meta";
@@ -25,11 +26,9 @@ import { tehditBeslemeEslestir } from "@/lib/specter/threat-feed";
 const CHALLENGE_TTL_MS = 2 * 60 * 1000;
 
 function cors(origin: string | null, allowed: string[]): Record<string, string> {
-  // Widget cross-origin çağırır; izinli origin ise yansıt.
-  const ok =
-    origin &&
-    (allowed.includes("*") ||
-      allowed.some((d) => origin === `https://${d}` || origin === `http://${d}` || origin.includes(d)));
+  // Widget cross-origin çağırır; izinli origin ise yansıt. GÜVENLİ eşleştirme:
+  // host tam eşit VEYA gerçek alt-alan (origin.includes DEĞİL — spoof'a açıktı).
+  const ok = originIzinli(origin, allowed);
   return {
     "Access-Control-Allow-Origin": ok ? origin! : "null",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
