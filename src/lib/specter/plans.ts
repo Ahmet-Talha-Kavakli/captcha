@@ -23,20 +23,24 @@ export interface PlanTanim {
   asimDavranisi: "block" | "overage";
 }
 
+// NOT: Bu limitler landing fiyatlandırma sayfasıyla (FiyatIcerik.tsx) TUTARLI
+// olmalı — landing müşteriye vaat edilen sözdür. Daha önce landing 10K free /
+// 1M pro vaat ediyordu ama sistem 1K / 100K'da kesiyordu (müşteri yanıltma +
+// kota erken engelleme). Landing'in söz verdiği (daha cömert) değerlere hizalandı.
 export const PLANLAR: Record<Plan, PlanTanim> = {
   free: {
-    key: "free", ad: "Ücretsiz", fiyat: "₺0",
-    dogrulamaKotasi: 1000, siteLimiti: 1, ekipLimiti: 1, anahtarLimiti: 2,
+    key: "free", ad: "Başlangıç", fiyat: "₺0",
+    dogrulamaKotasi: 10000, siteLimiti: 1, ekipLimiti: 1, anahtarLimiti: 2,
     asimDavranisi: "block",
   },
   pro: {
-    key: "pro", ad: "Pro", fiyat: "₺490/ay",
-    dogrulamaKotasi: 100000, siteLimiti: 999, ekipLimiti: 10, anahtarLimiti: 20,
+    key: "pro", ad: "Büyüme", fiyat: "₺990/ay",
+    dogrulamaKotasi: 1000000, siteLimiti: 10, ekipLimiti: 10, anahtarLimiti: 20,
     asimDavranisi: "overage",
   },
   scale: {
-    key: "scale", ad: "Scale", fiyat: "Özel",
-    dogrulamaKotasi: 1000000, siteLimiti: 9999, ekipLimiti: 999, anahtarLimiti: 999,
+    key: "scale", ad: "Ölçek", fiyat: "Özel",
+    dogrulamaKotasi: 100000000, siteLimiti: 9999, ekipLimiti: 999, anahtarLimiti: 999,
     asimDavranisi: "overage",
   },
 };

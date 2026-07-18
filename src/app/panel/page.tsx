@@ -86,8 +86,11 @@ export default async function PanelAnaSayfa() {
   // Plan kotası.
   const usage30 = Usage.forOwner(user.id, 30);
   const kullanilan = usage30.reduce((a, u) => a + u.issued, 0);
-  const kota = planTanim(user.plan).dogrulamaKotasi;
-  const planAd = user.plan === "pro" ? "Koruyucu" : user.plan === "scale" ? "Kurumsal" : "Başlangıç";
+  const planTanimi = planTanim(user.plan);
+  const kota = planTanimi.dogrulamaKotasi;
+  // Plan adı TEK KAYNAK'tan (plans.ts) — landing + panel tutarlı olsun. Daha
+  // önce sabit "Koruyucu/Kurumsal" idi, landing "Büyüme/Ölçek" ile uyuşmuyordu.
+  const planAd = planTanimi.ad;
 
   // En çok engellenen IP'ler (son 400 olaydan türetilir) — "başlıca saldırganlar".
   const ipSay = new Map<string, { ip: string; country: string; blocked: number; total: number; botClass: string }>();
