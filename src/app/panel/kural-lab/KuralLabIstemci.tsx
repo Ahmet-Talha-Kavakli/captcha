@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   FlaskConical, Play, ShieldCheck, ShieldX, ShieldAlert, Flag, Zap, Globe,
   Server, Fingerprint, Bot, Gauge, ListChecks, CheckCircle2, XCircle, MinusCircle,
@@ -9,6 +10,8 @@ import {
 import { Panel, StatKart, Badge, Secim, KodBlok, useToast } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
 import { MarkaLogo } from "@/components/panel/MarkaLogo";
+import { RadarGrafik, Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import { cn } from "@/lib/cn";
 import {
   ruleMatches, grupOzet, FIELD_ETIKET, OP_ETIKET, ACTION_ETIKET,
@@ -403,6 +406,80 @@ export function KuralLabIstemci({
   }, [goster]);
 
   const nihai = yanit ? ACTION_META[yanit.action] : null;
+  const azHareket = useReducedMotion() ?? false;
+  const gir = (gecikme = 0) => ({
+    initial: azHareket ? false : ({ y: 12 } as const),
+    animate: { y: 0 },
+    transition: { duration: azHareket ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] as const, delay: azHareket ? 0 : gecikme },
+  });
+
+  /* ---- görsel türetmeler (yalnızca sunum; motor/veri değişmez) ---- */
+
+  // Karar güven puanı: türetilen sinyaller ve iz kararı ne kadar net → 0-100.
+  // Terminal karar + destekleyici sinyaller = yüksek güven; kural eşleşmedi = düşük.
+  const guvenPuan = useMemo(() => {
+    if (!yanit) return 0;
+    let p = yanit.decidedBy ? 55 : 25; // net karar veren kural var mı
+    const s = yanit.sinyaller;
+    // Karar block/challenge iken şüpheli sinyaller güveni artırır; allow iken temizlik artırır.
+    const supheli = (s.headless ? 1 : 0) + (s.tlsUaUyumsuz ? 1 : 0) + (s.aiAgentId ? 1 : 0);
+    if (yanit.action === "allow") {
+      p += (3 - supheli) * 8 + Math.round(istek.score * 20);
+    } else {
+      p += supheli * 10 + Math.round((1 - istek.score) * 18);
+    }
+    p += Math.min(eslesenSayi, 3) * 4;
+    return Math.max(0, Math.min(100, p));
+  }, [yanit, istek.score, eslesenSayi]);
+
+  // Kural etkinlik radarı: aktif kural setinin bu isteğe göre 5-eksenli profili.
+  const radarEksenler = useMemo(() => {
+    const aktif = kurallar.filter((k) => k.enabled);
+    const n = aktif.length || 1;
+    const kapsam = Math.min(100, (aktif.length / Math.max(1, kurallar.length)) * 100);
+    const eslesme = Math.min(100, (eslesenSayi / n) * 100 + (eslesenSayi ? 20 : 0));
+    // Katılık: block/challenge aksiyonlu aktif kural oranı.
+    const katiSay = aktif.filter((k) => k.action === "block" || k.action === "challenge").length;
+    const katilik = Math.min(100, (katiSay / n) * 100);
+    // Terminallik: flag olmayan (akışı kesen) aktif kural oranı.
+    const terminalSay = aktif.filter((k) => k.action !== "flag").length;
+    const terminal = Math.min(100, (terminalSay / n) * 100);
+    // Öncelik yoğunluğu: erken (düşük priority) kuralların ağırlığı.
+    const oncelikYog = eslesenSayi > 0 ? Math.min(100, 40 + eslesenSayi * 15) : 20;
+    return [
+      { etiket: t("klab.gorsel.radar.kapsam"), deger: Math.round(kapsam) },
+      { etiket: t("klab.gorsel.radar.eslesme"), deger: Math.round(eslesme) },
+      { etiket: t("klab.gorsel.radar.katilik"), deger: Math.round(katilik) },
+      { etiket: t("klab.gorsel.radar.oncelik"), deger: Math.round(oncelikYog) },
+      { etiket: t("klab.gorsel.radar.terminal"), deger: Math.round(terminal) },
+    ];
+  }, [kurallar, eslesenSayi, t]);
+
+  // Toplu test karar dağılımı (donut) + başarı/çalışan/hata sayacı.
+  const topluGorsel = useMemo(() => {
+    const girisler = Object.values(topluSonuc);
+    const bitti = girisler.filter((r) => r != null);
+    const say: Record<RuleAction, number> = { allow: 0, challenge: 0, block: 0, flag: 0 };
+    let hata = 0;
+    for (const r of bitti) {
+      if (r === "hata") hata++;
+      else if (r) say[r.action]++;
+    }
+    const meta: { a: RuleAction; renk: string }[] = [
+      { a: "allow", renk: "#16a34a" },
+      { a: "challenge", renk: "#d97706" },
+      { a: "block", renk: "#dc2626" },
+      { a: "flag", renk: "#2f6fed" },
+    ];
+    const segmentler = meta
+      .filter((m) => say[m.a] > 0)
+      .map((m) => ({ etiket: t(ACTION_META[m.a].adKey), deger: say[m.a], renk: m.renk }));
+    // Başarı: hatasız tamamlanan senaryo oranı (hata olmayan = başarılı sim).
+    const gecerli = bitti.length;
+    const basarili = gecerli - hata;
+    const basariOran = gecerli > 0 ? Math.round((basarili / gecerli) * 100) : 0;
+    return { segmentler, basariOran, calisan: gecerli, hata };
+  }, [topluSonuc, t]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
@@ -633,6 +710,31 @@ export function KuralLabIstemci({
               <span className="flex items-center gap-1"><Zap className="size-3.5 text-brand-600" /> {t("klab.iz.lejant.kararVerildi")}</span>
             </div>
           </Panel>
+
+          {/* güven göstergesi + kural etkinlik radarı — FARKLI görsel dil */}
+          <motion.div className="grid gap-6 sm:grid-cols-2" {...gir(0.04)}>
+            <Panel baslik={<span className="flex items-center gap-2"><Gauge className="size-4 text-brand-600" /> {t("klab.gorsel.guvenBaslik")}</span>}>
+              {!yanit ? (
+                <p className="py-8 text-center text-[13px] text-slate-faint">{t("klab.karar.bosDurum")}</p>
+              ) : (
+                <div className="flex flex-col items-center gap-2 pt-2">
+                  <GaugeGost deger={guvenPuan} etiket={t("klab.gorsel.guven")} renk={nihai?.renk} boyut={168} />
+                  <p className="max-w-[240px] text-center text-[12px] text-slate-muted">{t("klab.gorsel.guvenAlt")}</p>
+                </div>
+              )}
+            </Panel>
+
+            <Panel baslik={<span className="flex items-center gap-2"><Sparkles className="size-4 text-brand-600" /> {t("klab.gorsel.radarBaslik")}</span>}>
+              {iz.length === 0 ? (
+                <p className="py-8 text-center text-[13px] text-slate-faint">{t("klab.gorsel.radarVeriYok")}</p>
+              ) : (
+                <div className="flex flex-col items-center gap-1 pt-1">
+                  <RadarGrafik eksenler={radarEksenler} boyut={200} />
+                  <p className="text-center text-[12px] text-slate-muted">{t("klab.gorsel.radarAlt")}</p>
+                </div>
+              )}
+            </Panel>
+          </motion.div>
         </div>
       </div>
 
@@ -684,6 +786,40 @@ export function KuralLabIstemci({
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* toplu sonuç görselleri: karar dağılımı (donut) + başarı göstergesi (gauge) */}
+        <div className="mt-5 grid gap-6 border-t border-line pt-5 lg:grid-cols-[1fr_300px]">
+          <div>
+            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
+              <Layers className="size-3.5" /> {t("klab.gorsel.dagilimBaslik")}
+            </div>
+            {topluGorsel.segmentler.length === 0 ? (
+              <p className="py-6 text-[13px] text-slate-faint">{t("klab.gorsel.dagilimVeriYok")}</p>
+            ) : (
+              <>
+                <p className="mb-3 text-[12px] text-slate-muted">{t("klab.gorsel.dagilimAlt").replace("{n}", String(topluGorsel.calisan))}</p>
+                <DonutDagilim segmentler={topluGorsel.segmentler} merkezEtiket={t("klab.gorsel.dagilimMerkez")} />
+              </>
+            )}
+          </div>
+
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-canvas/40 py-4">
+            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
+              <ShieldCheck className="size-3.5" /> {t("klab.gorsel.basariBaslik")}
+            </div>
+            {topluGorsel.calisan === 0 ? (
+              <p className="py-6 text-center text-[13px] text-slate-faint">{t("klab.gorsel.dagilimVeriYok")}</p>
+            ) : (
+              <>
+                <GaugeGost deger={topluGorsel.basariOran} etiket={t("klab.gorsel.basari")} boyut={150} />
+                <div className="mt-1 flex items-center gap-4 text-[12px]">
+                  <span className="flex items-center gap-1 text-slate-muted"><span className="size-2 rounded-full bg-ok" /> {t("klab.gorsel.calisan")} {topluGorsel.calisan}</span>
+                  {topluGorsel.hata > 0 && <span className="flex items-center gap-1 text-danger2"><span className="size-2 rounded-full bg-danger2" /> {t("klab.gorsel.hata")} {topluGorsel.hata}</span>}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </Panel>
 

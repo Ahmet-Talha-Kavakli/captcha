@@ -62,6 +62,20 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ka.kutuphane.bosBaslik": "Eşleşen av yok",
     "ka.kutuphane.bosAciklama": "Arama terimini veya kategori filtresini değiştirin.",
 
+    // Görsel panel başlıkları (dashboard zenginleştirme)
+    "ka.gorsel.bulguDagilimi": "Bulgu dağılımı",
+    "ka.gorsel.bulguMerkez": "eşleşme",
+    "ka.gorsel.kategoriYogunluk": "Kategori × şiddet yoğunluğu",
+    "ka.gorsel.avBasari": "Av başarı oranı",
+    "ka.gorsel.avBasariEtiket": "tetiklenen",
+    "ka.gorsel.kapsamaProfili": "Kapsama profili",
+    "ka.gorsel.tetikDagilimi": "Eşik'e yakınlık",
+    "ka.gorsel.kategoriKapsama": "Kategori kapsaması",
+    "ka.gorsel.tetiklenenAv": "tetiklenen",
+    "ka.gorsel.toplamEslesme": "toplam eşleşme",
+    "ka.gorsel.enAktifKategori": "en aktif kategori",
+    "ka.gorsel.ortEsik": "ort. eşik",
+
     // Av kartı
     "ka.kart.dslSorgusu": "DSL sorgusu",
     "ka.kart.eslesme": "eşleşme",
@@ -188,6 +202,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ka.kutuphane.sayac": "{n} hunts",
     "ka.kutuphane.bosBaslik": "No matching hunts",
     "ka.kutuphane.bosAciklama": "Change the search term or category filter.",
+
+    "ka.gorsel.bulguDagilimi": "Findings distribution",
+    "ka.gorsel.bulguMerkez": "matches",
+    "ka.gorsel.kategoriYogunluk": "Category × severity intensity",
+    "ka.gorsel.avBasari": "Hunt trigger rate",
+    "ka.gorsel.avBasariEtiket": "triggered",
+    "ka.gorsel.kapsamaProfili": "Coverage profile",
+    "ka.gorsel.tetikDagilimi": "Proximity to threshold",
+    "ka.gorsel.kategoriKapsama": "Category coverage",
+    "ka.gorsel.tetiklenenAv": "triggered",
+    "ka.gorsel.toplamEslesme": "total matches",
+    "ka.gorsel.enAktifKategori": "most active category",
+    "ka.gorsel.ortEsik": "avg. threshold",
 
     "ka.kart.dslSorgusu": "DSL query",
     "ka.kart.eslesme": "matches",

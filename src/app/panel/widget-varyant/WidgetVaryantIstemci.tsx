@@ -27,6 +27,8 @@ import {
   Panel, StatKart, Badge, useToast, KodBlok, NotKutusu, BosDurum, Tooltip,
 } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { Histogram, Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import {
   DIFFICULTY_PROFILES, buildTextMask, type DifficultyProfile,
@@ -959,7 +961,9 @@ export function WidgetVaryantIstemci({ dil }: { dil: Dil }) {
             aciklama={t("wv.kutuphane.bosAciklama")}
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <>
+            <KutuphaneGorsel varyantlar={varyantlar} t={t} />
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {varyantlar.map((v) => {
               const tah = tahminHesapla(v.tur, v.zorluk);
               const secili = karsilastir.includes(v.id);
@@ -1014,7 +1018,8 @@ export function WidgetVaryantIstemci({ dil }: { dil: Dil }) {
                 </div>
               );
             })}
-          </div>
+            </div>
+          </>
         )}
       </Panel>
 
@@ -1064,6 +1069,65 @@ export function WidgetVaryantIstemci({ dil }: { dil: Dil }) {
           })()}
         </Panel>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------- kütüphane görsel özeti
+ * Varyant kütüphanesinin üstünde farklı görsel dillerle özet: tema dağılım
+ * donutu, challenge türü histogramı ve ortalama bot direnci gauge'ı. Yalnızca
+ * sunum — veri varyant listesinden türetilir, mutasyon/CRUD yok.
+ */
+function KutuphaneGorsel({ varyantlar, t }: { varyantlar: Varyant[]; t: Ceviri }) {
+  const g = useMemo(() => {
+    const temaSay: Record<Tema, number> = { acik: 0, koyu: 0, otomatik: 0 };
+    const turSay: Record<ChallengeType, number> = { kod: 0, sayi: 0, yon: 0, sec: 0 };
+    let direncToplam = 0;
+    for (const v of varyantlar) {
+      temaSay[v.tema] += 1;
+      turSay[v.tur] += 1;
+      direncToplam += tahminHesapla(v.tur, v.zorluk).botDirenci;
+    }
+    const ortDirenc = varyantlar.length ? direncToplam / varyantlar.length : 0;
+    return { temaSay, turSay, ortDirenc };
+  }, [varyantlar]);
+
+  const temaSegment = [
+    { etiket: temaAd("koyu", t), deger: g.temaSay.koyu, renk: "#0f172a" },
+    { etiket: temaAd("acik", t), deger: g.temaSay.acik, renk: "#2f6fed" },
+    { etiket: temaAd("otomatik", t), deger: g.temaSay.otomatik, renk: "#7c3aed" },
+  ].filter((s) => s.deger > 0);
+
+  const turKovalar = (Object.keys(TUR_META) as ChallengeType[])
+    .map((tur) => ({ etiket: turAd(tur, t), deger: g.turSay[tur] }))
+    .filter((k) => k.deger > 0);
+
+  return (
+    <div className="mb-5 grid gap-4 lg:grid-cols-3 lg:gap-5">
+      {/* tema dağılım donut */}
+      <div className="rounded-2xl border border-line bg-canvas/40 p-4">
+        <h3 className="mb-3 text-[12.5px] font-semibold text-slate-ink">{t("wv.gorsel.temaDagilim")}</h3>
+        <DonutDagilim segmentler={temaSegment} merkezEtiket={t("wv.gorsel.temaMerkez")} />
+      </div>
+
+      {/* challenge türü histogramı */}
+      <div className="rounded-2xl border border-line bg-canvas/40 p-4">
+        <h3 className="text-[12.5px] font-semibold text-slate-ink">{t("wv.gorsel.turDagilim")}</h3>
+        <p className="mb-3 mt-0.5 text-[11px] leading-snug text-slate-faint">{t("wv.gorsel.turAltBaslik")}</p>
+        <Histogram kovalar={turKovalar} yukseklik={128} renk="#2f6fed" />
+      </div>
+
+      {/* ortalama bot direnci gauge */}
+      <div className="flex flex-col rounded-2xl border border-line bg-canvas/40 p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[12.5px] font-semibold text-slate-ink">{t("wv.gorsel.benimseme")}</h3>
+          <ShieldAlert className="size-4 text-brand-600" />
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center pt-1">
+          <GaugeGost deger={g.ortDirenc} etiket="%" boyut={158} />
+          <p className="mt-1 text-center text-[11px] text-slate-muted">{t("wv.gorsel.benimsemeNot")}</p>
+        </div>
+      </div>
     </div>
   );
 }

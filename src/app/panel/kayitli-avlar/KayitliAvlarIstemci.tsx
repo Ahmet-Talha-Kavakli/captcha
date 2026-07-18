@@ -33,6 +33,7 @@ import {
   AlertTriangle,
   Terminal,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import {
@@ -51,6 +52,8 @@ import {
   useToast,
 } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { RadarGrafik, IsiMatris, Gauge } from "@/components/panel/grafikler-ek";
 import {
   sorguGecerliMi,
   type KayitliAv,
@@ -231,6 +234,58 @@ export function KayitliAvlarIstemci({
   const zamanliSonuclar = useMemo(() => sonuclar.filter((s) => s.av.zamanli), [sonuclar]);
   const tetiklenenZamanli = useMemo(() => zamanliSonuclar.filter((s) => s.tetiklendi), [zamanliSonuclar]);
 
+  /* --------------------------------------------------- Görsel özet türetmeleri (yalnız görselleştirme) */
+
+  // Bulgu (eşleşme) dağılımı — kategori bazında toplam eşleşme → donut.
+  const bulguDonut = useMemo(() => {
+    const m = new Map<AvKategori, number>();
+    for (const s of sonuclar) m.set(s.av.kategori, (m.get(s.av.kategori) ?? 0) + s.eslesme);
+    return KATEGORILER.filter((k) => (m.get(k) ?? 0) > 0).map((k) => ({
+      etiket: kategoriAd(k, dil),
+      deger: m.get(k) ?? 0,
+      renk: KATEGORI_ACCENT[k],
+    }));
+  }, [sonuclar, dil]);
+
+  // Av başarı (tetiklenme) oranı — gauge.
+  const basariOran = sonuclar.length > 0
+    ? Math.round((sonuclar.filter((s) => s.tetiklendi).length / sonuclar.length) * 100)
+    : 0;
+
+  // Kategori × şiddet yoğunluk ısı-matrisi (hücre = o gözdeki eşleşme toplamı).
+  const SIDDETLER: AvSiddet[] = ["kritik", "yuksek", "orta", "dusuk"];
+  const isiMatris = useMemo(() => {
+    const grid = KATEGORILER.map(() => SIDDETLER.map(() => 0));
+    for (const s of sonuclar) {
+      const ki = KATEGORILER.indexOf(s.av.kategori);
+      const si = SIDDETLER.indexOf(s.av.siddet);
+      if (ki >= 0 && si >= 0) grid[ki][si] += s.eslesme;
+    }
+    return grid;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sonuclar]);
+
+  // Kapsama profili radar — her kategori için "eşleşme yoğunluğu" 0-100 normalize.
+  const radarEksenler = useMemo(() => {
+    const m = new Map<AvKategori, number>();
+    for (const s of sonuclar) m.set(s.av.kategori, (m.get(s.av.kategori) ?? 0) + s.eslesme);
+    const max = Math.max(1, ...KATEGORILER.map((k) => m.get(k) ?? 0));
+    return KATEGORILER.map((k) => ({
+      etiket: kategoriAd(k, dil),
+      deger: Math.round(((m.get(k) ?? 0) / max) * 100),
+    }));
+  }, [sonuclar, dil]);
+
+  // Şerit metrikleri.
+  const toplamEslesme = useMemo(() => sonuclar.reduce((a, s) => a + s.eslesme, 0), [sonuclar]);
+  const ortEsik = sonuclar.length > 0
+    ? Math.round(sonuclar.reduce((a, s) => a + s.esik, 0) / sonuclar.length)
+    : 0;
+  const enAktifKategori = useMemo(() => {
+    if (bulguDonut.length === 0) return null;
+    return bulguDonut.reduce((a, b) => (b.deger > a.deger ? b : a));
+  }, [bulguDonut]);
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
       <PanelBaslik
@@ -259,6 +314,85 @@ export function KayitliAvlarIstemci({
           tone={ozet.kritikTetik > 0 ? "danger" : undefined}
         />
       </div>
+
+      {/* Görsel özet — ferah KPI şeridi + 3 farklı görsel dil (donut · gauge · radar/matris) */}
+      {sonuclar.length > 0 && (
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+          <Panel padding={false} className="overflow-hidden p-0">
+            {/* KPI şeridi */}
+            <div className="grid grid-cols-2 divide-x divide-line border-b border-line lg:grid-cols-4">
+              <SeritKPI
+                deger={toplamEslesme.toLocaleString(loc)}
+                etiket={t("ka.gorsel.toplamEslesme")}
+                nokta="#2f6fed"
+              />
+              <SeritKPI
+                deger={`%${basariOran}`}
+                etiket={t("ka.gorsel.tetiklenenAv")}
+                nokta={basariOran >= 50 ? "#d97706" : "#16a34a"}
+              />
+              <SeritKPI
+                deger={enAktifKategori?.etiket ?? "—"}
+                etiket={t("ka.gorsel.enAktifKategori")}
+                nokta={enAktifKategori ? bulguDonut.find((b) => b.etiket === enAktifKategori.etiket)?.renk ?? "#7a7568" : "#7a7568"}
+              />
+              <SeritKPI
+                deger={ortEsik.toLocaleString(loc)}
+                etiket={t("ka.gorsel.ortEsik")}
+                nokta="#7c74ff"
+              />
+            </div>
+
+            {/* Üç sütun: bulgu donut · başarı gauge · kapsama radar */}
+            <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1.15fr)_auto_minmax(0,1fr)] lg:gap-8 lg:p-6">
+              {/* Bulgu dağılımı donut */}
+              <div className="min-w-0">
+                <h3 className="mb-3 text-[13px] font-semibold text-slate-ink">{t("ka.gorsel.bulguDagilimi")}</h3>
+                {bulguDonut.length > 0 ? (
+                  <DonutDagilim segmentler={bulguDonut} merkezEtiket={t("ka.gorsel.bulguMerkez")} />
+                ) : (
+                  <p className="text-[13px] text-slate-faint">—</p>
+                )}
+              </div>
+
+              {/* Av başarı gauge — dikey ayraçlı orta sütun */}
+              <div className="hidden lg:block lg:w-px lg:bg-line" aria-hidden />
+              <div className="flex flex-col items-center justify-center">
+                <h3 className="mb-2 self-start text-[13px] font-semibold text-slate-ink lg:self-center">{t("ka.gorsel.avBasari")}</h3>
+                <Gauge deger={basariOran} etiket={t("ka.gorsel.avBasariEtiket")} boyut={168} />
+                <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-muted">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-warn" /> {sonuclar.filter((s) => s.tetiklendi).length}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="size-2 rounded-full bg-ok" /> {sonuclar.filter((s) => !s.tetiklendi).length}
+                  </span>
+                  <span className="text-slate-faint">/ {sonuclar.length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kategori × şiddet ısı-matrisi — alt şerit, farklı görsel dil */}
+            <div className="border-t border-line bg-canvas/30 px-5 py-5 lg:px-6">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,0.9fr)] lg:gap-8">
+                <div className="min-w-0">
+                  <h3 className="mb-3 text-[13px] font-semibold text-slate-ink">{t("ka.gorsel.kategoriYogunluk")}</h3>
+                  <IsiMatris
+                    satirlar={KATEGORILER.map((k) => kategoriAd(k, dil))}
+                    sutunlar={SIDDETLER.map((s) => siddetAd(s, dil))}
+                    degerler={isiMatris}
+                  />
+                </div>
+                <div className="hidden lg:block lg:w-px lg:bg-line" aria-hidden />
+                <div className="flex flex-col items-center">
+                  <h3 className="mb-1 self-start text-[13px] font-semibold text-slate-ink lg:self-center">{t("ka.gorsel.kapsamaProfili")}</h3>
+                  <RadarGrafik eksenler={radarEksenler} boyut={190} />
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </motion.div>
+      )}
 
       {/* Dürüstlük notu */}
       <NotKutusu ton="bilgi" baslik={t("ka.not.baslik")}>
@@ -438,6 +572,20 @@ export function KayitliAvlarIstemci({
           goster({ tip: "basari", baslik: t("ka.ozel.kaydedildiBaslik"), aciklama: av.ad });
         }}
       />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ Şerit KPI hücresi */
+
+function SeritKPI({ deger, etiket, nokta }: { deger: string; etiket: string; nokta: string }) {
+  return (
+    <div className="flex flex-col gap-1 px-5 py-4">
+      <span className="flex items-center gap-1.5">
+        <span className="size-2 shrink-0 rounded-full" style={{ background: nokta }} aria-hidden />
+        <span className="truncate text-[19px] font-bold leading-none text-slate-ink">{deger}</span>
+      </span>
+      <span className="text-[12px] text-slate-muted">{etiket}</span>
     </div>
   );
 }

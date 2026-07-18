@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { Panel, StatKart, Badge } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { IsiMatris } from "@/components/panel/grafikler-ek";
 import { SinifDagilimListesi, type DagilimSatir } from "@/components/panel/SinifDagilimListesi";
 import { bayrak, ULKE_AD } from "@/lib/flag";
 import { ULKE_KOORDINAT, projeksiyon } from "@/lib/specter/ulke-koordinat";
@@ -206,7 +208,17 @@ export function GeoIsiIstemci({ ulkeler, bolgeler, ozet, zaman, dil }: Props) {
         </motion.div>
       </div>
 
-      {/* sıralı ülke listesi + bölgesel özet */}
+      {/* gün×dilim risk ısı-matrisi + ASN kategori dağılımı — FARKLI görsel dil */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        <motion.div {...gir(0.08)}>
+          <DilimIsiMatris zaman={zaman} t={t} />
+        </motion.div>
+        <motion.div {...gir(0.1)}>
+          <AsnKategoriDagilim ulkeler={aktifUlkeler} t={t} />
+        </motion.div>
+      </div>
+
+      {/* sıralı ülke listesi + bölgesel özet (donut) */}
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <UlkeSiralama
           ulkeler={aktifUlkeler}
@@ -760,42 +772,141 @@ function UlkeSiralama({
   );
 }
 
-/* =============================================================== BolgeOzet */
+/* =============================================================== BolgeOzet
+ * Bölge dağılımı artık DONUT (pay görselleştirmesi) + altında yoğunluk-tonlu
+ * kompakt satırlar. Yatay-bar tekrarı kırılır; veri/mantık aynı (bolgeler propu).
+ */
 function BolgeOzet({ bolgeler, t, yerel }: { bolgeler: BolgeYogunluk[]; t: Ceviri; yerel: string }) {
-  const enB = bolgeler.length ? Math.max(1, ...bolgeler.map((b) => b.toplam)) : 1;
+  // Donut segmentleri: her bölge = bir pay, rengi yoğunluk puanına göre.
+  const segmentler = useMemo(
+    () =>
+      bolgeler
+        .filter((b) => b.toplam > 0)
+        .map((b) => ({ etiket: t(`bolge.${b.bolge}`), deger: b.toplam, renk: isiRengi(b.yogunlukPuan) })),
+    [bolgeler, t],
+  );
+
   return (
-    <Panel baslik={t("bolge.baslik")} sagUst={<Layers className="size-4 text-slate-faint" />}>
+    <Panel baslik={t("gorsel.bolgeDagilim")} sagUst={<Layers className="size-4 text-slate-faint" />}>
       {bolgeler.length === 0 ? (
         <p className="py-10 text-center text-sm text-slate-muted">{t("bolge.veriYok")}</p>
       ) : (
-        <div className="space-y-3">
-          {bolgeler.map((b) => {
-            const renk = isiRengi(b.yogunlukPuan);
-            return (
-              <div key={b.bolge} className="rounded-xl border border-line px-3.5 py-3">
-                <div className="flex items-center justify-between">
-                  {/* Bölge etiketi lib'de TR üretilir → bolge anahtarından yeniden türetilip çevrilir. */}
-                  <span className="text-[13.5px] font-semibold text-slate-ink">{t(`bolge.${b.bolge}`)}</span>
+        <div className="space-y-4">
+          <p className="-mt-1 text-[12px] text-slate-muted">{t("gorsel.bolgeDagilimAlt")}</p>
+          <DonutDagilim segmentler={segmentler} merkezEtiket={t("gorsel.bolgeMerkez")} />
+
+          {/* kompakt yoğunluk satırları — bar yerine ince kademe rozeti + en yoğun ülke */}
+          <div className="space-y-1.5 border-t border-line pt-3">
+            {bolgeler.map((b) => {
+              const renk = isiRengi(b.yogunlukPuan);
+              return (
+                <div key={b.bolge} className="flex items-center gap-2.5 rounded-lg px-1.5 py-1">
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ background: renk }} />
+                  <span className="text-[13px] font-medium text-slate-ink">{t(`bolge.${b.bolge}`)}</span>
                   <span
-                    className="rounded-full px-2 py-0.5 text-[11px] font-bold"
+                    className="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
                     style={{ background: renk + "1f", color: renk }}
                   >
-                    {kademeEtiket(b.yogunlukPuan, t)} · {b.yogunlukPuan}
+                    {b.yogunlukPuan}
                   </span>
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-canvas">
-                  <div className="h-full rounded-full" style={{ width: `${(b.toplam / enB) * 100}%`, background: renk }} />
-                </div>
-                <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-muted">
-                  <span>{t("bolge.ulkeOlay").replace("{ulke}", String(b.ulkeSayisi)).replace("{olay}", b.toplam.toLocaleString(yerel))}</span>
-                  <span className="flex items-center gap-1">
+                  <span className="ml-auto flex items-center gap-1 text-[11px] text-slate-muted">
                     {b.enYogunUlke && <>{bayrak(b.enYogunUlke)} {ulkeAd(b.enYogunUlke)}</>}
-                    <ChevronRight className="size-3" />
+                    <ChevronRight className="size-3 text-slate-faint" />
                   </span>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+/* =============================================================== DilimIsiMatris
+ * Zaman dilimleri × en-yoğun-ülkeler → gün/dilim risk yoğunluğu ısı-matrisi.
+ * Satır = dilimin en yoğun 6 ülkesi (birleşik), sütun = zaman dilimleri.
+ * Hücre = o ülkenin o dilimdeki yoğunluk puanı. Veri: zaman.dilimler (aynı).
+ */
+function DilimIsiMatris({ zaman, t }: { zaman: ZamanDilimSonuc; t: Ceviri }) {
+  const { satirlar, sutunlar, degerler } = useMemo(() => {
+    const dilimler = zaman.dilimler;
+    // Sütunlar: her dilim (kısa "gg AY ss" etiketi).
+    const sutunlar = dilimler.map((d) => araForm(d.baslangic, t).replace(/:00$/, "h"));
+    // Satır adayları: tüm dilimlerdeki en yoğun ülkeleri topla → en çok görüneni seç.
+    const puanTop = new Map<string, number>();
+    for (const d of dilimler) {
+      for (const [kod, p] of Object.entries(d.puanHaritasi)) {
+        puanTop.set(kod, (puanTop.get(kod) ?? 0) + p);
+      }
+    }
+    const enUlkeler = [...puanTop.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7).map(([k]) => k);
+    const satirlar = enUlkeler.map((k) => `${bayrak(k)} ${ulkeAd(k)}`);
+    // degerler[satir][sutun] = o ülkenin o dilimdeki yoğunluk puanı.
+    const degerler = enUlkeler.map((kod) => dilimler.map((d) => Math.round(d.puanHaritasi[kod] ?? 0)));
+    return { satirlar, sutunlar, degerler };
+  }, [zaman, t]);
+
+  const veriVar = satirlar.length > 0 && sutunlar.length > 0;
+
+  return (
+    <Panel
+      baslik={<span className="flex items-center gap-2"><Activity className="size-4 text-brand-600" /> {t("gorsel.isiMatris")}</span>}
+      sagUst={<span className="text-[12px] text-slate-faint">{t("gorsel.isiMatrisAlt")}</span>}
+    >
+      {!veriVar ? (
+        <p className="py-10 text-center text-sm text-slate-muted">{t("bolge.veriYok")}</p>
+      ) : (
+        <div className="pt-1">
+          <IsiMatris satirlar={satirlar} sutunlar={sutunlar} degerler={degerler} />
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+/* =============================================================== AsnKategoriDagilim
+ * Aktif ülkelerin ASN sayaçlarını ağ türüne göre kategorize eder (barındırma/
+ * İSS/mobil/bilinmeyen) → donut. Heuristik yalnızca GÖRSEL sınıflamadır; ham
+ * ASN verisi (asnSayac) değiştirilmez, motorla ilişkisi yoktur.
+ */
+function asnKategori(asn: string): "hosting" | "isp" | "mobil" | "bilinmeyen" {
+  const s = asn.toLowerCase();
+  if (/unknown|as0\b|bogon|reserved/.test(s)) return "bilinmeyen";
+  if (/aws|amazon|azure|microsoft|google|gcp|cloud|linode|akamai|digitalocean|ovh|hetzner|vultr|hosting|datacenter|server|leaseweb|contabo/.test(s)) return "hosting";
+  if (/mobile|gsm|cellular|vodafone|turkcell|orange|t-mobile|verizon wireless|telkomsel|jio/.test(s)) return "mobil";
+  return "isp";
+}
+
+function AsnKategoriDagilim({ ulkeler, t }: { ulkeler: UlkeYogunluk[]; t: Ceviri }) {
+  const segmentler = useMemo(() => {
+    const say: Record<string, number> = { hosting: 0, isp: 0, mobil: 0, bilinmeyen: 0 };
+    for (const u of ulkeler) {
+      for (const [asn, n] of Object.entries(u.asnSayac)) {
+        say[asnKategori(asn)] += n;
+      }
+    }
+    const meta: { k: string; etiketKey: string; renk: string }[] = [
+      { k: "hosting", etiketKey: "gorsel.asnHosting", renk: "#dc2626" },
+      { k: "isp", etiketKey: "gorsel.asnIsp", renk: "#2f6fed" },
+      { k: "mobil", etiketKey: "gorsel.asnMobil", renk: "#0891b2" },
+      { k: "bilinmeyen", etiketKey: "gorsel.asnBilinmeyen", renk: "#94a3b8" },
+    ];
+    return meta
+      .filter((m) => say[m.k] > 0)
+      .map((m) => ({ etiket: t(m.etiketKey), deger: say[m.k], renk: m.renk }));
+  }, [ulkeler, t]);
+
+  return (
+    <Panel
+      baslik={<span className="flex items-center gap-2"><Server className="size-4 text-brand-600" /> {t("gorsel.asnBaslik")}</span>}
+    >
+      {segmentler.length === 0 ? (
+        <p className="py-10 text-center text-sm text-slate-muted">{t("gorsel.asnVeriYok")}</p>
+      ) : (
+        <div className="space-y-3 pt-1">
+          <p className="text-[12px] text-slate-muted">{t("gorsel.asnAlt")}</p>
+          <DonutDagilim segmentler={segmentler} merkezEtiket={t("gorsel.bolgeMerkez")} />
         </div>
       )}
     </Panel>

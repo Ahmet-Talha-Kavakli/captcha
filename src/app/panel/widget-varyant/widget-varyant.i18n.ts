@@ -25,6 +25,19 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "wv.ozet.botDirenci": "Tahmini bot direnci",
     "wv.ozet.kayitliVaryant": "Kayıtlı varyant",
 
+    // --- Kütüphane görsel özeti (TR yedeğiyle tüm dillerde geçerli) ---
+    "wv.gorsel.baslik": "Kütüphane görünümü",
+    "wv.gorsel.aciklama": "Kayıtlı varyantlarının tema, tür ve benimseme dağılımı.",
+    "wv.gorsel.temaDagilim": "Tema dağılımı",
+    "wv.gorsel.temaMerkez": "varyant",
+    "wv.gorsel.turDagilim": "Challenge türü dağılımı",
+    "wv.gorsel.turAltBaslik": "Kayıtlı varyantların challenge türüne göre sayısı",
+    "wv.gorsel.benimseme": "Ort. bot direnci",
+    "wv.gorsel.benimsemeNot": "Kayıtlı varyantların ortalama tahmini bot direnci",
+    "wv.gorsel.zorlukDusuk": "Düşük",
+    "wv.gorsel.zorlukOrta": "Orta",
+    "wv.gorsel.zorlukYuksek": "Yüksek",
+
     // --- Düzenleyici ---
     "wv.duzen.baslik": "Varyant düzenleyici",
     "wv.duzen.duzenleniyor": "Düzenleniyor",

@@ -16,12 +16,15 @@
 
 import { useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   CopyPlus, Network, Check, Minus, ArrowRight, AlertTriangle,
   GitCompareArrows, Layers, Sparkles, Loader2, ShieldCheck, CircleAlert, Info,
 } from "lucide-react";
 import { Panel, StatKart, Badge, NotKutusu, useToast, Modal } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { IsiMatris, Gauge, Histogram } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { kuralDagitimCeviri } from "./kural-dagitim.i18n";
@@ -251,6 +254,61 @@ export function KuralDagitimIstemci({ dil, siteMeta, matris, drift, master, tohu
     ? Math.round((matris.tamKapsananKural / matris.benzersizKural) * 100)
     : 100;
 
+  /* --------------------------------------------------- görsel özet türetmeleri (yalnız görselleştirme) */
+
+  // Tüm matris hücreleri: yayıldı (var) vs boşluk (yok).
+  const hucreOzet = useMemo(() => {
+    let dolu = 0;
+    let bos = 0;
+    for (const satir of matris.satirlar) {
+      for (const s of siteMeta) {
+        if (satir.hucreler[s.id]?.var) dolu++;
+        else bos++;
+      }
+    }
+    return { dolu, bos, toplam: dolu + bos };
+  }, [matris.satirlar, siteMeta]);
+
+  // Dağıtım durumu donut.
+  const dagitimDonut = useMemo(
+    () => [
+      { etiket: t("gorsel.yayildi"), deger: hucreOzet.dolu, renk: "#16a34a" },
+      { etiket: t("gorsel.bekliyor"), deger: hucreOzet.bos, renk: "#d97706" },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hucreOzet, dil],
+  );
+
+  // Genel site kapsama yüzdesi (dolu hücre / toplam hücre) → gauge.
+  const kapsamaGauge = hucreOzet.toplam > 0
+    ? Math.round((hucreOzet.dolu / hucreOzet.toplam) * 100)
+    : 100;
+
+  // Site × en yaygın kural ısı-matrisi: satır=site, sütun=kural (en çok kapsanan
+  // ilk 8 kural), hücre=kapsama (100=var, 0=yok). Kapsama yoğunluğunu gösterir.
+  const matrisGorsel = useMemo(() => {
+    const kurallar = [...matris.satirlar]
+      .sort((a, b) => b.varSayisi - a.varSayisi)
+      .slice(0, 8);
+    const satirlar = siteMeta.map((s) => s.name);
+    const sutunlar = kurallar.map((k, i) => k.ad.length > 10 ? `K${i + 1}` : k.ad);
+    const degerler = siteMeta.map((s) =>
+      kurallar.map((k) => (k.hucreler[s.id]?.var ? 100 : 0)),
+    );
+    return { satirlar, sutunlar, degerler, bosMu: kurallar.length === 0 || siteMeta.length === 0 };
+  }, [matris.satirlar, siteMeta]);
+
+  // Aksiyon profili histogramı — benzersiz kuralların aksiyon dağılımı.
+  const aksiyonHist = useMemo(() => {
+    const say: Record<string, number> = {};
+    for (const satir of matris.satirlar) say[satir.action] = (say[satir.action] ?? 0) + 1;
+    const sira = ["allow", "flag", "challenge", "block"];
+    return sira
+      .filter((a) => (say[a] ?? 0) > 0)
+      .map((a) => ({ etiket: t(`aksiyon.${a}`), deger: say[a] ?? 0 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matris.satirlar, dil]);
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
       {/* Giriş bandı */}
@@ -279,6 +337,68 @@ export function KuralDagitimIstemci({ dil, siteMeta, matris, drift, master, tohu
           tone={tamSenkronSite === siteMeta.length ? "ok" : undefined}
         />
       </div>
+
+      {/* Görsel özet — dağıtım durumu donut · site kapsama gauge · kapsama ısı-matris · aksiyon histogram */}
+      {matris.satirlar.length > 0 && (
+        <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+          <Panel padding={false} className="overflow-hidden p-0">
+            {/* KPI şeridi */}
+            <div className="grid grid-cols-2 divide-x divide-line border-b border-line lg:grid-cols-4">
+              <DagKPI deger={hucreOzet.toplam.toLocaleString("tr-TR")} etiket={t("gorsel.toplamHucre")} nokta="#2f6fed" />
+              <DagKPI deger={hucreOzet.dolu.toLocaleString("tr-TR")} etiket={t("gorsel.doluHucre")} nokta="#16a34a" />
+              <DagKPI deger={hucreOzet.bos.toLocaleString("tr-TR")} etiket={t("gorsel.bosluk")} nokta={hucreOzet.bos > 0 ? "#d97706" : "#16a34a"} />
+              <DagKPI deger={`%${kapsamaGauge}`} etiket={t("gorsel.ortKapsama")} nokta="#7c74ff" />
+            </div>
+
+            {/* Donut · gauge */}
+            <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1.15fr)_auto_minmax(0,0.9fr)] lg:gap-8 lg:p-6">
+              <div className="min-w-0">
+                <h3 className="mb-3 text-[13px] font-semibold text-slate-ink">{t("gorsel.dagitimDurumu")}</h3>
+                <DonutDagilim segmentler={dagitimDonut} merkezEtiket={t("gorsel.dagitimMerkez")} />
+              </div>
+              <div className="hidden lg:block lg:w-px lg:bg-line" aria-hidden />
+              <div className="flex flex-col items-center justify-center">
+                <h3 className="mb-2 self-start text-[13px] font-semibold text-slate-ink lg:self-center">{t("gorsel.siteKapsama")}</h3>
+                <Gauge deger={kapsamaGauge} etiket={t("gorsel.kapsamaEtiket")} boyut={168} />
+                <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-muted">
+                  <span className="inline-flex items-center gap-1">
+                    <ShieldCheck className="size-3 text-ok" /> {tamSenkronSite}
+                  </span>
+                  <span className="text-slate-faint">/ {siteMeta.length} {t("gorsel.senkronSite")}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kapsama ısı-matris · aksiyon histogram — alt şerit, farklı görsel dil */}
+            <div className="border-t border-line bg-canvas/30 px-5 py-5 lg:px-6">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,0.7fr)] lg:gap-8">
+                <div className="min-w-0">
+                  <h3 className="mb-3 text-[13px] font-semibold text-slate-ink">{t("gorsel.kapsamaMatris")}</h3>
+                  {matrisGorsel.bosMu ? (
+                    <p className="text-[13px] text-slate-faint">—</p>
+                  ) : (
+                    <IsiMatris
+                      satirlar={matrisGorsel.satirlar}
+                      sutunlar={matrisGorsel.sutunlar}
+                      degerler={matrisGorsel.degerler}
+                      renk="#16a34a"
+                    />
+                  )}
+                </div>
+                <div className="hidden lg:block lg:w-px lg:bg-line" aria-hidden />
+                <div className="min-w-0">
+                  <h3 className="mb-3 text-[13px] font-semibold text-slate-ink">{t("gorsel.aksiyonProfili")}</h3>
+                  {aksiyonHist.length > 0 ? (
+                    <Histogram kovalar={aksiyonHist} yukseklik={110} />
+                  ) : (
+                    <p className="text-[13px] text-slate-faint">—</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </motion.div>
+      )}
 
       {tekSite && (
         <NotKutusu ton="bilgi" baslik={t("tekSite.baslik")}>
@@ -643,6 +763,18 @@ export function KuralDagitimIstemci({ dil, siteMeta, matris, drift, master, tohu
 }
 
 /* ------------------------------------------------------------------ Küçük parçalar */
+
+function DagKPI({ deger, etiket, nokta }: { deger: string; etiket: string; nokta: string }) {
+  return (
+    <div className="flex flex-col gap-1 px-5 py-4">
+      <span className="flex items-center gap-1.5">
+        <span className="size-2 shrink-0 rounded-full" style={{ background: nokta }} aria-hidden />
+        <span className="truncate num text-[19px] font-bold leading-none text-slate-ink">{deger}</span>
+      </span>
+      <span className="text-[12px] text-slate-muted">{etiket}</span>
+    </div>
+  );
+}
 
 function ModRozet({ mode, t }: { mode: "monitor" | "challenge" | "block"; t: Ceviri }) {
   // ENUM GÜVENLİĞİ: enum id sabittir; yalnızca sınıf/etiket eşlemesi id ile türetilir.

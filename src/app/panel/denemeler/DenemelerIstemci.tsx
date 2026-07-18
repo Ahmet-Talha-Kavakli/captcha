@@ -12,7 +12,8 @@ import {
   Panel, StatKart, Badge, DurumRozeti, Ilerleme, Modal, Alan, Girdi, Secim,
   BosDurum, useToast, useScrollKilit,
 } from "@/components/panel/kit";
-import { TrendGrafik } from "@/components/panel/grafikler";
+import { TrendGrafik, DonutDagilim } from "@/components/panel/grafikler";
+import { Histogram, Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
 import { Toggle } from "@/components/panel/Toggle";
 import type {
   Experiment, ExperimentMetric, ExperimentStatus, ExperimentVariantConfig,
@@ -221,6 +222,9 @@ export function DenemelerIstemci({
         <StatKart sayi={ozet.toplamGosterim.toLocaleString(yerel)} etiket={t("kpi.toplamGosterim")} ikon={<Gauge className="size-5" />} />
       </div>
 
+      {/* portföy görsel özeti */}
+      {liste.length > 0 && <PortfoyGorsel liste={liste} t={t} />}
+
       {/* liste */}
       {liste.length === 0 ? (
         <BosDurum
@@ -268,6 +272,147 @@ export function DenemelerIstemci({
         t={t}
       />
     </div>
+  );
+}
+
+/* ------------------------------------------------------- portföy görsel özeti
+ * KPI şeridinin altında, farklı görsel dillerle deneme portföyünü özetler:
+ * durum donutu, güven-bandı histogramı, kazanan-payı donutu ve anlamlılık
+ * gauge'ı. Yalnızca sunum — veri liste üzerinden türetilir, mutasyon yok.
+ */
+function PortfoyGorsel({ liste, t }: { liste: DeneyGorunum[]; t: Ceviri }) {
+  const gorsel = useMemo(() => {
+    // durum dağılımı
+    const durumSay: Record<ExperimentStatus, number> = { taslak: 0, calisiyor: 0, tamam: 0, durduruldu: 0 };
+    // güven bandı (sonuç olan denemeler)
+    let dusuk = 0, orta = 0, yuksek = 0;
+    // kazanan payı
+    let kazananA = 0, kazananB = 0, beklemede = 0;
+    let anlamli = 0, sonucluToplam = 0;
+    // en yüksek başarı oranlı A/B karşılaştırması (kazanan variant başarısı)
+    const barlar: { etiket: string; deger: number; ton?: "insan" | "bot" | "nötr" }[] = [];
+
+    for (const d of liste) {
+      durumSay[d.status] += 1;
+      const sonucVar = d.results.A.gosterim + d.results.B.gosterim > 0;
+      if (sonucVar) {
+        sonucluToplam += 1;
+        const s = anlamlilikHesapla(d);
+        if (s.guvenYuzde >= 95) yuksek += 1;
+        else if (s.guvenYuzde >= 80) orta += 1;
+        else dusuk += 1;
+        if (s.yeterliOrnek && s.guvenYuzde >= 95 && s.kazanan) anlamli += 1;
+      }
+      if (d.winner === "A") kazananA += 1;
+      else if (d.winner === "B") kazananB += 1;
+      else beklemede += 1;
+    }
+
+    // en anlamlı 5 sonuçlu denemenin kazanan başarı oranı (dikey bar)
+    const siraliBar = liste
+      .filter((d) => d.results.A.gosterim + d.results.B.gosterim > 0)
+      .map((d) => {
+        const bA = basariOrani(d.metric, d.results.A) * 100;
+        const bB = basariOrani(d.metric, d.results.B) * 100;
+        const kazanan = bB >= bA ? "B" : "A";
+        return { ad: d.name, deger: Math.max(bA, bB), kazanan };
+      })
+      .sort((a, b) => b.deger - a.deger)
+      .slice(0, 6);
+    for (const b of siraliBar) {
+      // kazanan variant A → yeşil (insan tonu), B → mavi (nötr/varsayılan)
+      barlar.push({ etiket: b.ad.length > 10 ? b.ad.slice(0, 9) + "…" : b.ad, deger: Math.round(b.deger), ton: b.kazanan === "A" ? "insan" : "nötr" });
+    }
+
+    return { durumSay, dusuk, orta, yuksek, kazananA, kazananB, beklemede, anlamli, sonucluToplam, barlar };
+  }, [liste]);
+
+  const anlamlilikYuzde = gorsel.sonucluToplam ? (gorsel.anlamli / gorsel.sonucluToplam) * 100 : 0;
+
+  const durumSegment = [
+    { etiket: durumEtiket(t, "calisiyor"), deger: gorsel.durumSay.calisiyor, renk: "#2f6fed" },
+    { etiket: durumEtiket(t, "tamam"), deger: gorsel.durumSay.tamam, renk: "#16a34a" },
+    { etiket: durumEtiket(t, "durduruldu"), deger: gorsel.durumSay.durduruldu, renk: "#d97706" },
+    { etiket: durumEtiket(t, "taslak"), deger: gorsel.durumSay.taslak, renk: "#9c9a90" },
+  ].filter((s) => s.deger > 0);
+
+  const kazananSegment = [
+    { etiket: t("gorsel.varyantA"), deger: gorsel.kazananA, renk: VARIANT_RENK.A },
+    { etiket: t("gorsel.varyantB"), deger: gorsel.kazananB, renk: VARIANT_RENK.B },
+    { etiket: t("gorsel.beklemede"), deger: gorsel.beklemede, renk: "#d6d2c6" },
+  ].filter((s) => s.deger > 0);
+
+  return (
+    <motion.div initial={{ y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+      <div className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:p-6">
+        <div className="mb-5 flex items-center gap-2.5">
+          <span className="grid size-9 place-items-center rounded-2xl bg-brand-50 text-brand-600"><GitBranch className="size-4" /></span>
+          <div>
+            <h2 className="text-[15px] font-bold text-slate-ink">{t("gorsel.portfoyBaslik")}</h2>
+            <p className="text-[12.5px] text-slate-muted">{t("gorsel.portfoyAciklama")}</p>
+          </div>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-4 lg:gap-6">
+          {/* durum dağılımı donut */}
+          <div className="rounded-2xl border border-line bg-canvas/40 p-4">
+            <h3 className="mb-3 text-[12.5px] font-semibold text-slate-ink">{t("gorsel.durumDagilim")}</h3>
+            <DonutDagilim segmentler={durumSegment} merkezEtiket={t("gorsel.durumMerkez")} />
+          </div>
+
+          {/* güven bandı histogramı */}
+          <div className="rounded-2xl border border-line bg-canvas/40 p-4">
+            <h3 className="text-[12.5px] font-semibold text-slate-ink">{t("gorsel.guvenDagilim")}</h3>
+            <p className="mb-3 mt-0.5 text-[11px] leading-snug text-slate-faint">{t("gorsel.guvenAltBaslik")}</p>
+            <Histogram
+              yukseklik={104}
+              kovalar={[
+                { etiket: t("gorsel.bandDusuk"), deger: gorsel.dusuk, ton: "bot" },
+                { etiket: t("gorsel.bandOrta"), deger: gorsel.orta, ton: "nötr" },
+                { etiket: t("gorsel.bandYuksek"), deger: gorsel.yuksek, ton: "insan" },
+              ]}
+            />
+          </div>
+
+          {/* kazanan payı donut */}
+          <div className="rounded-2xl border border-line bg-canvas/40 p-4">
+            <h3 className="mb-3 text-[12.5px] font-semibold text-slate-ink">{t("gorsel.kazananPay")}</h3>
+            {kazananSegment.length > 0 ? (
+              <DonutDagilim segmentler={kazananSegment} merkezEtiket={t("gorsel.kazananMerkez")} />
+            ) : (
+              <div className="grid h-40 place-items-center text-center text-[12px] text-slate-faint">{t("gorsel.henuzKazanan")}</div>
+            )}
+          </div>
+
+          {/* anlamlılık gauge */}
+          <div className="flex flex-col rounded-2xl border border-line bg-canvas/40 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[12.5px] font-semibold text-slate-ink">{t("gorsel.anlamlilikOran")}</h3>
+              <ShieldCheck className="size-4 text-brand-600" />
+            </div>
+            <div className="flex flex-1 flex-col items-center justify-center pt-2">
+              <GaugeGost deger={anlamlilikYuzde} etiket="%" boyut={168} />
+              <p className="mt-1 text-center text-[11.5px] text-slate-muted">
+                {t("gorsel.anlamliAdet").replace("{n}", String(gorsel.anlamli))}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* en yüksek başarı oranları — dikey bar */}
+        {gorsel.barlar.length > 0 && (
+          <div className="mt-5 rounded-2xl border border-line bg-canvas/40 p-4">
+            <h3 className="text-[12.5px] font-semibold text-slate-ink">{t("gorsel.donusumKarsilastirma")}</h3>
+            <p className="mb-3 mt-0.5 text-[11px] text-slate-faint">{t("gorsel.donusumAltBaslik")}</p>
+            <Histogram kovalar={gorsel.barlar} yukseklik={120} />
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+              <span className="flex items-center gap-1.5 text-slate-muted"><span className="size-2 rounded-full" style={{ background: "#16a34a" }} /> {t("gorsel.varyantA")}</span>
+              <span className="flex items-center gap-1.5 text-slate-muted"><span className="size-2 rounded-full" style={{ background: "#2f6fed" }} /> {t("gorsel.varyantB")}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -474,6 +619,19 @@ function DeneyDrawer({
                 </div>
               </div>
 
+              {/* başarı oranı — dikey A/B karşılaştırma + güven gauge */}
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="rounded-2xl border border-line bg-canvas/50 p-4">
+                  <h3 className="mb-3 text-[13px] font-semibold text-slate-ink">{basariEtiket}</h3>
+                  <BasariBar bA={bA} bB={bB} t={t} />
+                </div>
+                <div className="grid place-items-center rounded-2xl border border-line bg-canvas/50 px-5 py-4">
+                  <span className="mb-1 text-[11.5px] font-semibold text-slate-faint">{t("gorsel.guvenBaslik")}</span>
+                  <GaugeGost deger={stat.guvenYuzde} etiket="%" boyut={150} />
+                  <span className="mt-1 text-[10.5px] text-slate-faint">{t("gorsel.guvenEsikNot")}</span>
+                </div>
+              </div>
+
               {/* istatistiksel anlamlılık */}
               <AnlamlilikKutu d={d} stat={stat} basariEtiket={basariEtiket} bA={bA} bB={bB} t={t} />
 
@@ -621,6 +779,41 @@ function SonucSatir({ etiket, deger, vurgu }: { etiket: string; deger: string; v
     <div className="flex items-center justify-between border-b border-line/70 pb-1.5 last:border-0 last:pb-0">
       <span className="text-slate-muted">{etiket}</span>
       <span className={cn("num font-semibold", vurgu === "ok" ? "text-ok" : "text-slate-ink")}>{deger}</span>
+    </div>
+  );
+}
+
+/* Dikey A/B başarı oranı çubukları — yatay-bar monotonluğunu kırar. */
+function BasariBar({ bA, bB, t }: { bA: number; bB: number; t: Ceviri }) {
+  const max = Math.max(bA, bB, 1);
+  const kazanan = Math.abs(bA - bB) < 0.05 ? null : bA > bB ? "A" : "B";
+  const cubuk = (harf: "A" | "B", deger: number) => {
+    const yuk = Math.max(4, (deger / max) * 100);
+    const bu = kazanan === harf;
+    return (
+      <div className="flex flex-1 flex-col items-center gap-1.5">
+        <span className="num text-[13px] font-bold" style={{ color: VARIANT_RENK[harf] }}>%{deger.toFixed(1)}</span>
+        <div className="flex w-full items-end justify-center" style={{ height: 96 }}>
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: `${yuk}%` }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="w-11 rounded-t-lg"
+            style={{ background: VARIANT_RENK[harf], opacity: bu || !kazanan ? 1 : 0.55 }}
+          />
+        </div>
+        <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-muted">
+          <span className="grid size-4 place-items-center rounded text-[10px] font-bold text-white" style={{ background: VARIANT_RENK[harf] }}>{harf}</span>
+          {bu && <Trophy className="size-3 text-warn" />}
+        </span>
+      </div>
+    );
+  };
+  return (
+    <div className="flex items-end gap-6 px-2">
+      {cubuk("A", bA)}
+      <div className="pb-8 text-[11px] font-bold text-slate-faint">{t("kart.vs")}</div>
+      {cubuk("B", bB)}
     </div>
   );
 }

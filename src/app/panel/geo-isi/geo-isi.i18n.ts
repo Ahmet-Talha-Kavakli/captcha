@@ -112,6 +112,21 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "bolge.ortadogu": "Ortadoğu & Orta Asya",
     "bolge.diger": "Diğer",
 
+    // yeni görsel bölümler (donut / ısı-matris / ASN)
+    "gorsel.bolgeDagilim": "Bölge dağılımı",
+    "gorsel.bolgeDagilimAlt": "Gözlemlenen olayların kıtalara göre payı",
+    "gorsel.bolgeMerkez": "olay",
+    "gorsel.isiMatris": "Gün × dilim risk yoğunluğu",
+    "gorsel.isiMatrisAlt": "Her hücre o zaman diliminin en yoğun ülke puanı (0-100)",
+    "gorsel.asnBaslik": "ASN kategori dağılımı",
+    "gorsel.asnAlt": "Trafiğin ağ altyapısı türüne göre kırılımı",
+    "gorsel.asnVeriYok": "Kategorize edilecek ASN yok",
+    "gorsel.asnHosting": "Barındırma / Bulut",
+    "gorsel.asnIsp": "İSS / Erişim",
+    "gorsel.asnMobil": "Mobil operatör",
+    "gorsel.asnBilinmeyen": "Bilinmeyen / Diğer",
+    "gorsel.matrisDilim": "Dilim",
+
     // bot sınıfı etiketleri
     "bot.human": "İnsan",
     "bot.good_bot": "İyi bot",
