@@ -69,6 +69,26 @@ async function main() {
   const r12 = await post("/api/auth/login", { email: "demo@specter.dev", password: "yanlis" });
   check("Yanlış şifre → 401 (kullanıcı var/yok sızdırmaz)", r12.status === 401);
 
+  // 13) Devasa siteKey (200K) → çökmez, düzgün reddeder
+  const r13 = await post("/api/v1/challenge", { siteKey: "pk_" + "A".repeat(200000) });
+  check("Devasa siteKey (200K) → çökmez (403)", r13.status === 403);
+
+  // 14) Infinity/negatif davranış sinyalleri → çökmez, düzgün işler
+  const r14 = await post("/api/v1/passive", { siteKey: "pk_demo_veylify_public", signals: { mouseSamples: -999, mousePathLength: 1e308, keyIntervals: [1e400, -1e400] } });
+  check("Infinity/negatif signals → çökmez (200)", r14.status === 200);
+
+  // 15) PROTOTYPE POLLUTION — __proto__ enjeksiyonu prototipi kirletmemeli.
+  const r15 = await post("/api/v1/passive", '{"siteKey":"pk_demo_veylify_public","signals":{},"__proto__":{"kirlietildi":true}}');
+  check("__proto__ pollution → çökmez + prototip kirletilmez", r15.status === 200 && ({}).kirlietildi === undefined);
+
+  // 16) Devasa dizi (100K keyIntervals) → çökmez
+  const r16 = await post("/api/v1/passive", { siteKey: "pk_demo_veylify_public", signals: { keyIntervals: new Array(100000).fill(5) } });
+  check("Devasa dizi (100K eleman) → çökmez (200)", r16.status === 200);
+
+  // 17) Emoji/unicode siteKey → çökmez
+  const r17 = await post("/api/v1/challenge", { siteKey: "pk_" + String.fromCodePoint(0x1f525) });
+  check("Emoji/unicode siteKey → çökmez (403)", r17.status === 403);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
