@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
+import { IpEngelleButonu } from "@/components/panel/IpEngelleButonu";
 import type { SaldirganZincir, KillChainOzet, Asama } from "@/lib/specter/kill-chain";
 
 /* ================================================================== Sabitler */
@@ -269,8 +270,6 @@ function onerilenAksiyon(z: SaldirganZincir): { baslik: string; aciklama: string
 /** Genişleyen detay: adım-adım zaman çizelgesi + IP istihbaratı + önerilen aksiyon. */
 function ZincirDetay({ zincir, siteId }: { zincir: SaldirganZincir; siteId: string | null }) {
   const [kopyalandi, setKopyalandi] = useState(false);
-  // GERÇEK AKSİYON: IP'yi engelle → kural motoruna field=ip/op=eq/action=block kuralı.
-  const [engelDurum, setEngelDurum] = useState<"bos" | "gonderiliyor" | "engellendi" | "hata">("bos");
   const aksiyon = onerilenAksiyon(zincir);
   const aksiyonTon =
     aksiyon.ton === "yesil"
@@ -284,29 +283,6 @@ function ZincirDetay({ zincir, siteId }: { zincir: SaldirganZincir; siteId: stri
       setKopyalandi(true);
       setTimeout(() => setKopyalandi(false), 1500);
     } catch { /* pano yok */ }
-  };
-  const ipEngelle = async () => {
-    if (!siteId || engelDurum === "gonderiliyor" || engelDurum === "engellendi") return;
-    setEngelDurum("gonderiliyor");
-    try {
-      const r = await fetch("/api/rules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          siteId,
-          name: `Engel: ${zincir.ip}`,
-          description: `Kill-Chain'den engellendi — ${ASAMA_TANIM[zincir.ilerlemeAsama].ad} aşamasına ulaşan saldırgan.`,
-          field: "ip",
-          op: "eq",
-          value: zincir.ip,
-          action: "block",
-          priority: 1,
-        }),
-      });
-      setEngelDurum(r.ok ? "engellendi" : "hata");
-    } catch {
-      setEngelDurum("hata");
-    }
   };
   const ilkTs = zincir.adimlar.length ? zincir.adimlar[0].ts : 0;
 
@@ -427,33 +403,12 @@ function ZincirDetay({ zincir, siteId }: { zincir: SaldirganZincir; siteId: stri
 
           {/* GERÇEK AKSİYON: tek tıkla bu IP'yi engelle (kural motoruna block kuralı) */}
           {siteId && (
-            <div className="mt-3 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={ipEngelle}
-                disabled={engelDurum === "gonderiliyor" || engelDurum === "engellendi"}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
-                  engelDurum === "engellendi"
-                    ? "cursor-default bg-ok-soft text-green-700 ring-1 ring-inset ring-green-300"
-                    : "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
-                  engelDurum === "gonderiliyor" && "cursor-wait opacity-70",
-                )}
-              >
-                {engelDurum === "engellendi" ? (
-                  <><Check className="size-3.5" /> Engellendi</>
-                ) : engelDurum === "gonderiliyor" ? (
-                  <><Ban className="size-3.5 animate-pulse" /> Engelleniyor…</>
-                ) : (
-                  <><Ban className="size-3.5" /> Bu IP&apos;yi engelle</>
-                )}
-              </button>
-              {engelDurum === "engellendi" && (
-                <span className="text-[11px] text-green-700">Kural motoruna eklendi — bu IP artık bloklanır.</span>
-              )}
-              {engelDurum === "hata" && (
-                <span className="text-[11px] text-red-700">Eklenemedi, tekrar deneyin.</span>
-              )}
+            <div className="mt-3">
+              <IpEngelleButonu
+                ip={zincir.ip}
+                siteId={siteId}
+                aciklama={`Kill-Chain'den engellendi — ${ASAMA_TANIM[zincir.ilerlemeAsama].ad} aşamasına ulaşan saldırgan.`}
+              />
             </div>
           )}
         </div>

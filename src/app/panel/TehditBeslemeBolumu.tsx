@@ -47,6 +47,7 @@ import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
 import { DonutDagilim } from "@/components/panel/grafikler";
 import { Histogram, Gauge } from "@/components/panel/grafikler-ek";
+import { IpEngelleButonu } from "@/components/panel/IpEngelleButonu";
 import type { BeslemeKaydi, BeslemeKaynak } from "@/lib/specter/threat-feed";
 
 /* ================================================================== Tipler */
@@ -226,11 +227,13 @@ function VurusKart({
   azHareket,
   acik,
   onToggle,
+  siteId,
 }: {
   vurus: BeslemeVurus;
   azHareket: boolean;
   acik: boolean;
   onToggle: () => void;
+  siteId: string | null;
 }) {
   const tanim = KAYNAK_TANIM[vurus.kaynak];
   const Ikon = tanim.ikon;
@@ -368,6 +371,17 @@ function VurusKart({
                 </div>
                 <p className="text-[11px] leading-relaxed opacity-90">{aksiyon.aciklama}</p>
               </div>
+
+              {/* GERÇEK AKSİYON: tek tıkla bu IP'yi engelle (paylaşılan bileşen) */}
+              {siteId && (
+                <div className="mt-3">
+                  <IpEngelleButonu
+                    ip={vurus.ip}
+                    siteId={siteId}
+                    aciklama={`Tehdit beslemesinden engellendi — ${vurus.ip}`}
+                  />
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -381,9 +395,11 @@ function VurusKart({
 export function TehditBeslemeBolumu({
   besleme,
   azHareket,
+  siteId = null,
 }: {
   besleme: BeslemeGoster;
   azHareket: boolean;
+  siteId?: string | null;
 }) {
   const { beslemeler, vuruslar } = besleme;
   const siraliBeslemeler = [...beslemeler].sort((a, b) => b.kayitSayisi - a.kayitSayisi);
@@ -532,6 +548,7 @@ export function TehditBeslemeBolumu({
                   azHareket={azHareket}
                   acik={acikIp === v.ip}
                   onToggle={() => setAcikIp(acikIp === v.ip ? null : v.ip)}
+                  siteId={siteId}
                 />
               ))}
             </div>

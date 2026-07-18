@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ilerleme } from "@/components/panel/kit";
+import { IpEngelleButonu } from "@/components/panel/IpEngelleButonu";
 import type {
   ApiAbuseRapor,
   EndpointAbuse,
@@ -415,11 +416,13 @@ function EndpointKart({
   azHareket,
   acik,
   onToggle,
+  siteId,
 }: {
   endpoint: EndpointAbuse;
   azHareket: boolean;
   acik: boolean;
   onToggle: () => void;
+  siteId: string | null;
 }) {
   const seviye = SEVIYE_TANIM[endpoint.seviye] ?? SEVIYE_TANIM["düşük"];
   const sRenk = skorRenk(endpoint.abuseSkoru);
@@ -602,6 +605,17 @@ function EndpointKart({
                 </div>
               )}
 
+              {/* GERÇEK AKSİYON: en agresif kaynak IP'yi tek tıkla engelle */}
+              {siteId && endpoint.enAgresifIpDeger && (
+                <div className="mt-3">
+                  <IpEngelleButonu
+                    ip={endpoint.enAgresifIpDeger}
+                    siteId={siteId}
+                    aciklama={`API kötüye-kullanımı: ${endpoint.yol}`}
+                  />
+                </div>
+              )}
+
               {/* Önerilen rate-limit kutusu */}
               <RateOneriKutu oneri={endpoint.oneri} />
             </div>
@@ -614,7 +628,15 @@ function EndpointKart({
 
 /* ================================================================== Ana bileşen */
 
-export function ApiAbuseBolumu({ rapor, azHareket }: { rapor: ApiAbuseRapor; azHareket: boolean }) {
+export function ApiAbuseBolumu({
+  rapor,
+  azHareket,
+  siteId = null,
+}: {
+  rapor: ApiAbuseRapor;
+  azHareket: boolean;
+  siteId?: string | null;
+}) {
   const { endpointler, ozet } = rapor;
   // Motor zaten abuseSkoru'na göre sıralı gönderir; ilk 8'i göster.
   const gosterilecek = endpointler.slice(0, 8);
@@ -705,6 +727,7 @@ export function ApiAbuseBolumu({ rapor, azHareket }: { rapor: ApiAbuseRapor; azH
                   azHareket={azHareket}
                   acik={acikYol === e.yol}
                   onToggle={() => setAcikYol(acikYol === e.yol ? null : e.yol)}
+                  siteId={siteId}
                 />
               </Bolum>
             ))}
