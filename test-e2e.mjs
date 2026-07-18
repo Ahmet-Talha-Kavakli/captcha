@@ -244,6 +244,29 @@ async function main() {
   const sim = await simRes.json();
   check("Kural simülasyon (VPN+düşük skor → engel)", simRes.ok && (sim.action === "block" || sim.action === "challenge"));
 
+  // 12b) DASHBOARD AKSİYONU — Kill-Chain "Bu IP'yi engelle" gerçek kural oluşturur
+  // ve o IP verify'da rule_block alır. Panel drill-down'undan gerçek savunma
+  // aksiyonu (görüntüle→analiz→engelle→enforce) tam-döngü.
+  const engelIp = "203.0.113.201";
+  const engelRes = await fetch(`${BASE}/api/rules`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jar },
+    body: JSON.stringify({ siteId: site.id, name: `Engel: ${engelIp}`, field: "ip", op: "eq", value: engelIp, action: "block", priority: 1 }),
+  });
+  check("Dashboard IP-engelle: kural oluşturuldu (field=ip, action=block)",
+    engelRes.ok && (await engelRes.clone().json()).rule?.field === "ip");
+  // Engellenen IP + DOĞRU cevap → rule_block (kural enforce ediliyor).
+  const engelCh = await (await fetch(`${BASE}/api/v1/challenge`, {
+    method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": engelIp },
+    body: JSON.stringify({ siteKey: site.siteKey }),
+  })).json();
+  const engelAns = deriveAnswer(engelCh.params.seed, engelCh.params.length);
+  const engelVer = await (await fetch(`${BASE}/api/v1/verify`, {
+    method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": engelIp },
+    body: JSON.stringify({ siteKey: site.siteKey, token: engelCh.token, input: engelAns, signals: goodSignals }),
+  })).json();
+  check("Dashboard IP-engelle: engellenen IP + doğru cevap → rule_block (enforce)",
+    engelVer.success === false && engelVer.reason === "rule_block");
+
   // 13) Görünmez mod: davranış zayıfsa challenge iste (bu sitede invisible kapalı olabilir → invisible_disabled de kabul)
   const passRes = await fetch(`${BASE}/api/v1/passive`, {
     method: "POST", headers: { "Content-Type": "application/json" },

@@ -447,7 +447,7 @@ export function GenelBakisIstemci({
 
       {/* SALDIRI KILL-CHAIN — saldırgan başına 6-aşama zincir + Specter'ın kesişi */}
       <motion.div {...bolum((bolumSira++) * 0.06)}>
-        <KillChainBolumu zincirler={killZincirler} ozet={killOzet} azHareket={!!azHareket} />
+        <KillChainBolumu zincirler={killZincirler} ozet={killOzet} azHareket={!!azHareket} siteId={otoSiteId} />
       </motion.div>
 
       {/* OLAY KORELASYONU (SIEM) — ilişkili olayları saldırı kampanyalarına gruplar */}
