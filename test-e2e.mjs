@@ -350,6 +350,15 @@ async function main() {
   intSrv.close();
   check("Entegrasyon test → gerçek HTTP POST teslim edildi (yakında değil)", !!intAlinan);
 
+  // 18h) PROMO ÇİFT-KULLANIM — aynı kullanıcı aynı promoyu 2 kez kullanamamalı.
+  const promoDog = await (await fetch(`${BASE}/api/promo/dogrula`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ kod: "HOSGELDIN", planId: "pro", hamFiyat: 490 }) })).json();
+  check("Promo doğrula → geçerli (indirim hesaplanır)", promoDog.gecerli === true);
+  const promoId = promoDog.id;
+  const use1 = await fetch(`${BASE}/api/promo/kullan`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ promoId, planId: "pro", hamFiyat: 490 }) });
+  check("Promo 1. kullanım → 200 (indirim uygulanır)", use1.status === 200);
+  const use2 = await fetch(`${BASE}/api/promo/kullan`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ promoId, planId: "pro", hamFiyat: 490 }) });
+  check("Promo 2. kullanım (aynı kullanıcı) → 400 çift-kullanım engellendi", use2.status === 400);
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;

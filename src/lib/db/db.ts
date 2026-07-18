@@ -1536,7 +1536,7 @@ export const Promo = {
    * limiti dolmuş mu ve (verilirse) plan kısıtına uygun mu. Sırayla kontrol
    * eder ve ilk başarısız koşulun sebebini döner.
    */
-  dogrula(kod: string, planId?: string): PromoDogrulama {
+  dogrula(kod: string, planId?: string, userId?: string): PromoDogrulama {
     const promo = Promo.byKod(kod);
     if (!promo) return { gecerli: false, sebep: "Bu kod geçersiz." };
     if (!promo.aktif) return { gecerli: false, sebep: "Bu kod artık aktif değil." };
@@ -1551,6 +1551,13 @@ export const Promo = {
     }
     if (promo.planKisiti !== "hepsi" && planId && planId !== promo.planKisiti) {
       return { gecerli: false, sebep: `Bu kod yalnızca ${promo.planKisiti.toUpperCase()} planında geçerli.`, promo };
+    }
+    // ÇİFT-KULLANIM ÖNLEMİ: bir promo kodu kullanıcı başına 1 kez. userId
+    // verildiyse (kullanım anında) ve bu kullanıcı kodu daha önce kullandıysa
+    // reddet. Daha önce YALNIZCA global maxKullanim kontrol ediliyordu → aynı
+    // kullanıcı sınırsız indirim alabiliyordu (gelir kaçağı).
+    if (userId && load().promoKullanimlar.some((k) => k.promoId === promo.id && k.userId === userId)) {
+      return { gecerli: false, sebep: "Bu kodu zaten kullandınız.", promo };
     }
     return { gecerli: true, promo };
   },

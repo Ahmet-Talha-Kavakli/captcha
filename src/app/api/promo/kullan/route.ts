@@ -21,8 +21,9 @@ export async function POST(req: Request) {
     const promo = Promo.byId(promoId);
     if (!promo) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-    // Kullanım anında SON KEZ doğrula (aktif/süre/limit) — istemciye güvenme.
-    const dog = Promo.dogrula(promo.kod, planId || undefined);
+    // Kullanım anında SON KEZ doğrula (aktif/süre/limit/ÇİFT-KULLANIM) — istemciye
+    // güvenme. userId geçildiği için bu kullanıcı kodu daha önce kullandıysa reddedilir.
+    const dog = Promo.dogrula(promo.kod, planId || undefined, user.id);
     if (!dog.gecerli) return NextResponse.json({ error: dog.sebep ?? "Kod artık geçerli değil." }, { status: 400 });
 
     // İndirim tutarını istemciye güvenmeden sunucuda yeniden hesapla (hamFiyat

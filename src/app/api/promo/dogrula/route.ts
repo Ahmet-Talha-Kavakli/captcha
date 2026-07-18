@@ -9,6 +9,7 @@
  */
 import { NextResponse } from "next/server";
 import { Promo, promoIndirimTutari } from "@/lib/db/db";
+import { currentUser } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
@@ -22,7 +23,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ gecerli: false, sebep: "Bir kod girin." }, { status: 400 });
     }
 
-    const sonuc = Promo.dogrula(kod, planId);
+    // Oturum varsa userId geçir → kullanıcı kodu daha önce kullandıysa checkout'ta
+    // ERKEN "zaten kullandınız" uyarısı görür (kesin engel kullan'da; bu UX içindir).
+    const user = await currentUser().catch(() => null);
+    const sonuc = Promo.dogrula(kod, planId, user?.id);
     if (!sonuc.gecerli || !sonuc.promo) {
       return NextResponse.json({ gecerli: false, sebep: sonuc.sebep ?? "Bu kod geçersiz." });
     }
