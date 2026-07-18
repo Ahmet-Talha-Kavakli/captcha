@@ -198,6 +198,20 @@ export function verifyPassword(pw: string, stored: string): boolean {
   const b = Buffer.from(hash, "hex");
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
+
+/**
+ * Sabit-zamanlı string eşitliği (timing-attack direnci). Gizli değerlerin
+ * (secretKey) karşılaştırılmasında düz === yerine kullanılır — düz === erken
+ * çıkışlıdır ve yanıt-süresi ölçülerek karakter-karakter tahmin sızdırabilir.
+ * Uzunluk farkı erken döner (secret uzunluğu sabit formatta, sızıntı yok).
+ */
+export function sabitZamanEsit(a: string, b: string): boolean {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
 export function id(prefix: string): string {
   return `${prefix}_${crypto.randomBytes(9).toString("hex")}`;
 }
@@ -490,7 +504,9 @@ export const Sites = {
   forOwner: (ownerId: string) => ownerSites(load(), ownerId),
   byId: (sid: string) => load().sites.find((s) => s.id === sid),
   bySiteKey: (k: string) => load().sites.find((s) => s.siteKey === k),
-  forOwnerBySecret: (k: string) => load().sites.find((s) => s.secretKey === k),
+  // GİZLİ secretKey karşılaştırması sabit-zamanlı (timing-attack direnci) —
+  // siteverify'da müşteri secret gönderir; düz === yanıt-süresi sızdırabilirdi.
+  forOwnerBySecret: (k: string) => load().sites.find((s) => sabitZamanEsit(s.secretKey, k)),
   /** Ad slug'ından site bul (public güven mührü sayfası için). */
   byNameSlug: (slug: string) =>
     load().sites.find((s) => s.name.replace(/[^a-z0-9.-]/gi, "").toLowerCase() === slug.toLowerCase()),
