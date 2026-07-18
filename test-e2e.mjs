@@ -3,6 +3,7 @@
  * Ghost-font motorunu yeniden üretip gerçek challenge→verify→siteverify
  * zincirini doğrular.
  */
+import http from "node:http";
 const BASE = "http://127.0.0.1:3033";
 
 // Widget/motor ile birebir aynı çekirdek — cevabı türetmek için.
@@ -278,6 +279,32 @@ async function main() {
   check("Kural: path eşleşmesi → challenge (block'tan ayrı aksiyon)", rPath.action === "challenge");
   const rTemiz = await simEt({ asn: "AS100 Good", score: 0.9, path: "/" });
   check("Kural: eşleşmeyen temiz istek → allow", rTemiz.action === "allow");
+
+  // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
+  // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
+  let whAlinan = null;
+  const whSrv = http.createServer((rq, rs) => {
+    let b = ""; rq.on("data", (c) => (b += c));
+    rq.on("end", () => {
+      const imzaHeader = Object.keys(rq.headers).map((h) => (/sign|imza/i.test(h) ? rq.headers[h] : null)).filter(Boolean)[0];
+      whAlinan = { body: b, imza: imzaHeader };
+      rs.writeHead(200); rs.end("ok");
+    });
+  });
+  await new Promise((r) => whSrv.listen(9871, r));
+  const whReg = await (await fetch(`${BASE}/api/webhooks`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: jar }, body: JSON.stringify({ siteId: site.id, url: "http://127.0.0.1:9871/hook", events: ["bot.blocked"] }) })).json();
+  check("Webhook kaydı oluşturuldu", !!whReg.webhook?.id);
+  // Bot engelle: doğru cevap ama honeypot tetik → kesin bot → bot.blocked
+  const whCh = await (await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: site.siteKey }) })).json();
+  const whAns = deriveAnswer(whCh.params.seed, whCh.params.length);
+  await fetch(`${BASE}/api/v1/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: site.siteKey, token: whCh.token, input: whAns, signals: { mouseSamples: 0, keyIntervals: [5, 5], honeypotTetik: true } }) });
+  await new Promise((r) => setTimeout(r, 1500)); // webhook fire-and-forget
+  whSrv.close();
+  check("Bot engellenince webhook POST teslim edildi", !!whAlinan);
+  check("Webhook HMAC imza header'ı taşıyor (t=,v1=)", !!whAlinan && /t=\d+,v1=/.test(String(whAlinan.imza || "")));
+  let whType = null;
+  try { whType = JSON.parse(whAlinan.body).type; } catch { /* yok */ }
+  check("Webhook gövdesi type=bot.blocked", whType === "bot.blocked");
 
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
