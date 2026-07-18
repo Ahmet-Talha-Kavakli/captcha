@@ -309,3 +309,69 @@ export const RISK_ETIKET: Record<AiAjan["risk"], string> = {
   yuksek: "Yüksek",
   kritik: "Kritik",
 };
+
+/**
+ * Kullanıcının AI-ajan politikalarından GERÇEK, standartlara uygun bir
+ * robots.txt üretir. Ayrıştırıcı özellik: panelde tek tıkla verilen kararlar
+ * (izin/doğrula/engelle) siteye konulabilen gerçek bir dosyaya dönüşür.
+ *
+ *  - "engelle"  → Disallow: /            (o AI ajanı hiçbir yola giremez)
+ *  - "dogrula"  → Disallow: korumalı yollar (hassas alanlar hariç açık)
+ *  - "izin"     → Allow: /               (tam erişim)
+ *
+ * Politika belirtilmeyen ajanlar için ajanın `onerilenPolitika`'sı kullanılır.
+ * robots.txt "nazik istek"tir; Veylify ayrıca AKTİF olarak engeller (robots'a
+ * uymayan AI'ları verify/passive akışında yakalar) — iki katmanlı savunma.
+ */
+export function aiRobotsUret(
+  aiPolicies: Record<string, string> | undefined,
+  opts?: { korumaliYollar?: string[]; siteUrl?: string },
+): string {
+  const korumali = opts?.korumaliYollar?.length
+    ? opts.korumaliYollar
+    : ["/admin", "/api", "/hesap", "/checkout", "/login", "/wp-admin"];
+
+  const satirlar: string[] = [
+    "# Veylify — AI ajan erişim politikası",
+    "# Panelde belirlenen kararlardan otomatik üretildi.",
+    "# robots.txt naziktir; Veylify uymayan AI'ları ayrıca AKTİF engeller.",
+    "",
+  ];
+
+  for (const a of AI_AJANLAR) {
+    const pol = (aiPolicies?.[a.id] as AiPolitika) || a.onerilenPolitika;
+    satirlar.push(`User-agent: ${a.robotsToken}`);
+    if (pol === "engelle") {
+      satirlar.push("Disallow: /");
+    } else if (pol === "dogrula") {
+      for (const y of korumali) satirlar.push(`Disallow: ${y}`);
+      satirlar.push("Allow: /");
+    } else {
+      satirlar.push("Allow: /");
+    }
+    satirlar.push("");
+  }
+
+  // Bilinmeyen tüm diğer botlar için varsayılan (hassas alanlar korumalı).
+  satirlar.push("User-agent: *");
+  for (const y of korumali) satirlar.push(`Disallow: ${y}`);
+  satirlar.push("");
+
+  if (opts?.siteUrl) {
+    satirlar.push(`Sitemap: ${opts.siteUrl.replace(/\/$/, "")}/sitemap.xml`);
+  }
+
+  return satirlar.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+}
+
+/** Politika özeti: kaç ajan izin/doğrula/engelle (panel rozetleri için). */
+export function aiPolitikaOzet(
+  aiPolicies: Record<string, string> | undefined,
+): { izin: number; dogrula: number; engelle: number } {
+  const o = { izin: 0, dogrula: 0, engelle: 0 };
+  for (const a of AI_AJANLAR) {
+    const pol = (aiPolicies?.[a.id] as AiPolitika) || a.onerilenPolitika;
+    o[pol]++;
+  }
+  return o;
+}

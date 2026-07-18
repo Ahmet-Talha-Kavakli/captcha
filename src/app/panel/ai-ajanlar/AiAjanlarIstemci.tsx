@@ -5,12 +5,13 @@ import Link from "next/link";
 import {
   Bot, ShieldCheck, GraduationCap, Search, X, ExternalLink, CircleCheck,
   ShieldAlert, Ban, TriangleAlert, Fingerprint, Activity, Flame, Radar as RadarIkon,
-  CheckCircle2, SlashSquare,
+  CheckCircle2, SlashSquare, Copy, Download, FileCode2, Info,
 } from "lucide-react";
 import { Panel, StatKart, Badge, useToast, useScrollKilit } from "@/components/panel/kit";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import type { AiKategori, AiPolitika } from "@/lib/specter/ai-agents";
+import { aiRobotsUret, aiPolitikaOzet } from "@/lib/specter/ai-agents";
 import type { Dil } from "@/lib/i18n/panel";
 import { aiajanlarCeviri } from "./aiajanlar.i18n";
 import { DonutDagilim, TrendGrafik, MiniSpark } from "@/components/panel/grafikler";
@@ -118,6 +119,28 @@ export function AiAjanlarIstemci({
   }, [veri, kat, q]);
 
   const varTrafik = ozet.aiToplam > 0;
+
+  /* AYRIŞTIRICI ÖZELLİK: panel kararlarından CANLI robots.txt üretimi.
+   * Politika değiştikçe anında güncellenir; kopyalanıp siteye konur.
+   * robots.txt naziktir — Veylify uymayan AI'ları ayrıca AKTİF engeller. */
+  const robotsTxt = useMemo(() => aiRobotsUret(politikalar), [politikalar]);
+  const polOzet = useMemo(() => aiPolitikaOzet(politikalar), [politikalar]);
+  const robotsKopyala = () => {
+    navigator.clipboard.writeText(robotsTxt).then(
+      () => goster({ tip: "basari", baslik: t("ai.robots.kopyalandi") }),
+      () => goster({ tip: "hata", baslik: t("ai.robots.kopyaHata") }),
+    );
+  };
+  const robotsIndir = () => {
+    const blob = new Blob([robotsTxt], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "robots.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+    goster({ tip: "basari", baslik: t("ai.robots.indirildi") });
+  };
 
   /* Kategoriye göre trafik dağılımı (donut). Sunum türevi; veri değişmez. */
   const dagilim = useMemo(() => {
@@ -262,6 +285,55 @@ export function AiAjanlarIstemci({
           </Panel>
         </motion.div>
       )}
+
+      {/* AYRIŞTIRICI: politikadan CANLI robots.txt üretimi (rakiplerde yok) */}
+      <motion.div initial={{ y: 10 }} animate={{ y: 0 }}>
+        <Panel
+          baslik={t("ai.robots.baslik")}
+          sagUst={
+            <div className="flex items-center gap-2">
+              <button
+                onClick={robotsKopyala}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-canvas px-2.5 py-1.5 text-[12px] font-medium text-slate-ink transition hover:border-line-strong"
+              >
+                <Copy className="size-3.5" /> {t("ai.robots.kopyala")}
+              </button>
+              <button
+                onClick={robotsIndir}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 py-1.5 text-[12px] font-medium text-white transition hover:bg-brand-700"
+              >
+                <Download className="size-3.5" /> robots.txt
+              </button>
+            </div>
+          }
+        >
+          <p className="-mt-1 mb-3 text-[12.5px] text-slate-muted">{t("ai.robots.aciklama")}</p>
+          <div className="mb-3 flex flex-wrap gap-2 text-[12px]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ok-soft px-2.5 py-1 font-medium text-ok">
+              <span className="size-1.5 rounded-full bg-ok" /> {polOzet.izin} {t("ai.robots.ozetIzin")}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-warn-soft px-2.5 py-1 font-medium text-warn">
+              <span className="size-1.5 rounded-full bg-warn" /> {polOzet.dogrula} {t("ai.robots.ozetDogrula")}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-danger-soft px-2.5 py-1 font-medium text-danger2">
+              <span className="size-1.5 rounded-full bg-danger2" /> {polOzet.engelle} {t("ai.robots.ozetEngelle")}
+            </span>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-line-strong bg-ink-950">
+            <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5">
+              <FileCode2 className="size-3.5 text-slate-400" />
+              <span className="text-[12px] font-medium text-slate-300">/robots.txt</span>
+              <span className="ml-auto text-[11px] text-slate-500">{t("ai.robots.canli")}</span>
+            </div>
+            <pre className="max-h-72 overflow-auto px-4 py-3.5 text-[12px] leading-relaxed">
+              <code className="font-mono whitespace-pre text-[#c7d5e2]">{robotsTxt}</code>
+            </pre>
+          </div>
+          <p className="mt-3 flex items-start gap-1.5 text-[11.5px] text-slate-faint">
+            <Info className="mt-0.5 size-3.5 shrink-0" /> {t("ai.robots.not")}
+          </p>
+        </Panel>
+      </motion.div>
 
       {/* AI trafiği zaman serisi (çoklu seri) */}
       {varTrafik && (
