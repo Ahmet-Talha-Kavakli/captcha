@@ -304,6 +304,14 @@ async function main() {
   const robotsTxt = await robotsRes.text();
   check("AI politika: 'engelle' robots.txt'e yansır (User-agent: GPTBot / Disallow: /)",
     /User-agent:\s*GPTBot/i.test(robotsTxt) && /GPTBot[\s\S]*?Disallow:\s*\//i.test(robotsTxt));
+  // Toplu politika şablonu: tek tıkla tüm AI ajanlarına akıllı politika ("Sıkı koru").
+  const sablonRes = await fetch(`${BASE}/api/ai-agents/sablon`, {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: jar },
+    body: JSON.stringify({ sablon: "siki" }),
+  });
+  const sablon = await sablonRes.json().catch(() => ({}));
+  check("AI politika: toplu şablon ('Sıkı koru') → çok ajana uygulanır",
+    sablonRes.ok && (sablon.uygulanan ?? 0) >= 10);
 
   // 13) Görünmez mod: davranış zayıfsa challenge iste (bu sitede invisible kapalı olabilir → invisible_disabled de kabul)
   const passRes = await fetch(`${BASE}/api/v1/passive`, {
