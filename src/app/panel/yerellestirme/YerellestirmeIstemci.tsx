@@ -25,6 +25,8 @@ import {
 } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { Gauge, IsiMatris } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import {
   DILLER, ANAHTARLAR, ANAHTAR_KODLARI, CEVIRILER, DIL_HARITA,
   yerellestirmeOzet,
@@ -103,6 +105,41 @@ export function YerellestirmeIstemci({ dil }: { dil: PanelDil }) {
     () => [...DILLER].sort((a, b) => etkinOran(b.kod) - etkinOran(a.kod)),
     [etkinOran],
   );
+
+  // --- görsel türetmeler (yalnızca gösterim; veri/mantık aynı) ---
+  // Kapsama donut'u: tam / kısmî / başlanmamış dil sayısı (etkin oranlara göre).
+  const kapsamaSegment = useMemo(() => {
+    let tam = 0, kismi = 0, eksik = 0;
+    for (const d of DILLER) {
+      const o = etkinOran(d.kod);
+      if (o === 100) tam++;
+      else if (o > 0) kismi++;
+      else eksik++;
+    }
+    return [
+      { etiket: t("yl.donut.tam"), deger: tam, renk: "#16a34a" },
+      { etiket: t("yl.donut.kismi"), deger: kismi, renk: "#d97706" },
+      { etiket: t("yl.donut.eksik"), deger: eksik, renk: "#dc2626" },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [etkinOran, dil]);
+
+  // Isı-matris: satır = öbek, sütun = dil; değer = o öbekteki eksik-dize sayısı.
+  const isiVeri = useMemo(() => {
+    const obekKodlari = OBEKLER.filter((o) => o.kod !== "hepsi");
+    const satirlar = obekKodlari.map((o) => t(o.adKey));
+    const sutunlar = sirali.map((d) => d.kod.toUpperCase());
+    const degerler = obekKodlari.map((o) =>
+      sirali.map(
+        (d) =>
+          ANAHTARLAR.filter(
+            (a) => a.obek === o.kod && etkinDeger(d.kod, a.anahtar).trim().length === 0,
+          ).length,
+      ),
+    );
+    return { satirlar, sutunlar, degerler };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sirali, etkinDeger, dil]);
 
   // Düzenleyici satırları: öbek + arama filtresi.
   const gorunenAnahtarlar = useMemo(() => {
@@ -215,6 +252,42 @@ export function YerellestirmeIstemci({ dil }: { dil: PanelDil }) {
         <StatKart sayi={`%${ozet.ortTamamlanma}`} etiket={t("yl.ozet.ortTamamlanma")} ikon={<Languages className="size-5" />} />
       </div>
 
+      {/* GÖRSEL ŞERİT: dil gauge'ları + kapsama donut'u */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Panel baslik={t("yl.gauge.baslik")}>
+          <p className="mb-4 text-[13px] text-slate-muted">{t("yl.gauge.aciklama")}</p>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
+            {sirali.map((d) => {
+              const o = etkinOran(d.kod);
+              const aktif = d.kod === seciliKod;
+              return (
+                <button
+                  key={d.kod}
+                  onClick={() => setSeciliKod(d.kod)}
+                  aria-pressed={aktif}
+                  className={cn(
+                    "flex flex-col items-center gap-1 rounded-2xl border px-2 py-3 transition",
+                    aktif
+                      ? "border-brand-400 bg-brand-50/50 ring-1 ring-brand-200"
+                      : "border-line hover:border-line-strong hover:bg-canvas/60",
+                  )}
+                >
+                  <Gauge deger={o} boyut={104} />
+                  <span className="flex items-center gap-1 text-[12px] font-semibold text-slate-ink" dir={d.rtl ? "rtl" : "ltr"}>
+                    <span className="text-[15px] leading-none">{d.bayrak}</span>
+                    <span className="truncate">{d.yerelAd}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Panel>
+
+        <Panel baslik={t("yl.donut.baslik")}>
+          <DonutDagilim segmentler={kapsamaSegment} merkezEtiket={t("yl.donut.merkez")} />
+        </Panel>
+      </div>
+
       {/* İKİ SÜTUN: solda matris, sağda canlı önizleme + dışa aktarım */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         {/* SOL: tamamlanma matrisi */}
@@ -270,6 +343,20 @@ export function YerellestirmeIstemci({ dil }: { dil: PanelDil }) {
           )}
         </Panel>
       </div>
+
+      {/* ÇEVİRİ DURUMU ISI-MATRİSİ */}
+      <Panel baslik={t("yl.isi.baslik")}>
+        <p className="mb-4 text-[13px] text-slate-muted">{t("yl.isi.aciklama")}</p>
+        <div className="overflow-x-auto">
+          <div className="min-w-[520px]">
+            <IsiMatris
+              satirlar={isiVeri.satirlar}
+              sutunlar={isiVeri.sutunlar}
+              degerler={isiVeri.degerler}
+            />
+          </div>
+        </div>
+      </Panel>
 
       {/* DİZE DÜZENLEYİCİ */}
       <Panel

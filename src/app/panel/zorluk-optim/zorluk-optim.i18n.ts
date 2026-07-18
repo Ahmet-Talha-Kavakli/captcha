@@ -157,6 +157,25 @@ const sozluk: Record<Dil, Record<string, string>> = {
       "Yüksek eşikle geniş bir şüpheli bandını challenge eder. Bot yakalama yüksek, insan sürtünmesi artar.",
     "pol.acik.agresif":
       "Sıfır tolerans: en geniş bandı doğrudan engellemeye yakın davranır. En çok botu durdurur, en çok insanı yorar.",
+
+    // görsel şerit (donut / gauge / adaptif eğri / radar)
+    "gorsel.dagilimBaslik": "Zorluk seviye dağılımı",
+    "gorsel.politika": "politika",
+    "gorsel.dengeBaslik": "Başarı / sürtünme dengesi",
+    "gorsel.denge": "denge",
+    "gorsel.yakalama": "Bot yakalama",
+    "gorsel.surtunme": "İnsan sürtünmesi",
+    "gorsel.adaptifBaslik": "Adaptif eğri · eşiğe göre",
+    "gorsel.adaptifNot": "Bot eşiği yükseldikçe yakalama artar; ancak insan sürtünmesi de tırmanır. Optimum, iki eğrinin en geniş açıldığı noktadadır.",
+    "dagilim.dusuk": "Düşük zorluk",
+    "dagilim.orta": "Orta zorluk",
+    "dagilim.yuksek": "Yüksek zorluk",
+    "radar.baslik": "Optimizasyon profili",
+    "radar.botYakalama": "Bot yakalama",
+    "radar.insanDostu": "İnsan-dostu",
+    "radar.donusum": "Dönüşüm koruma",
+    "radar.kapsama": "Kapsama",
+    "radar.netSkor": "Net skor",
   },
 
   en: {
@@ -280,6 +299,24 @@ const sozluk: Record<Dil, Record<string, string>> = {
       "Challenges a wide suspicious band with a high threshold. Bot capture is high, human friction rises.",
     "pol.acik.agresif":
       "Zero tolerance: treats the widest band as near-direct blocking. Stops the most bots, tires the most humans.",
+
+    "gorsel.dagilimBaslik": "Difficulty level distribution",
+    "gorsel.politika": "policies",
+    "gorsel.dengeBaslik": "Success / friction balance",
+    "gorsel.denge": "balance",
+    "gorsel.yakalama": "Bot capture",
+    "gorsel.surtunme": "Human friction",
+    "gorsel.adaptifBaslik": "Adaptive curve · by threshold",
+    "gorsel.adaptifNot": "As the bot threshold rises, capture increases — but so does human friction. The optimum is where the two curves diverge the most.",
+    "dagilim.dusuk": "Low difficulty",
+    "dagilim.orta": "Medium difficulty",
+    "dagilim.yuksek": "High difficulty",
+    "radar.baslik": "Optimization profile",
+    "radar.botYakalama": "Bot capture",
+    "radar.insanDostu": "Human-friendly",
+    "radar.donusum": "Conversion safety",
+    "radar.kapsama": "Coverage",
+    "radar.netSkor": "Net score",
   },
 
   de: {

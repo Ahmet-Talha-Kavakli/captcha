@@ -21,6 +21,8 @@ import {
   TrendingUp, TrendingDown, Globe, Cpu, Gauge, MapPin, Network, Sparkles, Zap,
 } from "lucide-react";
 import { Panel, StatKart, Badge } from "@/components/panel/kit";
+import { DonutDagilim } from "@/components/panel/grafikler";
+import { Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
 import { anomaliTespit } from "@/lib/specter/anomaly";
 import type { BotEvent } from "@/lib/db/schema";
 import {
@@ -344,7 +346,6 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
     for (const a of akis) m[a.tur] = (m[a.tur] || 0) + 1;
     return Object.entries(m).sort((x, y) => y[1] - x[1]);
   }, [akis]);
-  const enCok = turDagilim.length ? turDagilim[0][1] : 1;
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-12 lg:px-10">
@@ -483,31 +484,37 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
 
         {/* yan panel: tür dağılımı + ipuçları */}
         <div className="space-y-6">
+          {/* Canlı tehdit göstergesi — yarım-daire gauge (seviye 0-100).
+              Komuta bandındaki çubuğu farklı bir görsel dille tekrarlar. */}
+          <Panel baslik={t("aa.kart.canliTehdit")}>
+            <div className="flex flex-col items-center gap-2 py-1">
+              <GaugeGost deger={seviye} etiket={seviyeMeta.ad} renk={seviyeMeta.renk} boyut={168} />
+              <div className="flex items-center gap-4 text-[12px] text-slate-muted">
+                <span className="inline-flex items-center gap-1.5">
+                  <Bot className="size-3.5 text-slate-faint" />
+                  {t("aa.kart.anlikBot")}
+                  <span className="font-semibold tabular-nums text-slate-ink">%{Math.round(botOran * 100)}</span>
+                </span>
+                {sicrama && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-[11px] font-bold text-danger2">
+                    <Zap className="size-3" /> {t("aa.sicrama")}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Panel>
+
           <Panel baslik={t("aa.panel.turDagilim")}>
             {turDagilim.length === 0 ? (
               <p className="py-6 text-center text-[13px] text-slate-muted">{t("aa.turYok")}</p>
             ) : (
-              <div className="space-y-3">
-                {turDagilim.map(([tur, sayi]) => {
+              <DonutDagilim
+                merkezEtiket={t("aa.anomali")}
+                segmentler={turDagilim.map(([tur, sayi]) => {
                   const m = turMeta(tur, t);
-                  return (
-                    <div key={tur}>
-                      <div className="mb-1 flex items-center justify-between text-[12.5px]">
-                        <span className="flex items-center gap-1.5 font-medium text-slate-muted">
-                          <span style={{ color: m.renk }}>{m.ikon}</span> {m.ad}
-                        </span>
-                        <span className="num font-semibold text-slate-ink">{sayi}</span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-canvas">
-                        <div
-                          className={cn("h-full rounded-full", !azaltilmisHareket && "transition-all duration-500")}
-                          style={{ width: `${(sayi / enCok) * 100}%`, background: m.renk }}
-                        />
-                      </div>
-                    </div>
-                  );
+                  return { etiket: m.ad, deger: sayi, renk: m.renk };
                 })}
-              </div>
+              />
             )}
           </Panel>
 

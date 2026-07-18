@@ -29,8 +29,11 @@ import {
   Globe, Fingerprint, Server, ArrowRight, Sparkles, Award,
   ShieldAlert, PlusCircle, Radio, HandHeart, EyeOff, CheckCircle2,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Panel, StatKart, Badge, Ulke, NotKutusu, Ilerleme, useToast } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { Gauge as GaugeGost, RadarGrafik, Histogram } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import { cn } from "@/lib/cn";
 import {
   toplulukZenginlestir, toplulukOzet, karsilastir, karsiliklilik,
@@ -179,6 +182,71 @@ export function ToplulukIstemci({ dil, katkilar, kullaniciAdi }: { dil: Dil; kat
 
   const paylasilanSayi = paylasilanSet.size;
 
+  /* --- Görsel türevler (mevcut zenginleştirilmiş veriden; uydurma yok) --- */
+
+  // Tehdit kategori dağılımı — topluluğun bu IOC'lere biçtiği kategoriler (donut).
+  const kategoriDagilim = useMemo(() => {
+    const KAT_RENK: Record<ToplulukKategori, string> = {
+      botnet: "#dc2626", credential_stuffing: "#ea580c", ddos: "#b91c1c",
+      scanner: "#d97706", scraper: "#ca8a04", proxy_abuse: "#2f6fed", spam: "#64748b",
+    };
+    const say = new Map<ToplulukKategori, number>();
+    for (const z of zengin) say.set(z.topluluk.kategori, (say.get(z.topluluk.kategori) ?? 0) + 1);
+    return [...say.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => ({ etiket: t(`kategori.${k}`), deger: v, renk: KAT_RENK[k] }));
+  }, [zengin, dil]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tür-bazlı savunma profili (radar) — her IOC türü için normalize sinyaller.
+  const radarEksenleri = useMemo(() => {
+    const turler: IocTur[] = ["ip", "asn", "fingerprint"];
+    const enCokGozlem = Math.max(1, ...zengin.map((z) => z.gozlem));
+    const enCokDugum = Math.max(1, ...zengin.map((z) => z.topluluk.dugumSayisi));
+    // Kapsam ekseni: paylaşılan oranı, doğrulama ekseni: doğrulanmış oranı.
+    const kapsam = katkilar.length ? (paylasilanSet.size / katkilar.length) * 100 : 0;
+    const dogrulamaOrani = zengin.length ? (dogrulanmis.length / zengin.length) * 100 : 0;
+    const eksenler = turler.map((tr) => {
+      const grup = zengin.filter((z) => z.tur === tr);
+      if (grup.length === 0) return { etiket: t(`tur.${tr}`), deger: 0 };
+      const ortGozlem = grup.reduce((a, z) => a + z.gozlem, 0) / grup.length;
+      const ortDugum = grup.reduce((a, z) => a + z.topluluk.dugumSayisi, 0) / grup.length;
+      // Gözlem + topluluk yaygınlığının ortalaması → 0-100.
+      const deg = Math.round(((ortGozlem / enCokGozlem) * 0.5 + (ortDugum / enCokDugum) * 0.5) * 100);
+      return { etiket: t(`tur.${tr}`), deger: deg };
+    });
+    return [
+      ...eksenler,
+      { etiket: t("radar.kapsam"), deger: Math.round(kapsam) },
+      { etiket: t("radar.dogrulama"), deger: Math.round(dogrulamaOrani) },
+    ];
+  }, [zengin, katkilar.length, paylasilanSet.size, dogrulanmis.length, dil]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Topluluk güven dağılımı histogramı — kaç IOC hangi güven bandında.
+  const guvenHistogram = useMemo(() => {
+    const bantlar = [
+      { etiket: "0-40", alt: 0, ust: 0.4, ton: "nötr" as const },
+      { etiket: "40-60", alt: 0.4, ust: 0.6, ton: "nötr" as const },
+      { etiket: "60-75", alt: 0.6, ust: 0.75, ton: "nötr" as const },
+      { etiket: "75-85", alt: 0.75, ust: 0.85, ton: "bot" as const },
+      { etiket: "85+", alt: 0.85, ust: 1.01, ton: "bot" as const },
+    ];
+    return bantlar.map((b) => ({
+      etiket: b.etiket,
+      deger: zengin.filter((z) => z.topluluk.toplulukGuven >= b.alt && z.topluluk.toplulukGuven < b.ust).length,
+      ton: b.ton,
+    }));
+  }, [zengin]);
+
+  // En yaygın katkılar (düğüm sayısına göre) — sıralama şeridi.
+  const yayginKatkilar = useMemo(
+    () => [...zengin].sort((a, b) => b.topluluk.dugumSayisi - a.topluluk.dugumSayisi).slice(0, 5),
+    [zengin],
+  );
+  const enYuksekDugum = yayginKatkilar[0]?.topluluk.dugumSayisi ?? 1;
+
+  // Katkı puanının kademe-tavanına oranı (gauge, 0-100).
+  const puanGauge = Math.min(100, Math.round((ozet.katkiPuani / 900) * 100));
+
   /* --- Aksiyonlar --- */
 
   function globalDegistir() {
@@ -268,6 +336,105 @@ export function ToplulukIstemci({ dil, katkilar, kullaniciAdi }: { dil: Dil; kat
           </div>
         </div>
       </div>
+
+      {/* 1.5 Görsel istihbarat panosu — katkı sağlığı, tür profili, kategori dağılımı */}
+      {katkilar.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-12">
+          {/* Katkı sağlığı gauge + itibar */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center justify-center rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-3"
+          >
+            <span className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+              <Award className="size-3.5 text-brand-600" /> {t("gorsel.katkiSagligi")}
+            </span>
+            <GaugeGost deger={puanGauge} etiket={t(`kademe.${ozet.kademe}`)} boyut={168} renk={kademeRenk} />
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="num text-[15px] font-bold text-slate-ink">{ozet.katkiPuani}</span>
+              <span className="text-[11px] text-slate-faint">{t("gorsel.puanTavan")}</span>
+            </div>
+          </motion.div>
+
+          {/* Tür-bazlı savunma profili radar */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-4"
+          >
+            <span className="mb-2 flex items-center gap-1.5 self-start text-[12px] font-semibold text-slate-muted">
+              <Radar className="size-3.5 text-brand-600" /> {t("gorsel.savunmaProfili")}
+            </span>
+            <RadarGrafik eksenler={radarEksenleri} boyut={208} />
+          </motion.div>
+
+          {/* Tehdit kategori dağılımı donut */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-5"
+          >
+            <span className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+              <ShieldAlert className="size-3.5 text-danger2" /> {t("gorsel.kategoriDagilim")}
+            </span>
+            {kategoriDagilim.length > 0 ? (
+              <DonutDagilim segmentler={kategoriDagilim} merkezEtiket={t("gorsel.iocMerkez")} />
+            ) : (
+              <div className="grid h-40 place-items-center text-[12px] text-slate-faint">{t("gorsel.veriYok")}</div>
+            )}
+          </motion.div>
+
+          {/* Topluluk güven bandı histogramı */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-5"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+                <Network className="size-3.5 text-brand-600" /> {t("gorsel.guvenBandi")}
+              </span>
+              <span className="text-[11px] text-slate-faint">{t("gorsel.guvenBandiAlt")}</span>
+            </div>
+            <Histogram kovalar={guvenHistogram} yukseklik={96} />
+          </motion.div>
+
+          {/* En yaygın katkı sıralaması */}
+          <motion.div
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-7"
+          >
+            <span className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+              <Globe className="size-3.5 text-brand-600" /> {t("gorsel.enYaygin")}
+            </span>
+            <div className="space-y-2.5">
+              {yayginKatkilar.map((z, i) => (
+                <div key={z.id} className="flex items-center gap-3">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-brand-50 text-[11px] font-bold text-brand-700">{i + 1}</span>
+                  <span className="grid size-6 shrink-0 place-items-center rounded-md bg-canvas text-slate-muted"><TurIkon tur={z.tur} className="size-3" /></span>
+                  <span className="w-28 shrink-0 truncate font-mono text-[12px] font-medium text-slate-ink">{z.deger}</span>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-canvas">
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ background: guvenRenk(z.topluluk.toplulukGuven) }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(z.topluluk.dugumSayisi / enYuksekDugum) * 100}%` }}
+                      transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  </div>
+                  <span className="num w-14 shrink-0 text-right text-[12px] font-semibold text-slate-muted">{z.topluluk.dugumSayisi} {t("katki.dugum")}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* 2. Katkılarım */}
       <Panel

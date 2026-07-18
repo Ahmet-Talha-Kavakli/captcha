@@ -24,8 +24,11 @@ import {
   UserRoundX, Send, Info, Lock, Sparkles, RotateCcw, ArrowRight, Ban, PlayCircle,
 } from "lucide-react";
 import * as Icons from "lucide-react";
+import { motion } from "framer-motion";
 import { Panel, StatKart, Badge, NotKutusu, useToast, Girdi, Secim, Alan2 } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { vsCeviri } from "./veri-saklama.i18n";
@@ -173,6 +176,45 @@ export function VeriSaklamaIstemci({
   const toplamEtkilenen = useMemo(() => kategoriSatirlari.reduce((a, s) => a + s.etkilenen, 0), [kategoriSatirlari]);
   const otomatikSayisi = useMemo(() => kategoriSatirlari.filter((s) => s.pol.otomatik).length, [kategoriSatirlari]);
 
+  /* --------------------------------------------- Görsel türevler (mevcut veriden) */
+
+  // Kayıt hacminin kategoriye göre dağılımı (donut) — kategori renkleriyle.
+  const kayitDagilim = useMemo(
+    () =>
+      kategoriSatirlari
+        .filter((s) => s.iz.adet > 0)
+        .map((s) => ({ etiket: katAd(s.kat.key), deger: s.iz.adet, renk: s.kat.renk }))
+        .sort((a, b) => b.deger - a.deger),
+    [kategoriSatirlari], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // Saklama süresi görselleştirmesi — kategori-başına gün, en uzuna göre normalize.
+  const saklamaCubuklari = useMemo(() => {
+    const enUzun = Math.max(1, ...kategoriSatirlari.map((s) => s.pol.gun));
+    return kategoriSatirlari
+      .map((s) => ({
+        key: s.kat.key,
+        ad: katAd(s.kat.key),
+        renk: s.kat.renk,
+        ikon: s.kat.ikon,
+        gun: s.pol.gun,
+        oran: (s.pol.gun / enUzun) * 100,
+        eylem: s.pol.eylem,
+        durum: s.durum,
+      }))
+      .sort((a, b) => b.gun - a.gun);
+  }, [kategoriSatirlari]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Kişisel-veri oranı (veri minimizasyonu göstergesi) ve otomasyon kapsamı.
+  const kisiselKayit = useMemo(
+    () => kategoriSatirlari.filter((s) => s.kat.kisiselVeri).reduce((a, s) => a + s.iz.adet, 0),
+    [kategoriSatirlari],
+  );
+  const kisiselOran = toplamKayit ? Math.round((kisiselKayit / toplamKayit) * 100) : 0;
+  const otomasyonKapsam = Math.round((otomatikSayisi / VERI_KATEGORILERI.length) * 100);
+  // "Süre içinde" kalan kayıt oranı — retention sağlık göstergesi.
+  const saklamaSagligi = toplamKayit ? Math.round(((toplamKayit - toplamEtkilenen) / toplamKayit) * 100) : 100;
+
   /* --------------------------------------------- Silme takvimi */
 
   // Otomatik açık + süreyi aşan kayıt olan kategoriler → yaklaşan çalışma.
@@ -248,6 +290,9 @@ export function VeriSaklamaIstemci({
     { madde: "GDPR Art.30", ad: t("vs.uyum.m6.ad"), aciklama: t("vs.uyum.m6.aciklama"), ok: true },
   ];
 
+  // Karşılanan uyum maddesi oranı (gauge, 0-100).
+  const uyumOrani = Math.round((uyumMaddeleri.filter((u) => u.ok).length / uyumMaddeleri.length) * 100);
+
   /* --------------------------------------------- Render */
 
   return (
@@ -267,6 +312,91 @@ export function VeriSaklamaIstemci({
         <StatKart sayi={say(toplamEtkilenen)} etiket={t("vs.ozet.sureyiAsan")} ikon={<Trash2 className="size-5" />} tone={toplamEtkilenen > 0 ? "warn" : "ok"} />
         <StatKart sayi={`${otomatikSayisi}/${VERI_KATEGORILERI.length}`} etiket={t("vs.ozet.otomatikAktif")} ikon={<CalendarClock className="size-5" />} tone="ok" />
         <StatKart sayi={acikTalepler.length} etiket={t("vs.ozet.acikDsr")} ikon={<UserRoundX className="size-5" />} tone={gecikmisTalepler.length > 0 ? "danger" : acikTalepler.length > 0 ? "warn" : "ok"} />
+      </div>
+
+      {/* 0.5 Görsel gizlilik-operasyonları panosu */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        {/* Uyum sağlık gauge'ları */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-4"
+        >
+          <span className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+            <Icons.ShieldCheck className="size-3.5 text-ok" /> {t("vs.gorsel.uyumSagligi")}
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col items-center rounded-2xl bg-canvas/40 py-3">
+              <GaugeGost deger={uyumOrani} etiket={t("vs.gorsel.uyum")} boyut={128} renk="#16a34a" />
+            </div>
+            <div className="flex flex-col items-center rounded-2xl bg-canvas/40 py-3">
+              <GaugeGost deger={otomasyonKapsam} etiket={t("vs.gorsel.otomasyon")} boyut={128} renk="#2f6fed" />
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-xl border border-line bg-surface px-2 py-2">
+              <div className="num text-[17px] font-bold text-slate-ink">%{saklamaSagligi}</div>
+              <div className="text-[11px] text-slate-muted">{t("vs.gorsel.sureIcinde")}</div>
+            </div>
+            <div className="rounded-xl border border-line bg-surface px-2 py-2">
+              <div className="num text-[17px] font-bold text-slate-ink">%{kisiselOran}</div>
+              <div className="text-[11px] text-slate-muted">{t("vs.gorsel.kisiselOran")}</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Kayıt hacmi dağılımı donut */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-4"
+        >
+          <span className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+            <DatabaseZap className="size-3.5 text-brand-600" /> {t("vs.gorsel.kayitDagilim")}
+          </span>
+          {kayitDagilim.length > 0 ? (
+            <DonutDagilim segmentler={kayitDagilim} merkezEtiket={t("vs.gorsel.kayitMerkez")} />
+          ) : (
+            <div className="grid h-40 place-items-center text-[12px] text-slate-faint">{t("vs.gorsel.veriYok")}</div>
+          )}
+        </motion.div>
+
+        {/* Saklama süresi görselleştirme (yaşam-döngüsü şeridi) */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card lg:col-span-4"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+              <Clock className="size-3.5 text-brand-600" /> {t("vs.gorsel.saklamaSuresi")}
+            </span>
+            <span className="text-[11px] text-slate-faint">{t("vs.gorsel.gunEksen")}</span>
+          </div>
+          <div className="space-y-2.5">
+            {saklamaCubuklari.map((c, i) => (
+              <div key={c.key} className="flex items-center gap-2.5">
+                <span className="grid size-5 shrink-0 place-items-center rounded-md text-white" style={{ background: c.renk }}>
+                  <LucideIkon name={c.ikon} className="size-3" />
+                </span>
+                <span className="w-24 shrink-0 truncate text-[11.5px] font-medium text-slate-muted">{c.ad}</span>
+                <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-canvas">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: c.renk, opacity: 0.85 }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${c.oran}%` }}
+                    transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                  />
+                </div>
+                <span className="num w-12 shrink-0 text-right text-[11.5px] font-semibold text-slate-ink">{c.gun}g</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
       {/* 1. Saklama politikaları */}

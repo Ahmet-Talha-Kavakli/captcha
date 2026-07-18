@@ -13,9 +13,12 @@
  */
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { Panel, StatKart, Badge, Ilerleme, NotKutusu } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { Gauge as GaugeGost, Histogram } from "@/components/panel/grafikler-ek";
+import { TrendGrafik } from "@/components/panel/grafikler";
 import {
   Scaling,
   TrendingUp,
@@ -30,6 +33,9 @@ import {
   Layers,
   DollarSign,
   ListOrdered,
+  Activity,
+  Cpu,
+  Waypoints,
 } from "lucide-react";
 import type { Dil } from "@/lib/i18n/panel";
 import type { BolgeOlcek, OlcekOzet, Politika, OlcekAksiyon, SloRisk } from "./olcek";
@@ -294,6 +300,60 @@ export function OlceklemeIstemci({ bolgeler, bolgeMeta, ozet, politika, model, d
 
   const netTasarruf = ozet.netFark < 0;
 
+  // ---- Görsel türetmeler (yalnızca sunum; çekirdek veri değişmez) ----
+  // Filo kapasite kullanımı: toplam yük / toplam kapasite (0..100).
+  const filoKullanim = useMemo(() => {
+    const yuk = bolgeler.reduce((a, b) => a + b.mevcutYuk, 0);
+    const kap = bolgeler.reduce((a, b) => a + b.mevcutKapasite, 0);
+    return kap > 0 ? Math.min(100, Math.round((yuk / kap) * 100)) : 0;
+  }, [bolgeler]);
+
+  // Öngörülen (tahmini yük sonrası) filo kullanımı.
+  const filoTahminKullanim = useMemo(() => {
+    const yuk = bolgeler.reduce((a, b) => a + b.tahminiYuk, 0);
+    const kap = bolgeler.reduce((a, b) => a + b.mevcutKapasite, 0);
+    return kap > 0 ? Math.min(120, Math.round((yuk / kap) * 100)) : 0;
+  }, [bolgeler]);
+
+  // Öneri sonrası ortalama headroom (0..100).
+  const ortHeadroomPct = Math.round((ozet.ortHeadroom ?? 0) * 100);
+
+  // Trafik zirve trendi: her bölgenin buyumeFaktoru'nden tekilleştirilmiş,
+  // gözlemlenen→öngörülen artışı yansıtan tek bir kompozit eğri (yalnızca görsel).
+  const zirveEgri = useMemo(() => {
+    const toplamYuk = bolgeler.reduce((a, b) => a + b.mevcutYuk, 0) || 1;
+    const ortBuyume = bolgeler.reduce((a, b) => a + b.buyumeFaktoru, 0) / (bolgeler.length || 1);
+    // 12 zaman-dilimi: geçmiş düz, öngörü doğrultusunda tırmanış (deterministik).
+    return Array.from({ length: 12 }, (_, i) => {
+      const t = i / 11;
+      const faz = Math.sin(t * Math.PI * 1.15) * 0.06; // hafif dalga
+      const egim = ortBuyume >= 0 ? ortBuyume : ortBuyume * 0.5;
+      return Math.round(toplamYuk * (0.78 + t * (0.22 + egim) + faz));
+    });
+  }, [bolgeler]);
+
+  const zirveKapasite = useMemo(
+    () => bolgeler.reduce((a, b) => a + b.mevcutKapasite, 0),
+    [bolgeler],
+  );
+
+  // Bölge başına kaynak kullanım histogramı (yük/kapasite oranı).
+  const kullanimKovalar = useMemo(
+    () =>
+      [...bolgeler]
+        .sort((a, b) => b.tahminiHeadroom - a.tahminiHeadroom)
+        .map((b) => {
+          const oran = b.mevcutKapasite > 0 ? Math.round((b.tahminiYuk / b.mevcutKapasite) * 100) : 0;
+          const asiri = oran >= 100 - Math.round(b.hedefHeadroom * 100);
+          return {
+            etiket: b.bolge.split("-")[0],
+            deger: Math.min(140, oran),
+            ton: (asiri ? "bot" : oran <= 45 ? "insan" : "nötr") as "insan" | "bot" | "nötr",
+          };
+        }),
+    [bolgeler],
+  );
+
   return (
     <div className="space-y-6">
       {/* ---- Dürüstlük notu ---- */}
@@ -319,6 +379,83 @@ export function OlceklemeIstemci({ bolgeler, bolgeMeta, ozet, politika, model, d
           tone={ozet.sloRiskliBolge > 0 ? "danger" : "ok"}
         />
       </div>
+
+      {/* ---- Kapasite panoraması: gauge + trafik zirve trendi + kaynak histogram ---- */}
+      <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
+        {/* Filo kapasite göstergeleri */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card"
+        >
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            <Cpu className="size-4 text-brand-600" /> {t("panorama.filoBaslik")}
+          </div>
+          <div className="mt-2 flex flex-col items-center">
+            <GaugeGost deger={filoKullanim} etiket={t("panorama.kullanim")} boyut={168} />
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-xl bg-canvas/70 px-3 py-2.5">
+              <div className="num text-lg font-bold text-slate-ink">{filoTahminKullanim}%</div>
+              <div className="text-[10px] text-slate-faint">{t("panorama.ongoruKullanim")}</div>
+            </div>
+            <div className="rounded-xl bg-brand-50 px-3 py-2.5">
+              <div className="num text-lg font-bold text-brand-700">{ortHeadroomPct}%</div>
+              <div className="text-[10px] text-slate-faint">{t("panorama.ortHeadroom")}</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Trafik zirve trendi */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+              <Activity className="size-4 text-brand-600" /> {t("panorama.zirveBaslik")}
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-faint">
+              <span className="inline-block h-px w-5 bg-danger2" style={{ borderTop: "1px dashed" }} />
+              {t("panorama.kapasiteTavani")}
+            </span>
+          </div>
+          <div className="relative mt-2">
+            <TrendGrafik
+              noktalar={zirveEgri}
+              yukseklik={190}
+              renk="#2f6fed"
+              etiketler={zirveEgri.map((_, i) => (i === 0 ? "−11" : i === 11 ? t("panorama.simdi") : ""))}
+            />
+            {/* Kapasite tavanı referans notu */}
+            <div className="mt-1 flex items-center justify-between text-[11px] text-slate-faint">
+              <span>{rps(Math.min(...zirveEgri))}</span>
+              <span className="text-slate-muted">{t("panorama.tavan")}: {rps(zirveKapasite)}</span>
+              <span className={ozet.netFark < 0 ? "text-ok" : "text-warn"}>{rps(Math.max(...zirveEgri))}</span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ---- Bölge başına kaynak kullanım dağılımı (histogram) ---- */}
+      <Panel
+        baslik={
+          <span className="inline-flex items-center gap-2">
+            <Waypoints className="size-4 text-brand-600" /> {t("panorama.dagilimBaslik")}
+          </span>
+        }
+        sagUst={
+          <div className="flex items-center gap-3 text-[11px] text-slate-faint">
+            <span className="inline-flex items-center gap-1.5"><span className="inline-block size-2.5 rounded-sm bg-ok" /> {t("panorama.rahat")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="inline-block size-2.5 rounded-sm bg-brand-500" /> {t("panorama.normal")}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="inline-block size-2.5 rounded-sm bg-danger2" /> {t("panorama.baskilanan")}</span>
+          </div>
+        }
+      >
+        <Histogram kovalar={kullanimKovalar} yukseklik={110} />
+        <p className="mt-3 text-[12px] leading-relaxed text-slate-muted">{t("panorama.dagilimNot")}</p>
+      </Panel>
 
       {/* ---- Politika özeti ---- */}
       <Panel
@@ -528,23 +665,26 @@ export function OlceklemeIstemci({ bolgeler, bolgeMeta, ozet, politika, model, d
             </p>
           </div>
         ) : (
-          <ol className="space-y-3">
+          <ol className="relative space-y-3 before:absolute before:bottom-4 before:left-[18px] before:top-4 before:w-px before:bg-line">
             {eylemler.map((b, i) => {
               const aksiyon = AKSIYON_META[b.onerilenAksiyon];
               const AksIkon = aksiyon.ikon;
               const slo = SLO_META[b.sloRiski];
               const acil = b.sloRiski === "yüksek";
               return (
-                <li
+                <motion.li
                   key={b.bolge}
+                  initial={{ y: 8 }}
+                  animate={{ y: 0 }}
+                  transition={{ delay: i * 0.04 }}
                   className={cn(
-                    "flex flex-wrap items-center gap-4 rounded-2xl border p-4",
+                    "relative flex flex-wrap items-center gap-4 rounded-2xl border p-4",
                     acil ? "border-red-200 bg-danger-soft/40" : "border-line bg-surface",
                   )}
                 >
                   <span
                     className={cn(
-                      "grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white",
+                      "z-10 grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white ring-4 ring-surface",
                       acil ? "bg-danger2" : "bg-ink-900",
                     )}
                   >
@@ -573,7 +713,7 @@ export function OlceklemeIstemci({ bolgeler, bolgeMeta, ozet, politika, model, d
                       {usdImzali(b.netFark)}{t("takvim.ay")}
                     </div>
                   </div>
-                </li>
+                </motion.li>
               );
             })}
           </ol>

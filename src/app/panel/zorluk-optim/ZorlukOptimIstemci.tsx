@@ -7,13 +7,17 @@
  * politikalarını gerçek trafiğe göre karşılaştırır, kazananı istatistiksel olarak
  * gösterir ve uygulanabilir öneri sunar. Grafikler elle inline SVG.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   SlidersHorizontal, Trophy, Shield, UserCheck, Sigma, Target, Info,
   ArrowRight, TrendingDown, Gauge, CheckCircle2, AlertTriangle,
+  Scale, Radar as RadarIkon, GitBranch, PieChart,
 } from "lucide-react";
 import { Panel, StatKart, Badge, NotKutusu } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { Gauge as GaugeGost, RadarGrafik } from "@/components/panel/grafikler-ek";
+import { DonutDagilim, TrendGrafik } from "@/components/panel/grafikler";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { optimCeviri } from "./zorluk-optim.i18n";
@@ -52,6 +56,51 @@ export function ZorlukOptimIstemci({ sonuclar, kazanan, oneri, olaySayisi, dil }
 
   const botToplam = sonuclar[0]?.botToplam ?? 0;
   const insanToplam = sonuclar[0]?.insanToplam ?? 0;
+
+  // ---- Görsel türetmeler (yalnızca sunum; çekirdek veri/mantık değişmez) ----
+  // Politikaların agresiflik (bot eşik) ekseni boyunca zorluk seviye dağılımı:
+  // düşük / orta / yüksek zorluk bantlarına göre gruplanır (donut).
+  const zorlukDagilim = useMemo(() => {
+    const bant = (esik: number) => (esik < 0.4 ? "dusuk" : esik < 0.65 ? "orta" : "yuksek");
+    const say = { dusuk: 0, orta: 0, yuksek: 0 };
+    sonuclar.forEach((s) => {
+      say[bant(s.politika.botEsik)] += 1;
+    });
+    return [
+      { etiket: t("dagilim.dusuk"), deger: say.dusuk, renk: "#16a34a" },
+      { etiket: t("dagilim.orta"), deger: say.orta, renk: "#2f6fed" },
+      { etiket: t("dagilim.yuksek"), deger: say.yuksek, renk: "#dc2626" },
+    ].filter((seg) => seg.deger > 0);
+  }, [sonuclar, t]);
+
+  // Başarı / sürtünme dengesi (0..100): kazananın bot yakalaması ile insan
+  // sürtünmesinin dengelenmiş kompozit skoru — yüksek = iyi denge.
+  const dengeSkoru = kazanan
+    ? Math.round(
+        Math.max(0, Math.min(100, kazanan.kazanan.botYakalama * 100 - kazanan.kazanan.insanSurtunmesi * 120)),
+      )
+    : 0;
+
+  // Adaptif eğri: bot eşiği yükseldikçe bot yakalama ↑ ama insan sürtünmesi ↑.
+  // Politikaları eşiğe göre sıralayıp iki seri olarak çizeriz.
+  const adaptifSirali = useMemo(
+    () => [...sonuclar].sort((a, b) => a.politika.botEsik - b.politika.botEsik),
+    [sonuclar],
+  );
+
+  // Optimizasyon radarı: seçili politikanın çok-eksenli profili (0..100).
+  const radarEksenleri = useMemo(() => {
+    if (!secili) return [];
+    const donKaybi = Math.max(0, Math.min(100, 100 - secili.tahminiDonusumKaybi * 8));
+    const kapsama = botToplam > 0 ? (secili.botDurdurulan / botToplam) * 100 : 0;
+    return [
+      { etiket: t("radar.botYakalama"), deger: secili.botYakalama * 100 },
+      { etiket: t("radar.insanDostu"), deger: Math.max(0, 100 - secili.insanSurtunmesi * 140) },
+      { etiket: t("radar.donusum"), deger: donKaybi },
+      { etiket: t("radar.kapsama"), deger: kapsama },
+      { etiket: t("radar.netSkor"), deger: Math.max(0, Math.min(100, secili.netSkor)) },
+    ];
+  }, [secili, botToplam, t]);
 
   if (olaySayisi === 0 || !kazanan) {
     return (
@@ -110,6 +159,78 @@ export function ZorlukOptimIstemci({ sonuclar, kazanan, oneri, olaySayisi, dil }
           ikon={<UserCheck className="size-5" />}
           tone={kazanan.kazanan.insanSurtunmesi > 0.1 ? "warn" : "ok"}
         />
+      </div>
+
+      {/* GÖRSEL ŞERİT — zorluk dağılım donut + denge gauge + adaptif eğri */}
+      <div className="grid gap-4 lg:grid-cols-[260px_260px_1fr]">
+        {/* Zorluk seviye dağılımı (donut) */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card"
+        >
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            <PieChart className="size-4 text-brand-600" /> {t("gorsel.dagilimBaslik")}
+          </div>
+          <div className="mt-2 grid place-items-center">
+            <DonutDagilim segmentler={zorlukDagilim} merkezEtiket={t("gorsel.politika")} />
+          </div>
+        </motion.div>
+
+        {/* Başarı / sürtünme dengesi (gauge) */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card"
+        >
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+            <Scale className="size-4 text-brand-600" /> {t("gorsel.dengeBaslik")}
+          </div>
+          <div className="mt-2 flex flex-col items-center">
+            <GaugeGost deger={dengeSkoru} etiket={t("gorsel.denge")} boyut={168} />
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-xl bg-ok-soft px-2 py-2">
+              <div className="num text-sm font-bold text-ok">{yuzde(kazanan.kazanan.botYakalama, 0)}</div>
+              <div className="text-[10px] text-green-700">{t("gorsel.yakalama")}</div>
+            </div>
+            <div className="rounded-xl bg-warn-soft px-2 py-2">
+              <div className="num text-sm font-bold text-warn">{yuzde(kazanan.kazanan.insanSurtunmesi, 1)}</div>
+              <div className="text-[10px] text-amber-700">{t("gorsel.surtunme")}</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Adaptif eğri — eşik yükseldikçe yakalama vs sürtünme */}
+        <motion.div
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
+          className="rounded-3xl border border-line bg-surface p-5 shadow-card"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-ink">
+              <GitBranch className="size-4 text-brand-600" /> {t("gorsel.adaptifBaslik")}
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-slate-faint">
+              <span className="inline-flex items-center gap-1.5"><span className="inline-block h-1.5 w-3 rounded-full bg-ok" /> {t("gorsel.yakalama")}</span>
+              <span className="inline-flex items-center gap-1.5"><span className="inline-block h-1.5 w-3 rounded-full bg-warn" /> {t("gorsel.surtunme")}</span>
+            </div>
+          </div>
+          <div className="mt-1">
+            <TrendGrafik
+              noktalar={[]}
+              yukseklik={168}
+              seriler={[
+                adaptifSirali.map((s) => Math.round(s.botYakalama * 100)),
+                adaptifSirali.map((s) => Math.round(s.insanSurtunmesi * 100)),
+              ]}
+              renkler={["#16a34a", "#d97706"]}
+              seriEtiketleri={[t("gorsel.yakalama"), t("gorsel.surtunme")]}
+              etiketler={adaptifSirali.map((s) => s.politika.botEsik.toFixed(2))}
+            />
+          </div>
+          <p className="mt-2 text-[11.5px] leading-relaxed text-slate-muted">{t("gorsel.adaptifNot")}</p>
+        </motion.div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -207,6 +328,15 @@ export function ZorlukOptimIstemci({ sonuclar, kazanan, oneri, olaySayisi, dil }
           {secili && (
             <Panel baslik={t("detay.baslik").replace("{n}", polAd(secili.politika))}>
               <p className="text-[13px] leading-relaxed text-slate-muted">{polAcik(secili.politika)}</p>
+              {/* Optimizasyon radarı — çok-eksenli profil */}
+              {radarEksenleri.length >= 3 && (
+                <div className="mt-3 flex flex-col items-center rounded-2xl bg-canvas/40 py-3">
+                  <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-slate-muted">
+                    <RadarIkon className="size-3.5 text-brand-600" /> {t("radar.baslik")}
+                  </div>
+                  <RadarGrafik eksenler={radarEksenleri} boyut={210} />
+                </div>
+              )}
               <dl className="mt-4 grid grid-cols-2 gap-3 text-[13px]">
                 <DetaySatir e={t("detay.botEsik")} v={secili.politika.botEsik.toFixed(2)} />
                 <DetaySatir e={t("detay.agresiflik")} v={yuzde(secili.politika.agresiflik, 0)} />

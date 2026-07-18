@@ -48,6 +48,8 @@ import {
   Minus,
 } from "lucide-react";
 import { Panel, StatKart, Badge, Ilerleme, Tooltip, NotKutusu, BosDurum, useToast } from "@/components/panel/kit";
+import { RadarGrafik, Histogram } from "@/components/panel/grafikler-ek";
+import { DonutDagilim } from "@/components/panel/grafikler";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
@@ -215,8 +217,8 @@ export function GeriBeslemeIstemci({
         <p className="min-w-0 text-[13px] leading-relaxed text-slate-muted">{t("gb.aciklama")}</p>
       </div>
 
-      {/* stat kartlar */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* stat kartlar — ferah KPI şeridi */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatKart
           sayi={nf(sonuc.hitliOlay)}
           etiket={t("gb.stat.hitliOlay")}
@@ -228,6 +230,17 @@ export function GeriBeslemeIstemci({
           etiket={t("gb.stat.enEtkili")}
           ikon={<Trophy className="size-5" />}
           tone="ok"
+        />
+        <StatKart
+          sayi={nf(sonuc.katmanlar.length)}
+          etiket={t("gb.katman.baslik")}
+          ikon={<Grid3x3 className="size-5" />}
+        />
+        <StatKart
+          sayi={nf(sonuc.bosluklar.length)}
+          etiket={t("gb.bosluk.baslik")}
+          ikon={<ShieldAlert className="size-5" />}
+          tone={sonuc.bosluklar.length > 0 ? "danger" : "ok"}
         />
       </div>
 
@@ -324,6 +337,36 @@ export function GeriBeslemeIstemci({
           }
         >
           <p className="mb-4 text-[13px] leading-relaxed text-slate-muted">{t("gb.katman.aciklama")}</p>
+
+          {/* Katman etkinlik profili — radar (benzersiz-yakalama payı). 3+ katman
+              varsa çizilir; monoton çubuk tekrarını kırar, dengeyi bir bakışta verir. */}
+          {sonuc.katmanlar.length >= 3 && (
+            <div className="mb-5 flex flex-col items-center gap-4 rounded-2xl border border-line bg-canvas/40 p-4 sm:flex-row sm:justify-center">
+              <RadarGrafik
+                boyut={210}
+                eksenler={sonuc.katmanlar.map((kat) => ({
+                  etiket: katmanAd(kat.katman),
+                  deger: enYuksekBenzersiz > 0 ? (kat.benzersiz / enYuksekBenzersiz) * 100 : 0,
+                }))}
+              />
+              <div className="min-w-0 space-y-2 text-[12px] text-slate-muted sm:max-w-[200px]">
+                <div className="text-[13px] font-semibold text-slate-ink">{t("gb.katman.benzersiz")}</div>
+                {sonuc.katmanlar.map((kat) => {
+                  const Ikon = KATMAN_IKON[kat.katman];
+                  return (
+                    <div key={kat.katman} className="flex items-center gap-2">
+                      <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-surface text-brand-600">
+                        <Ikon className="size-3.5" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{katmanAd(kat.katman)}</span>
+                      <span className="shrink-0 font-semibold tabular-nums text-slate-ink">{nf(kat.benzersiz)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             {sonuc.katmanlar.map((kat) => {
               const Ikon = KATMAN_IKON[kat.katman];
@@ -399,7 +442,22 @@ export function GeriBeslemeIstemci({
           {sonuc.ortusmeler.length === 0 ? (
             <NotKutusu ton="yesil">{t("gb.ortusme.bos")}</NotKutusu>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-4">
+              {/* Örtüşme yoğunluğu — histogram (çift başına birlikte-yakalama).
+                  Amber ton; alttaki liste ayrıntıyı verir, üst özet dağılımı. */}
+              {sonuc.ortusmeler.length >= 2 && (
+                <div className="rounded-2xl border border-line bg-canvas/40 p-4">
+                  <Histogram
+                    yukseklik={96}
+                    renk="#d97706"
+                    kovalar={sonuc.ortusmeler.map((o) => ({
+                      etiket: `${katmanAd(o.a).slice(0, 4)}·${katmanAd(o.b).slice(0, 4)}`,
+                      deger: o.birlikte,
+                    }))}
+                  />
+                </div>
+              )}
+              <div className="space-y-2.5">
               {sonuc.ortusmeler.map((o) => {
                 const oran = enYuksekOrtusme > 0 ? (o.birlikte / enYuksekOrtusme) * 100 : 0;
                 const IkonA = KATMAN_IKON[o.a];
@@ -430,6 +488,7 @@ export function GeriBeslemeIstemci({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </Panel>
@@ -564,6 +623,28 @@ export function GeriBeslemeIstemci({
                 </div>
               </div>
             </div>
+
+            {/* Öneri türü dağılımı — donut halka (guclendir/koru/gereksiz/bosluk).
+                Liste tekrarını kırar; kapalı-döngü karışımını bir bakışta verir. */}
+            {ozAyar.oneriler.length > 0 && (() => {
+              const turSayac: Record<OneriTur, number> = { guclendir: 0, koru: 0, gereksiz: 0, bosluk: 0 };
+              for (const o of ozAyar.oneriler) turSayac[o.tur] = (turSayac[o.tur] ?? 0) + 1;
+              const donutRenk: Record<OneriTur, string> = {
+                guclendir: "#2f6fed",
+                koru: "#16a34a",
+                bosluk: "#dc2626",
+                gereksiz: "#9c9a90",
+              };
+              const segmentler = (Object.keys(turSayac) as OneriTur[])
+                .filter((k) => turSayac[k] > 0)
+                .map((k) => ({ etiket: t(`gb.ozayar.tur.${k}`), deger: turSayac[k], renk: donutRenk[k] }));
+              if (segmentler.length === 0) return null;
+              return (
+                <div className="mt-4 rounded-2xl border border-line bg-canvas/40 p-4">
+                  <DonutDagilim segmentler={segmentler} merkezEtiket={t("gb.ozayar.baslik")} />
+                </div>
+              );
+            })()}
 
             {/* Önceliklendirilmiş öneri listesi (motor zaten oncelik'e göre sıralı) */}
             <div className="mt-4 space-y-2.5">

@@ -31,6 +31,8 @@ import {
 import { Panel, StatKart, Badge, Ilerleme, NotKutusu } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { Gauge as GaugeGost, Histogram } from "@/components/panel/grafikler-ek";
+import { DonutDagilim, TrendGrafik } from "@/components/panel/grafikler";
 import type { Dil } from "@/lib/i18n/panel";
 import { koCeviri } from "./kullanim-olcum.i18n";
 import type {
@@ -88,6 +90,44 @@ export function KullanimOlcumIstemci(p: Props) {
   const projPct = p.kota > 0 ? Math.min(200, (k.projeksiyon / p.kota) * 100) : 0;
   const slaGenel = SLA_META[ozet.slaUyum];
 
+  // --- görsel türetmeler (yalnızca gösterim; veri/mantık aynı) ---
+  const donemPct = k.toplamGun > 0 ? Math.round((k.gecenGun / k.toplamGun) * 100) : 0;
+
+  // Kümülatif gerçek seri + run-rate ile kota yolu (aynı gün ekseninde).
+  const kumulatif: number[] = [];
+  k.gunlukSeri.reduce((acc, g, i) => {
+    const t2 = acc + g;
+    kumulatif[i] = t2;
+    return t2;
+  }, 0);
+  // Kota yolu: gün 0'dan başlayıp run-rate ile lineer artan referans çizgi.
+  const kotaYolu = k.gunlukSeri.map((_, i) => Math.round(k.gunlukOrt * (i + 1)));
+  const kumulEtiketler = k.gunEtiketleri;
+
+  // Kaynak dağılımı donut'u: doğrulama olayı + türetilmiş API çağrısı + (varsa) aşım.
+  const kaynakSegment = [
+    { etiket: t("ko.donut.dogrulama"), deger: k.kullanilanDogrulama, renk: "#2f6fed" },
+    { etiket: t("ko.donut.apiCagri"), deger: k.apiCagri, renk: "#7c8698" },
+    ...(k.asimRiski && k.asimMiktari > 0
+      ? [{ etiket: t("ko.donut.asim"), deger: k.asimMiktari, renk: "#dc2626" }]
+      : []),
+  ];
+
+  // Günlük histogram kovaları — en yoğun gün "bot" tonuyla vurgulanmaz; en yüksek
+  // değerli kova nötr-dışı renkle işaretlenir (görsel odak). Ort. altı/üstü ton.
+  const enYogunIdx = k.gunlukSeri.reduce((mi, v, i, arr) => (v > arr[mi] ? i : mi), 0);
+  const histKovalar = k.gunlukSeri.map((v, i) => ({
+    etiket: k.gunEtiketleri[i] ?? "",
+    deger: v,
+    ton: (i === enYogunIdx ? "bot" : v >= k.gunlukOrt ? "nötr" : "insan") as "insan" | "bot" | "nötr",
+  }));
+
+  // Öngörü: run-rate ile kota hangi güne tükenir (ayın günü olarak).
+  const tukenisGun =
+    k.gunlukOrt > 0 ? Math.ceil(p.kota / k.gunlukOrt) : Infinity;
+  const tukenirMi = Number.isFinite(tukenisGun) && tukenisGun <= k.toplamGun;
+  const zirveDeger = k.gunlukSeri.length ? Math.max(...k.gunlukSeri) : 0;
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 pt-6 pb-10 lg:px-10">
       {/* açıklama şeridi */}
@@ -138,6 +178,25 @@ export function KullanimOlcumIstemci(p: Props) {
       {/* --- Kota kullanım göstergesi --- */}
       <Panel baslik={t("ko.kota.baslik")}>
         <div className="space-y-5">
+          {/* gauge üçlüsü: kullanım / projeksiyon / dönem ilerlemesi */}
+          <div className="grid gap-4 rounded-2xl border border-line bg-canvas/30 p-4 sm:grid-cols-3">
+            <div className="flex flex-col items-center gap-1">
+              <GaugeGost deger={mevcutPct} etiket={`%${mevcutPct}`} boyut={144} />
+              <span className="text-[12px] font-medium text-slate-muted">{t("ko.gauge.kullanim")}</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <GaugeGost deger={Math.min(100, projPct)} etiket={`%${Math.round(projPct)}`} boyut={144} renk={k.asimRiski ? "#dc2626" : undefined} />
+              <span className="text-[12px] font-medium text-slate-muted">{t("ko.gauge.projeksiyon")}</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <GaugeGost deger={donemPct} etiket={`%${donemPct}`} boyut={144} renk="#7c8698" />
+              <span className="text-[12px] font-medium text-slate-muted">{t("ko.gauge.donem")}</span>
+              <span className="text-[11px] text-slate-faint">
+                {t("ko.gauge.donemAlt").replace("{gecen}", String(k.gecenGun)).replace("{toplam}", String(k.toplamGun))}
+              </span>
+            </div>
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
             <div className="space-y-4">
               {/* mevcut kullanım bar */}
@@ -259,6 +318,60 @@ export function KullanimOlcumIstemci(p: Props) {
               {t("ko.fatura.dipnot")}
             </p>
           </div>
+        </Panel>
+      </div>
+
+      {/* --- Kümülatif trend + kota yolu --- */}
+      {kumulatif.length > 0 && (
+        <Panel baslik={t("ko.trend.baslik")}>
+          <p className="mb-4 text-[13px] text-slate-muted">{t("ko.trend.aciklama")}</p>
+          <TrendGrafik
+            noktalar={kumulatif}
+            seriler={[kumulatif, kotaYolu]}
+            renkler={["#2f6fed", "#94a3b8"]}
+            seriEtiketleri={[t("ko.trend.gercek"), t("ko.trend.projeksiyon")]}
+            etiketler={kumulEtiketler}
+            yukseklik={240}
+          />
+        </Panel>
+      )}
+
+      {/* --- Kaynak donut + günlük histogram + öngörü --- */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        <Panel baslik={t("ko.donut.baslik")}>
+          <DonutDagilim segmentler={kaynakSegment} merkezEtiket={t("ko.donut.merkez")} />
+        </Panel>
+
+        <Panel baslik={t("ko.hist.baslik")}>
+          <p className="mb-4 text-[13px] text-slate-muted">{t("ko.hist.aciklama")}</p>
+          {histKovalar.length > 0 ? (
+            <>
+              <Histogram kovalar={histKovalar} yukseklik={120} />
+              {/* öngörü kutuları */}
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-line bg-canvas/40 px-4 py-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-faint">
+                    <CalendarClock className="size-3.5" /> {t("ko.ongoru.tahminiBitis")}
+                  </div>
+                  <p className={cn("num mt-1 text-[15px] font-semibold", tukenirMi ? "text-danger2" : "text-ok")}>
+                    {tukenirMi
+                      ? t("ko.ongoru.gunSonra").replace("{n}", String(tukenisGun))
+                      : t("ko.ongoru.riskYok")}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-line bg-canvas/40 px-4 py-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-faint">
+                    <TrendingUp className="size-3.5" /> {t("ko.ongoru.enYogun")}
+                  </div>
+                  <p className="num mt-1 text-[15px] font-semibold text-slate-ink">
+                    {t("ko.ongoru.zirve").replace("{n}", nf(zirveDeger))}
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="py-8 text-center text-sm text-slate-faint">{t("ko.grafik.bosVeri")}</p>
+          )}
         </Panel>
       </div>
 

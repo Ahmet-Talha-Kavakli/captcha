@@ -131,6 +131,22 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gerekce.yukari": "Öngörülen yük (%{buyume} büyüme) altında headroom %{tahHead}'e düşüyor — hedef %{hedef} altında. SLO'yu korumak için +{delta} düğüm.",
     "gerekce.asagi": "Aşırı-tedarik: mevcut headroom %{head}, öngörülen yükte bile %{tahHead}. {mutlakDelta} düğüm çıkarılıp israf geri kazanılabilir; SLO korunur.",
     "gerekce.sabit": "Dengede: headroom %{head} (öngörülende %{tahHead}), hedefe yakın. Kapasite değişikliği gerekmez.",
+
+    // kapasite panoraması (görsel bölüm)
+    "panorama.filoBaslik": "Filo kapasitesi",
+    "panorama.kullanim": "kullanım",
+    "panorama.ongoruKullanim": "Öngörülen kullanım",
+    "panorama.ortHeadroom": "Öneri sonrası headroom",
+    "panorama.zirveBaslik": "Trafik zirve trendi",
+    "panorama.kapasiteTavani": "kapasite tavanı",
+    "panorama.simdi": "şimdi",
+    "panorama.tavan": "Tavan",
+    "panorama.dagilimBaslik": "Bölge başına kaynak kullanımı",
+    "panorama.rahat": "rahat",
+    "panorama.normal": "normal",
+    "panorama.baskilanan": "baskılanan",
+    "panorama.dagilimNot": "Her çubuk, öngörülen yükün o bölgenin kapasitesine oranını gösterir. Kırmızı çubuklar hedef headroom bandını aşan (baskılanan) bölgelerdir; yeşiller aşırı-tedarik (tasarruf fırsatı).",
+    "takvim.zamanCizgisi": "Uygulama sırası",
   },
 
   en: {
@@ -228,6 +244,21 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gerekce.yukari": "Under projected load ({buyume}% growth) headroom drops to {tahHead}% — below the {hedef}% target. +{delta} nodes to protect the SLO.",
     "gerekce.asagi": "Over-provisioned: current headroom {head}%, {tahHead}% even under projected load. {mutlakDelta} nodes can be removed to recover waste; the SLO is preserved.",
     "gerekce.sabit": "Balanced: headroom {head}% ({tahHead}% projected), close to target. No capacity change needed.",
+
+    "panorama.filoBaslik": "Fleet capacity",
+    "panorama.kullanim": "utilization",
+    "panorama.ongoruKullanim": "Projected utilization",
+    "panorama.ortHeadroom": "Post-recommendation headroom",
+    "panorama.zirveBaslik": "Traffic peak trend",
+    "panorama.kapasiteTavani": "capacity ceiling",
+    "panorama.simdi": "now",
+    "panorama.tavan": "Ceiling",
+    "panorama.dagilimBaslik": "Resource utilization by region",
+    "panorama.rahat": "relaxed",
+    "panorama.normal": "normal",
+    "panorama.baskilanan": "strained",
+    "panorama.dagilimNot": "Each bar shows projected load relative to that region's capacity. Red bars exceed the target headroom band (strained); green bars are over-provisioned (savings opportunity).",
+    "takvim.zamanCizgisi": "Rollout order",
   },
 
   de: {
