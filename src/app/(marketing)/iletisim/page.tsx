@@ -94,7 +94,7 @@ function IcerikBolum() {
             </div>
             <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
               Tüm mesajlara <strong>iş günü içinde en geç 24 saatte</strong> dönüş yaparız.
-              Kurumsal planlarda özel destek kanalı ve daha hızlı SLA sunulur.
+              Ölçek planında özel destek kanalı ve daha hızlı SLA sunulur.
             </p>
           </div>
 
@@ -159,8 +159,8 @@ function SssKisa() {
       "Hayır. Ücretsiz planla kart bilgisi vermeden başlayabilir, kurulumun tamamını test edebilirsiniz.",
     ],
     [
-      "Kurumsal / özel fiyat teklifi alabilir miyim?",
-      "Evet. Yüksek hacimli veya özel SLA ihtiyaçlarınız için formda konuya “Kurumsal” yazmanız yeterli.",
+      "Ölçek / özel fiyat teklifi alabilir miyim?",
+      "Evet. Yüksek hacimli veya özel SLA ihtiyaçlarınız için formda konuya “Ölçek” yazmanız yeterli.",
     ],
     [
       "Entegrasyon desteği veriyor musunuz?",

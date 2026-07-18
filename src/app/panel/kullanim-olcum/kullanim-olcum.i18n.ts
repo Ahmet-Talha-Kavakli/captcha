@@ -143,7 +143,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     // plan adları (id → ad; lib TR yerine istemcide)
     "ko.planAd.baslangic": "Başlangıç",
     "ko.planAd.buyume": "Büyüme",
-    "ko.planAd.kurumsal": "Kurumsal",
+    "ko.planAd.kurumsal": "Ölçek",
 
     // yükseltme gerekçeleri (senaryo anahtarı → metin; lib TR yerine istemcide)
     "ko.gerekce.yok":

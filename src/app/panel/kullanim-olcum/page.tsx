@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "Kullanım & SLA — Veylify" };
 /**
  * Hesabın gerçek plan kademesini (free/pro/scale) ölçüm-planına eşle.
  * Ölçüm/SLA kataloğu ile plans.ts kademesi hizalıdır:
- *   free → Başlangıç, pro → Büyüme, scale → Kurumsal.
+ *   free → Başlangıç, pro → Büyüme, scale → Ölçek.
  * Kullanıcıda kademe belirsizse "Büyüme" varsayılır (VARSAYIM olarak etiketlenir).
  */
 function planEsle(userPlan: string): { plan: OlcumPlan; varsayim: boolean } {

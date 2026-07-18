@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { PLANLAR as PLAN_KAYNAK } from "@/lib/specter/plans";
 import {
   ArrowRight, Eye, Check, Sparkles, Plus, Minus, ShieldCheck,
   CreditCard, Headphones, RefreshCw, Lock,
@@ -52,18 +53,33 @@ function Hero() {
 }
 
 /* ============================================================ PLANLAR */
+// Sayısal değerler (ad/fiyat/kota/site) backend plans.ts'ten TÜRETİLİR — landing
+// müşteriye vaat edilen sözdür ve backend enforcement ile birebir aynı olmalı.
+// UI-özel metinler (ozet/cta/özellik açıklamaları) yerinde. plan adı daha önce
+// "Kurumsal" idi, plans.ts/panel "Ölçek" ile çelişiyordu — türetme ile çözüldü.
+function planSayi(n: number): string {
+  return n >= 100000000 ? "Sınırsız" : n.toLocaleString("tr-TR");
+}
+// Karşılaştırma tablosu için kısaltılmış gösterim (10.000→10K, 1.000.000→1M).
+function kisalt(n: number): string {
+  if (n >= 100000000) return "Sınırsız";
+  if (n >= 1000000) return `${n / 1000000}M`;
+  if (n >= 1000) return `${n / 1000}K`;
+  return String(n);
+}
 function Planlar() {
+  const f = PLAN_KAYNAK.free, p = PLAN_KAYNAK.pro, s = PLAN_KAYNAK.scale;
   const planlar = [
     {
-      ad: "Başlangıç", fiyat: "₺0", period: "/ay", ozet: "Kişisel projeler ve denemeler için", vurgu: false, cta: "Ücretsiz başla",
-      ozellikler: ["10.000 doğrulama/ay", "Ghost-font CAPTCHA", "1 site", "Temel analitik", "Topluluk desteği"],
+      ad: f.ad, fiyat: f.fiyat.replace("/ay", ""), period: "/ay", ozet: "Kişisel projeler ve denemeler için", vurgu: false, cta: "Ücretsiz başla",
+      ozellikler: [`${planSayi(f.dogrulamaKotasi)} doğrulama/ay`, "Ghost-font CAPTCHA", `${f.siteLimiti} site`, "Temel analitik", "Topluluk desteği"],
     },
     {
-      ad: "Büyüme", fiyat: "₺990", period: "/ay", ozet: "Büyüyen ürünler ve ekipler için", vurgu: true, cta: "Büyüme'yi seç",
-      ozellikler: ["1.000.000 doğrulama/ay", "Tüm savunma katmanları", "10 site", "Kural motoru + görünmez mod", "Coğrafi & ASN istihbaratı", "Webhook & Slack", "Öncelikli destek"],
+      ad: p.ad, fiyat: p.fiyat.replace("/ay", ""), period: "/ay", ozet: "Büyüyen ürünler ve ekipler için", vurgu: true, cta: `${p.ad}'yi seç`,
+      ozellikler: [`${planSayi(p.dogrulamaKotasi)} doğrulama/ay`, "Tüm savunma katmanları", `${p.siteLimiti} site`, "Kural motoru + görünmez mod", "Coğrafi & ASN istihbaratı", "Webhook & Slack", "Öncelikli destek"],
     },
     {
-      ad: "Kurumsal", fiyat: "Özel", period: "", ozet: "Yüksek trafik, SLA ve uyum için", vurgu: false, cta: "İletişime geç",
+      ad: s.ad, fiyat: s.fiyat, period: "", ozet: "Yüksek trafik, SLA ve uyum için", vurgu: false, cta: "İletişime geç",
       ozellikler: ["Sınırsız doğrulama", "Özel SLA + SSO/SAML", "Sınırsız site", "Adanmış çözüm mühendisi", "On-premise / özel bölge", "Denetim günlükleri & rol yönetimi"],
     },
   ];
@@ -99,7 +115,7 @@ function Planlar() {
                   ))}
                 </ul>
                 <Link
-                  href={p.ad === "Kurumsal" ? "/iletisim" : "/kayit"}
+                  href={p.fiyat === "Özel" ? "/iletisim" : "/kayit"}
                   className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
                     p.vurgu
                       ? "bg-veylify-600 text-white hover:bg-veylify-700"
@@ -149,10 +165,11 @@ function KarsilastirmaTablosu() {
   const gruplar: { grup: string; satirlar: [string, Hucre, Hucre, Hucre][] }[] = [
     {
       grup: "Kullanım",
+      // plans.ts'ten türetilir (tek kaynak) — kısaltılmış (10K/1M) gösterim.
       satirlar: [
-        ["Aylık doğrulama", "10K", "1M", "Sınırsız"],
-        ["Site sayısı", "1", "10", "Sınırsız"],
-        ["Ekip üyesi", "1", "10", "Sınırsız"],
+        ["Aylık doğrulama", kisalt(PLAN_KAYNAK.free.dogrulamaKotasi), kisalt(PLAN_KAYNAK.pro.dogrulamaKotasi), "Sınırsız"],
+        ["Site sayısı", String(PLAN_KAYNAK.free.siteLimiti), String(PLAN_KAYNAK.pro.siteLimiti), "Sınırsız"],
+        ["Ekip üyesi", String(PLAN_KAYNAK.free.ekipLimiti), String(PLAN_KAYNAK.pro.ekipLimiti), "Sınırsız"],
       ],
     },
     {
@@ -208,7 +225,7 @@ function KarsilastirmaTablosu() {
                 <span className="text-slate-500">Özellik</span>
                 <span className="text-center text-slate-600">Başlangıç</span>
                 <span className="text-center text-veylify-700">Büyüme</span>
-                <span className="text-center text-slate-600">Kurumsal</span>
+                <span className="text-center text-slate-600">Ölçek</span>
               </div>
               {gruplar.map((g) => (
                 <div key={g.grup}>
@@ -240,10 +257,10 @@ function KarsilastirmaTablosu() {
 function Sss() {
   const sorular = [
     { s: "Ücretsiz plan gerçekten ücretsiz mi?", c: "Evet. Başlangıç planı süresiz ücretsizdir, kredi kartı gerektirmez. Ayda 10.000 doğrulamaya kadar ghost-font korumasını kullanabilirsiniz." },
-    { s: "Doğrulama limitini aşarsam ne olur?", c: "Trafiğiniz asla aniden kesilmez. Limite yaklaştığınızda panelden ve e-postayla uyarılırsınız; dilerseniz bir üst plana yükseltirsiniz. Kurumsal planda limit yoktur." },
+    { s: "Doğrulama limitini aşarsam ne olur?", c: "Trafiğiniz asla aniden kesilmez. Limite yaklaştığınızda panelden ve e-postayla uyarılırsınız; dilerseniz bir üst plana yükseltirsiniz. Ölçek planında limit yoktur." },
     { s: "Plan değiştirmek kolay mı?", c: "Panelden tek tıkla yükseltip düşürebilirsiniz. Değişiklik anında geçerli olur; ara dönem farkı orantılı hesaplanır." },
     { s: "reCAPTCHA'dan geçiş yapabilir miyim?", c: "Evet. Veylify API'si reCAPTCHA ile uyumludur — çoğu durumda yalnızca siteverify uç noktasını değiştirmeniz yeterli. Ortalama geçiş süresi 10 dakikadır." },
-    { s: "Kurumsal planda neler farklı?", c: "SLA, SSO/SAML, adanmış çözüm mühendisi, denetim günlükleri, on-premise/özel bölge dağıtımı ve sınırsız kullanım. Fiyat trafiğinize göre şekillenir." },
+    { s: "Ölçek planında neler farklı?", c: "SLA, SSO/SAML, adanmış çözüm mühendisi, denetim günlükleri, on-premise/özel bölge dağıtımı ve sınırsız kullanım. Fiyat trafiğinize göre şekillenir." },
     { s: "Faturalandırma nasıl işliyor?", c: "Aylık ya da yıllık faturalandırma seçebilirsiniz; yıllık ödemede indirim uygulanır. Tüm ödemeler güvenli ödeme altyapısı üzerinden işlenir." },
   ];
   const [acik, setAcik] = useState<number | null>(0);

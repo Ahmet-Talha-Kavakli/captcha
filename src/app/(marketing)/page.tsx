@@ -11,6 +11,7 @@ import { MarkaLogo, GUVEN_MARKALARI } from "@/components/site/marka-logolari";
 import { Faq, SORULAR } from "@/components/site/Faq";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { MARKA } from "@/lib/marka";
+import { PLANLAR as PLAN_KAYNAK } from "@/lib/specter/plans";
 
 export default function LandingPage() {
   return (
@@ -544,12 +545,15 @@ if (verdict !== "allowed") return blockRequest();`}
 
 /* ============================================================ PRICING */
 function Pricing() {
+  // Tek kaynak: plan adları/fiyatları/limitleri plans.ts'ten türetilir (landing = müşteriye söz).
+  const num = (n: number) => (n >= 100000000 ? "Sınırsız" : n.toLocaleString("tr-TR"));
+  const f = PLAN_KAYNAK.free, p2 = PLAN_KAYNAK.pro, s = PLAN_KAYNAK.scale;
   const planlar = [
-    { ad: "Başlangıç", fiyat: "₺0", period: "/ay", ozet: "Kişisel projeler için", vurgu: false,
-      ozellikler: ["10.000 doğrulama/ay", "Ghost-font CAPTCHA", "1 site", "Topluluk desteği"] },
-    { ad: "Büyüme", fiyat: "₺990", period: "/ay", ozet: "Büyüyen ekipler için", vurgu: true,
-      ozellikler: ["1.000.000 doğrulama/ay", "Tüm savunma katmanları", "10 site", "Kural motoru + görünmez mod", "Öncelikli destek"] },
-    { ad: "Kurumsal", fiyat: "Özel", period: "", ozet: "Yüksek trafik & SLA", vurgu: false,
+    { ad: f.ad, fiyat: f.fiyat.replace("/ay", ""), period: "/ay", ozet: "Kişisel projeler için", vurgu: false,
+      ozellikler: [`${num(f.dogrulamaKotasi)} doğrulama/ay`, "Ghost-font CAPTCHA", `${f.siteLimiti} site`, "Topluluk desteği"] },
+    { ad: p2.ad, fiyat: p2.fiyat.replace("/ay", ""), period: "/ay", ozet: "Büyüyen ekipler için", vurgu: true,
+      ozellikler: [`${num(p2.dogrulamaKotasi)} doğrulama/ay`, "Tüm savunma katmanları", `${p2.siteLimiti} site`, "Kural motoru + görünmez mod", "Öncelikli destek"] },
+    { ad: s.ad, fiyat: s.fiyat, period: "", ozet: "Yüksek trafik & SLA", vurgu: false, ozel: true,
       ozellikler: ["Sınırsız doğrulama", "Özel SLA + SSO", "Sınırsız site", "Adanmış çözüm mühendisi", "On-premise seçeneği"] },
   ];
   return (
@@ -591,14 +595,14 @@ function Pricing() {
                   ))}
                 </ul>
                 <Link
-                  href="/kayit"
+                  href={p.ozel ? "/iletisim" : "/kayit"}
                   className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
                     p.vurgu
                       ? "bg-veylify-600 text-white hover:bg-veylify-700"
                       : "border border-veylify-200 bg-white text-veylify-700 hover:bg-veylify-50"
                   }`}
                 >
-                  {p.ad === "Kurumsal" ? "İletişime geç" : "Başla"} <ArrowRight className="size-4" />
+                  {p.ozel ? "İletişime geç" : "Başla"} <ArrowRight className="size-4" />
                 </Link>
               </div>
             </Reveal>

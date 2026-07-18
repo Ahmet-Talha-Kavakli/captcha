@@ -97,7 +97,7 @@ export default function SartlarPage() {
             <p>
               Hizmetin kesintisiz ve hatasız olması için makul çabayı gösteririz; ancak bakım,
               güncelleme veya kontrolümüz dışındaki nedenlerle geçici kesintiler yaşanabilir.
-              Kurumsal planlarda ayrı bir hizmet seviyesi taahhüdü (SLA) sunulabilir.
+              Ölçek planında ayrı bir hizmet seviyesi taahhüdü (SLA) sunulabilir.
             </p>
           </Bolum>
 

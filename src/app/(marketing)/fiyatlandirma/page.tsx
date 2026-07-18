@@ -5,12 +5,12 @@ import { MARKA } from "@/lib/marka";
 export const metadata: Metadata = {
   title: "Fiyatlandırma",
   description:
-    "Veylify fiyatlandırması: Başlangıç ₺0, Büyüme ₺990/ay, Kurumsal özel. Plan karşılaştırma tablosu, SSS ve kredi kartı gerektirmeyen ücretsiz başlangıç.",
+    "Veylify fiyatlandırması: Başlangıç ₺0, Büyüme ₺990/ay, Ölçek özel. Plan karşılaştırma tablosu, SSS ve kredi kartı gerektirmeyen ücretsiz başlangıç.",
   alternates: { canonical: "/fiyatlandirma" },
   openGraph: {
     title: `Fiyatlandırma — ${MARKA.ad}`,
     description:
-      "Başlangıç ₺0, Büyüme ₺990/ay, Kurumsal özel. Kredi kartı gerektirmeyen ücretsiz başlangıç.",
+      "Başlangıç ₺0, Büyüme ₺990/ay, Ölçek özel. Kredi kartı gerektirmeyen ücretsiz başlangıç.",
     url: `${MARKA.url}/fiyatlandirma`,
     type: "website",
     locale: "tr_TR",

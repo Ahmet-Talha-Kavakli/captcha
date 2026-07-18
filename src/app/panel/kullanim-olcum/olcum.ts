@@ -19,14 +19,16 @@
  */
 
 import type { BotEvent } from "@/lib/db/schema";
+import { PLANLAR as KAYNAK_PLANLAR, type Plan } from "@/lib/specter/plans";
 
 /* ------------------------------------------------------------------ Plan kataloğu */
 
 /**
- * Kullanım-ölçümü + SLA açısından bir plan tanımı. `src/lib/specter/plans.ts`
- * ile ÇAKIŞMAZ: oradaki plan kota/fiyat "kaynak gerçeği"; burada AYRICA SLA
- * taahhütleri (uptime/gecikme/destek) + aşım birim fiyatı + fatura tabanı
- * modellenir. Bu SLA rakamları tipik SaaS sözleşme değerleridir (varsayım).
+ * Kullanım-ölçümü + SLA açısından bir plan tanımı. Plan KİMLİĞİ / ADI / KOTASI
+ * / TABAN FİYATI tek kaynaktan (`src/lib/specter/plans.ts`) TÜRETİLİR — böylece
+ * panelde gösterilen kota/ad landing sözüyle ve faturayla daima tutarlıdır.
+ * Bu modül yalnızca ölçüm-özel alanları EKLER: SLA taahhütleri (uptime/gecikme/
+ * destek) + aşım birim fiyatı. Bu SLA rakamları tipik SaaS sözleşme değerleridir.
  */
 export interface OlcumPlan {
   id: "baslangic" | "buyume" | "kurumsal";
@@ -46,42 +48,45 @@ export interface OlcumPlan {
 }
 
 /**
- * Plan kataloğu. Kotalar `plans.ts`'teki free/pro/scale kademeleriyle
- * hizalıdır (Başlangıç≈free, Büyüme≈pro, Kurumsal≈scale) ama ölçüm/SLA
- * bağlamıyla zenginleştirilmiştir.
+ * Plan kataloğu. Kimlik/ad/kota/taban-fiyat plans.ts'ten (free/pro/scale)
+ * TÜRETİLİR; bu modül SLA taahhütleri + aşım birim fiyatını EKLER. Böylece
+ * panelde gösterilen kota/ad/fiyat landing + fatura ile daima tutarlıdır.
+ *
+ * NOT: scale planı "Özel" (sözleşmeye bağlı) fiyatlı ve pratik-sınırsız kotalı
+ * olduğundan, ölçüm/fatura ekranı için temsili bir kurumsal taban (kota/fiyat)
+ * kullanılır — plan ADI yine tek kaynaktan gelir (tutarlılık için kritik olan).
  */
-export const PLANLAR: OlcumPlan[] = [
-  {
-    id: "baslangic",
-    ad: "Başlangıç",
-    aylikKota: 50_000,
-    fiyat: 0,
-    asimBirimFiyat: 0, // ücretsiz plan aşamaz (block) — aşım ücretlendirilmez
-    slaUptime: 99.5,
-    slaLatencyP95: 250,
-    destekYaniti: 48,
-  },
-  {
-    id: "buyume",
-    ad: "Büyüme",
-    aylikKota: 500_000,
-    fiyat: 490,
-    asimBirimFiyat: 0.0009, // 1.000 doğrulama başına ~₺0,9
-    slaUptime: 99.9,
-    slaLatencyP95: 150,
-    destekYaniti: 12,
-  },
-  {
-    id: "kurumsal",
-    ad: "Kurumsal",
-    aylikKota: 5_000_000,
-    fiyat: 2_900,
-    asimBirimFiyat: 0.0006,
-    slaUptime: 99.95,
-    slaLatencyP95: 100,
-    destekYaniti: 4,
-  },
-];
+const OLCUM_EK: Record<Plan, {
+  id: OlcumPlan["id"];
+  fiyat: number;
+  aylikKota: number;
+  asimBirimFiyat: number;
+  slaUptime: number;
+  slaLatencyP95: number;
+  destekYaniti: number;
+}> = {
+  // Ücretsiz plan aşamaz (block) — aşım ücretlendirilmez.
+  free: { id: "baslangic", fiyat: 0, aylikKota: KAYNAK_PLANLAR.free.dogrulamaKotasi, asimBirimFiyat: 0, slaUptime: 99.5, slaLatencyP95: 250, destekYaniti: 48 },
+  // Büyüme: taban fiyat plans.ts'ten (₺990); 1.000 doğrulama başına ~₺0,9 aşım.
+  pro: { id: "buyume", fiyat: Number(KAYNAK_PLANLAR.pro.fiyat.replace(/[^\d]/g, "")) || 0, aylikKota: KAYNAK_PLANLAR.pro.dogrulamaKotasi, asimBirimFiyat: 0.0009, slaUptime: 99.9, slaLatencyP95: 150, destekYaniti: 12 },
+  // Ölçek: "Özel" fiyatlı — ölçüm ekranı için temsili kurumsal taban.
+  scale: { id: "kurumsal", fiyat: 2_900, aylikKota: 5_000_000, asimBirimFiyat: 0.0006, slaUptime: 99.95, slaLatencyP95: 100, destekYaniti: 4 },
+};
+
+export const PLANLAR: OlcumPlan[] = (["free", "pro", "scale"] as Plan[]).map((k) => {
+  const kaynak = KAYNAK_PLANLAR[k];
+  const ek = OLCUM_EK[k];
+  return {
+    id: ek.id,
+    ad: kaynak.ad,
+    aylikKota: ek.aylikKota,
+    fiyat: ek.fiyat,
+    asimBirimFiyat: ek.asimBirimFiyat,
+    slaUptime: ek.slaUptime,
+    slaLatencyP95: ek.slaLatencyP95,
+    destekYaniti: ek.destekYaniti,
+  };
+});
 
 /** id → plan haritası (hızlı erişim). */
 export const PLAN_MAP = new Map(PLANLAR.map((p) => [p.id, p]));
