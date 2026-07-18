@@ -18,7 +18,8 @@
  * (azHareket → sade). whileInView/viewport/opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   UserSearch,
   Fingerprint,
@@ -34,6 +35,7 @@ import {
   Radar,
   Route,
   Layers,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -266,7 +268,7 @@ function MiniDonut({
 
 /* ================================================================== Aktör atıf kartı */
 
-function AktorKart({ atif, azHareket }: { atif: AktorAtif; azHareket: boolean }) {
+function AktorKart({ atif, azHareket, acik, onToggle }: { atif: AktorAtif; azHareket: boolean; acik: boolean; onToggle: () => void }) {
   const { profil } = atif;
   const seviye = SEVIYE_TANIM[profil.seviye];
   const guven = guvenRenk(atif.guven);
@@ -283,10 +285,17 @@ function AktorKart({ atif, azHareket }: { atif: AktorAtif; azHareket: boolean })
       className={cn(
         "rounded-2xl border bg-canvas/40 p-4 transition",
         vurgulu ? "border-red-200 bg-danger-soft/25" : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: seviye + profil adı + atıf güveni */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: seviye + profil adı + atıf güveni — TIKLANABİLİR (drill-down) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${profil.ad} aktör profilini ${acik ? "kapat" : "aç"}`}
+        className="mb-3.5 flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -322,8 +331,9 @@ function AktorKart({ atif, azHareket }: { atif: AktorAtif; azHareket: boolean })
             güveni
           </span>
           <GuvenHalka guven={atif.guven} hex={guven.hex} azHareket={azHareket} />
+          <ChevronDown className={cn("size-4 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
         </div>
-      </div>
+      </button>
 
       {/* Metrikler */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
@@ -386,6 +396,16 @@ function AktorKart({ atif, azHareket }: { atif: AktorAtif; azHareket: boolean })
         </div>
       </div>
 
+      {/* Drill-down detay: TTP + göstergeler + hedef yollar (tıklayınca açılır) */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
       {/* TTP chip'leri (MITRE tarzı — profilin karakteristik teknikleri) */}
       <div className="mt-3.5">
         <div className="mb-1.5 flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
@@ -447,6 +467,15 @@ function AktorKart({ atif, azHareket }: { atif: AktorAtif; azHareket: boolean })
           </div>
         </div>
       )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          TTP&apos;ler, atıf kanıtı ve hedef yolları için tıklayın
+        </p>
+      )}
     </div>
   );
 }
@@ -455,6 +484,7 @@ function AktorKart({ atif, azHareket }: { atif: AktorAtif; azHareket: boolean })
 
 export function TehditAktorBolumu({ aktor, azHareket }: { aktor: AktorSonuc; azHareket: boolean }) {
   const { atiflar, ozet } = aktor;
+  const [acikId, setAcikId] = useState<string | null>(null);
   // Atıf güvenine göre sırala; en yüksek güvenli atıflar önce.
   const gosterilecek = [...atiflar].sort((a, b) => b.guven - a.guven).slice(0, 8);
   const gelismisVar = ozet.gelismisAktor > 0;
@@ -589,7 +619,12 @@ export function TehditAktorBolumu({ aktor, azHareket }: { aktor: AktorSonuc; azH
           <div className="mt-5 space-y-3">
             {gosterilecek.map((a, i) => (
               <Bolum key={a.id} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                <AktorKart atif={a} azHareket={azHareket} />
+                <AktorKart
+                  atif={a}
+                  azHareket={azHareket}
+                  acik={acikId === a.id}
+                  onToggle={() => setAcikId(acikId === a.id ? null : a.id)}
+                />
               </Bolum>
             ))}
           </div>
