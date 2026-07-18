@@ -229,7 +229,19 @@ export async function POST(req: Request) {
   if (signals.powNonce !== undefined) basariliHitler.push("pow");
   if (tutarlilik.karar === "sahte") basariliHitler.push("tutarlilik");
 
+  // MONITOR MODU: "sadece izle" — kural block dese bile kullanıcı ENGELLENMEZ.
+  // Olay yine de GERÇEK verdict'iyle loglanır (istihbarat/rapor için "bu istek
+  // block modda engellenirdi"), ama isteğe success döner. Yeni kurulumlarda
+  // "önce trafiği izle, sonra engellemeyi aç" akışı için kritik (Cloudflare
+  // "Log"/Bot Management "Monitor" ile aynı). Daha önce mode HİÇ kontrol edilmiyordu.
   if (evalRes.action === "block") {
+    if (site.mode === "monitor") {
+      logEvent(site.id, req, "flagged", outcome.score, evalRes.matched.map((m) => m.ruleName), basariliHitler, fp.ja3.slice(0, 8), t0);
+      return NextResponse.json(
+        { success: true, monitor: true, wouldBlock: true, rule: evalRes.decidedBy?.ruleName, score: outcome.score },
+        { status: 200, headers },
+      );
+    }
     logEvent(site.id, req, "blocked", outcome.score, evalRes.matched.map((m) => m.ruleName), basariliHitler, fp.ja3.slice(0, 8), t0);
     return NextResponse.json(
       { success: false, reason: "rule_block", rule: evalRes.decidedBy?.ruleName, score: outcome.score },

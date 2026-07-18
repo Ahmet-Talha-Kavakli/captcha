@@ -149,6 +149,21 @@ export async function POST(req: Request) {
   Usage.increment(site.id, "issued", 1);
   Usage.increment(site.id, gecti ? "verified" : "challenged", 1);
 
+  // MONITOR MODU: "sadece izle" — görünmez geçemeyecek (challenge gerektiren)
+  // istek bile ENGELLENMEZ; olay gerçek verdict'iyle (yukarıda "challenged")
+  // loglandı, ama kullanıcıya geçiş token'ı verilir. "Önce izle, sonra engelle"
+  // akışı için (Cloudflare Log modu). Daha önce mode HİÇ kontrol edilmiyordu.
+  if (!gecti && site.mode === "monitor") {
+    const claimM: VerificationClaim = {
+      cid: "inv_" + secureSeed().toString(16), site: site.siteKey, success: true,
+      iat: now, exp: now + 2 * 60 * 1000, score: behavior.score,
+    };
+    return NextResponse.json(
+      { passed: true, monitor: true, wouldChallenge: true, token: signVerification(claimM, site.secretKey), score: behavior.score },
+      { status: 200, headers },
+    );
+  }
+
   if (!gecti) {
     // Sebep önceliği: kesin otomasyon kanıtı > AI politikası > kural > tehdit
     // beslemesi > düşük davranış. Böylece istemci veya panel neden challenge'a

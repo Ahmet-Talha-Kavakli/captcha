@@ -293,6 +293,19 @@ async function main() {
   const chYok = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: silSite.siteKey }) });
   check("Site silinince siteKey geçersiz → challenge 403 (cascade temizlik)", chYok.status === 403);
 
+  // 18c) MONITOR MODU — "sadece izle": bot engellenmez ama işaretlenir.
+  const monEmail = `mon${Date.now()}@x.dev`;
+  const monReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: monEmail, name: "U", password: "test1234" }) });
+  const monJar = (monReg.headers.get("set-cookie") || "").split(";")[0];
+  const { site: monSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ name: "mon.com", domains: "localhost" }) })).json();
+  await fetch(`${BASE}/api/sites/${monSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ invisibleMode: true }) });
+  const botSig = { mouseSamples: 0, keyIntervals: [5, 5], timeToSubmit: 50, webdriver: true };
+  const chalMode = await (await fetch(`${BASE}/api/v1/passive`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: monSite.siteKey, signals: botSig }) })).json();
+  check("Challenge modu: bot → geçmez (engellenir)", chalMode.passed === false);
+  await fetch(`${BASE}/api/sites/${monSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ mode: "monitor" }) });
+  const monMode = await (await fetch(`${BASE}/api/v1/passive`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: monSite.siteKey, signals: botSig }) })).json();
+  check("Monitor modu: aynı bot → geçer ama monitor:true işaretli (izle-engelleme)", monMode.passed === true && monMode.monitor === true);
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;
