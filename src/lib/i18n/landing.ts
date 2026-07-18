@@ -238,6 +238,29 @@ const tr: Sozluk = {
   // --- Ortak ---
   "ortak.evet": "var",
   "ortak.hayir": "yok",
+
+  // --- Görsel mockup'ları (hero/ghost/ürün/AI kartları) ---
+  "mock.canliKarar": "Canlı karar akışı",
+  "mock.canli": "canlı",
+  "mock.insan": "İnsan",
+  "mock.aiAjan": "AI ajan",
+  "mock.kaziyici": "Kazıyıcı",
+  "mock.izinVerildi": "İzin verildi",
+  "mock.engellendi": "Engellendi",
+  "mock.bugunEngellenen": "Bugün engellenen bot",
+  "mock.dunden": "dünden",
+  "mock.insanGecti": "İnsan geçti",
+  "mock.yanitSuresi": "Yanıt süresi",
+  "mock.saatTrafik": "24 saat trafiği",
+  "mock.insanBot": "insan / bot",
+  "mock.makineninGordugu": "Makinenin gördüğü",
+  "mock.ocrOkunamadi": "OCR sonucu: okunamadı ✕",
+  "mock.insaninGordugu": "İnsanın gördüğü",
+  "mock.insanDogrulama": "İnsan doğrulaması: geçti ✓",
+  "mock.engellenenBot": "Engellenen bot",
+  "mock.insanGecisi": "İnsan geçişi",
+  "mock.modelEgitimi": "Model eğitimi",
+  "mock.gun14Trafik": "14 günlük AI trafiği",
 };
 
 /* Diğer diller ayrı dosyalardan gelir (landing.<dil>.ts) — burada birleştirilir. */

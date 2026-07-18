@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
+import { landingCeviri, LANDING_VARSAYILAN, type LandingDil } from "@/lib/i18n/landing";
 
 /**
  * Pazarlama görseli — Gemini ile üretilen gerçek WebP görseller (public/pazarlama).
@@ -58,7 +59,8 @@ export function Gorsel({
 /* ---------------------------------------------------- Hero: koruma sahnesi
  * İnsan trafiği geçer (yeşil), AI botları kalkanda durur (kırmızı). Sağda
  * canlı bir "karar akışı" görseli — ürünün ne yaptığını tek bakışta anlatır. */
-export function HeroGorsel() {
+export function HeroGorsel({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
+  const t = (k: string) => landingCeviri(k, dil);
   return (
     <div className="relative">
       {/* zemin ışıması */}
@@ -77,22 +79,22 @@ export function HeroGorsel() {
           {/* sol: gerçek-zamanlı karar akışı */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-veylify-950">Canlı karar akışı</span>
+              <span className="text-[12px] font-semibold text-veylify-950">{t("mock.canliKarar")}</span>
               <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600">
                 <span className="relative flex size-1.5">
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-70" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
                 </span>
-                canlı
+                {t("mock.canli")}
               </span>
             </div>
             {[
-              { ip: "91.10.4.18", tur: "İnsan", karar: "izin", renk: "emerald" },
-              { ip: "GPTBot", tur: "AI ajan", karar: "engel", renk: "red" },
-              { ip: "45.2.9.71", tur: "İnsan", karar: "izin", renk: "emerald" },
-              { ip: "ClaudeBot", tur: "AI ajan", karar: "engel", renk: "red" },
-              { ip: "Scrapy/2.11", tur: "Kazıyıcı", karar: "engel", renk: "red" },
-              { ip: "77.8.1.30", tur: "İnsan", karar: "izin", renk: "emerald" },
+              { ip: "91.10.4.18", tur: t("mock.insan"), karar: "izin", renk: "emerald" },
+              { ip: "GPTBot", tur: t("mock.aiAjan"), karar: "engel", renk: "red" },
+              { ip: "45.2.9.71", tur: t("mock.insan"), karar: "izin", renk: "emerald" },
+              { ip: "ClaudeBot", tur: t("mock.aiAjan"), karar: "engel", renk: "red" },
+              { ip: "Scrapy/2.11", tur: t("mock.kaziyici"), karar: "engel", renk: "red" },
+              { ip: "77.8.1.30", tur: t("mock.insan"), karar: "izin", renk: "emerald" },
             ].map((r, i) => (
               <div
                 key={i}
@@ -110,7 +112,7 @@ export function HeroGorsel() {
                       : "bg-red-50 text-red-700"
                   }`}
                 >
-                  {r.karar === "izin" ? "İzin verildi" : "Engellendi"}
+                  {r.karar === "izin" ? t("mock.izinVerildi") : t("mock.engellendi")}
                 </span>
               </div>
             ))}
@@ -118,18 +120,18 @@ export function HeroGorsel() {
           {/* sağ: özet metrik + mini kalkan */}
           <div className="flex flex-col gap-3">
             <div className="rounded-2xl border border-veylify-100 bg-gradient-to-br from-veylify-600 to-violet-600 p-4 text-white">
-              <div className="text-[11px] font-medium text-white/70">Bugün engellenen bot</div>
+              <div className="text-[11px] font-medium text-white/70">{t("mock.bugunEngellenen")}</div>
               <div className="mt-1 text-3xl font-bold tabular-nums">12.480</div>
               <div className="mt-2 flex items-center gap-1 text-[11px] font-medium text-white/80">
                 <span className="rounded-full bg-white/20 px-1.5 py-0.5">↑ %18</span>
-                <span>dünden</span>
+                <span>{t("mock.dunden")}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <MiniStat etiket="İnsan geçti" deger="%99.4" ton="ok" />
-              <MiniStat etiket="Yanıt süresi" deger="48ms" ton="brand" />
+              <MiniStat etiket={t("mock.insanGecti")} deger="%99.4" ton="ok" />
+              <MiniStat etiket={t("mock.yanitSuresi")} deger="48ms" ton="brand" />
             </div>
-            <MiniSparkKart />
+            <MiniSparkKart baslik={t("mock.saatTrafik")} altBaslik={t("mock.insanBot")} />
           </div>
         </div>
       </div>
@@ -152,12 +154,12 @@ function MiniStat({ etiket, deger, ton }: { etiket: string; deger: string; ton: 
   );
 }
 
-function MiniSparkKart() {
+function MiniSparkKart({ baslik, altBaslik }: { baslik: string; altBaslik: string }) {
   return (
     <div className="rounded-2xl border border-veylify-100 bg-white p-3">
       <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-[10.5px] font-medium text-slate-400">24 saat trafiği</span>
-        <span className="text-[10px] font-semibold text-veylify-600">insan / bot</span>
+        <span className="text-[10.5px] font-medium text-slate-400">{baslik}</span>
+        <span className="text-[10px] font-semibold text-veylify-600">{altBaslik}</span>
       </div>
       <div className="flex h-10 items-end gap-1">
         {[40, 55, 45, 70, 60, 80, 65, 90, 75, 95, 85, 100].map((h, i) => (
@@ -177,13 +179,14 @@ function MiniSparkKart() {
  * "İnsan görür, makine göremez" — tek karede gürültü, hareket koheransıyla okunur.
  * Statik SVG olduğu için burada iki kare yan yana: makinenin gördüğü (gürültü) vs
  * insanın algıladığı (net kod). */
-export function GhostFontGorsel() {
+export function GhostFontGorsel({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
+  const t = (k: string) => landingCeviri(k, dil);
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {/* makine görüşü — gürültü */}
       <div className="rounded-2xl border border-veylify-100 bg-veylify-950 p-5">
         <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-red-300">
-          <span className="size-1.5 rounded-full bg-red-400" /> Makinenin gördüğü
+          <span className="size-1.5 rounded-full bg-red-400" /> {t("mock.makineninGordugu")}
         </div>
         <div className="grid grid-cols-12 gap-[3px]">
           {Array.from({ length: 96 }).map((_, i) => (
@@ -195,13 +198,13 @@ export function GhostFontGorsel() {
           ))}
         </div>
         <div className="mt-3 text-center text-[11px] font-medium text-red-300/80">
-          OCR sonucu: okunamadı ✕
+          {t("mock.ocrOkunamadi")}
         </div>
       </div>
       {/* insan görüşü — net */}
       <div className="rounded-2xl border border-veylify-100 bg-veylify-950 p-5">
         <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-300">
-          <span className="size-1.5 rounded-full bg-emerald-400" /> İnsanın gördüğü
+          <span className="size-1.5 rounded-full bg-emerald-400" /> {t("mock.insaninGordugu")}
         </div>
         <div className="flex h-[132px] items-center justify-center rounded-xl bg-veylify-900">
           <span className="font-mono text-4xl font-bold tracking-[0.25em] text-veylify-100">
@@ -209,7 +212,7 @@ export function GhostFontGorsel() {
           </span>
         </div>
         <div className="mt-3 text-center text-[11px] font-medium text-emerald-300/80">
-          İnsan doğrulaması: geçti ✓
+          {t("mock.insanDogrulama")}
         </div>
       </div>
     </div>
@@ -219,20 +222,21 @@ export function GhostFontGorsel() {
 /* ---------------------------------------------------- Ürün ekran-görüntüsü mockup
  * Tam-genişlik dashboard önizlemesi: sol nav + KPI şeridi + canlı trafik grafiği
  * + karar tablosu. "Ürün gerçekten böyle görünüyor" hissini tek bakışta verir. */
-export function UrunEkranGorseli() {
+export function UrunEkranGorseli({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
+  const t = (k: string) => landingCeviri(k, dil);
   const kpiler = [
-    { e: "Engellenen bot", d: "48.912", t: "danger" },
-    { e: "İnsan geçişi", d: "%99.4", t: "ok" },
-    { e: "AI ajan", d: "3.204", t: "brand" },
+    { e: t("mock.engellenenBot"), d: "48.912", t: "danger" },
+    { e: t("mock.insanGecisi"), d: "%99.4", t: "ok" },
+    { e: t("mock.aiAjan"), d: "3.204", t: "brand" },
     { e: "Yanıt", d: "46ms", t: "brand" },
   ] as const;
   const barlar = [38, 52, 44, 66, 58, 78, 62, 88, 72, 94, 80, 98, 84, 70];
   const satirlar = [
-    { ip: "GPTBot/1.1", tur: "Model eğitimi", karar: "engel" },
-    { ip: "88.29.4.10", tur: "İnsan · Chrome", karar: "izin" },
-    { ip: "ClaudeBot/1.0", tur: "Model eğitimi", karar: "engel" },
-    { ip: "Bytespider", tur: "Kazıyıcı", karar: "engel" },
-    { ip: "45.9.10.2", tur: "İnsan · Safari", karar: "izin" },
+    { ip: "GPTBot/1.1", tur: t("mock.modelEgitimi"), karar: "engel" },
+    { ip: "88.29.4.10", tur: `${t("mock.insan")} · Chrome`, karar: "izin" },
+    { ip: "ClaudeBot/1.0", tur: t("mock.modelEgitimi"), karar: "engel" },
+    { ip: "Bytespider", tur: t("mock.kaziyici"), karar: "engel" },
+    { ip: "45.9.10.2", tur: `${t("mock.insan")} · Safari`, karar: "izin" },
   ] as const;
   return (
     <div className="relative">
@@ -279,7 +283,7 @@ export function UrunEkranGorseli() {
             {/* trafik grafiği */}
             <div className="rounded-2xl border border-veylify-100 bg-white p-3.5">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[11.5px] font-semibold text-veylify-950">14 günlük AI trafiği</span>
+                <span className="text-[11.5px] font-semibold text-veylify-950">{t("mock.gun14Trafik")}</span>
                 <span className="flex items-center gap-2 text-[10px] text-slate-400">
                   <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-veylify-500" /> insan</span>
                   <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-red-400" /> bot</span>
@@ -303,7 +307,7 @@ export function UrunEkranGorseli() {
                   <span className="hidden text-slate-400 sm:inline">·</span>
                   <span className="hidden text-slate-500 sm:inline">{r.tur}</span>
                   <span className={`ml-auto rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${r.karar === "izin" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-                    {r.karar === "izin" ? "İzin verildi" : "Engellendi"}
+                    {r.karar === "izin" ? t("mock.izinVerildi") : t("mock.engellendi")}
                   </span>
                 </div>
               ))}
@@ -318,7 +322,8 @@ export function UrunEkranGorseli() {
 /* ---------------------------------------------------- AI-ajan koruması görseli
  * Merkezde kalkan; çevresinde bilinen AI operatör düğümleri (renkli nokta +
  * ad). Bağlantı çizgileri kalkanda "engellendi/doğrulandı" olarak sonlanır. */
-export function AiAjanKoruma() {
+export function AiAjanKoruma({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
+  const t = (k: string) => landingCeviri(k, dil);
   const ajanlar = [
     { ad: "GPTBot", renk: "#10a37f", durum: "engel" },
     { ad: "ClaudeBot", renk: "#d97757", durum: "engel" },
@@ -331,7 +336,7 @@ export function AiAjanKoruma() {
   ];
   const ton = (d: string) =>
     d === "engel"
-      ? { r: "bg-red-50 text-red-600 ring-red-100", et: "Engellendi" }
+      ? { r: "bg-red-50 text-red-600 ring-red-100", et: t("mock.engellendi") }
       : { r: "bg-amber-50 text-amber-700 ring-amber-100", et: "Doğrulandı" };
   return (
     <div className="relative overflow-hidden rounded-3xl border border-veylify-100 bg-white p-6 shadow-[0_30px_80px_-40px_rgba(79,70,229,0.35)] sm:p-8">

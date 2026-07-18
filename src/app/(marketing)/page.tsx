@@ -24,14 +24,14 @@ export default async function LandingPage() {
   return (
     <>
       <JsonLd sss={SORULAR} />
-      <Hero t={t} />
+      <Hero t={t} dil={dil} />
       <LogoStrip t={t} />
       <Problem t={t} />
-      <GhostFont t={t} />
+      <GhostFont t={t} dil={dil} />
       <HowItWorks t={t} />
       <Features t={t} />
-      <UrunOnizleme t={t} />
-      <AiKoruma t={t} />
+      <UrunOnizleme t={t} dil={dil} />
+      <AiKoruma t={t} dil={dil} />
       <Compare t={t} />
       <Testimonials t={t} />
       <Stats t={t} />
@@ -46,7 +46,7 @@ export default async function LandingPage() {
 }
 
 /* ============================================================ HERO */
-function Hero({ t }: { t: T }) {
+function Hero({ t, dil }: { t: T; dil: LandingDil }) {
   return (
     <section className="relative overflow-hidden px-5 pt-16 pb-20 lg:px-8 lg:pt-24">
       <IzgaraArka />
@@ -99,7 +99,7 @@ function Hero({ t }: { t: T }) {
           {/* Gerçek üretilmiş hero görseli — insan siluetinin kalkandan geçişi,
               dağılan AI botları. Ürünün vaadini tek bakışta anlatır. */}
           <Gorsel ad="hero" alt={t("hero.gorselAlt")} oran="16/11" oncelik />
-          <HeroGorsel />
+          <HeroGorsel dil={dil} />
         </Reveal>
       </div>
     </section>
@@ -162,7 +162,7 @@ function Problem({ t }: { t: T }) {
 }
 
 /* ============================================================ GHOST-FONT */
-function GhostFont({ t }: { t: T }) {
+function GhostFont({ t, dil }: { t: T; dil: LandingDil }) {
   return (
     <section className="relative overflow-hidden bg-veylify-950 px-5 py-20 lg:px-8">
       <div className="pointer-events-none absolute -right-20 top-0 -z-0 h-80 w-80 rounded-full bg-violet-600/20 blur-3xl" />
@@ -195,7 +195,7 @@ function GhostFont({ t }: { t: T }) {
             </div>
             <GhostHero />
           </div>
-          <GhostFontGorsel />
+          <GhostFontGorsel dil={dil} />
         </div>
       </div>
     </section>
@@ -306,7 +306,7 @@ function Features({ t }: { t: T }) {
 }
 
 /* ============================================================ ÜRÜN ÖNİZLEME */
-function UrunOnizleme({ t }: { t: T }) {
+function UrunOnizleme({ t, dil }: { t: T; dil: LandingDil }) {
   const noktalar = [
     { ikon: Activity, baslik: t("urun.n1.baslik"), metin: t("urun.n1.metin") },
     { ikon: Bot, baslik: t("urun.n2.baslik"), metin: t("urun.n2.metin") },
@@ -328,7 +328,7 @@ function UrunOnizleme({ t }: { t: T }) {
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr]">
           <Reveal className="space-y-5">
             <Gorsel ad="panel-soc" alt={t("urun.gorselAlt")} oran="16/10" />
-            <UrunEkranGorseli />
+            <UrunEkranGorseli dil={dil} />
           </Reveal>
           <Reveal delay={1} className="flex flex-col gap-5">
             {noktalar.map((n) => (
@@ -350,7 +350,7 @@ function UrunOnizleme({ t }: { t: T }) {
 }
 
 /* ============================================================ AI-AJAN KORUMASI */
-function AiKoruma({ t }: { t: T }) {
+function AiKoruma({ t, dil }: { t: T; dil: LandingDil }) {
   return (
     <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -377,7 +377,7 @@ function AiKoruma({ t }: { t: T }) {
           </Reveal>
           <Reveal delay={1} className="space-y-5">
             <Gorsel ad="ai-ajan" alt={t("aikoruma.gorselAlt")} oran="16/11" />
-            <AiAjanKoruma />
+            <AiAjanKoruma dil={dil} />
           </Reveal>
         </div>
       </div>
