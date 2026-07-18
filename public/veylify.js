@@ -498,7 +498,7 @@
     '--vy-shadow:0 1px 0 0 rgba(255,255,255,.8) inset,0 12px 40px -14px rgba(20,30,60,.25),0 0 0 1px rgba(20,40,80,.10)}',
     '*{box-sizing:border-box}',
     /* Yeni nesil "kart": derin uzay gradyanı + ince cam kenar + katmanlı glow */
-    '.box{width:328px;border-radius:20px;position:relative;color:var(--vy-fg);overflow:hidden;',
+    '.box{width:328px;max-width:100%;border-radius:20px;position:relative;color:var(--vy-fg);overflow:hidden;',
     'background:var(--vy-bg);',
     'box-shadow:var(--vy-shadow)}',
     /* üst ince aydınlık şerit (glossy) */
