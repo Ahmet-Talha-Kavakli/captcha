@@ -4,6 +4,7 @@
  * erişemediğini kanıtlar. Bir bot-koruma ürününde bu kritiktir.
  */
 import crypto from "node:crypto";
+import http from "node:http";
 const BASE = "http://127.0.0.1:3033";
 
 // TOTP kod üretici (authenticator uygulaması simülasyonu — RFC 6238).
@@ -362,6 +363,51 @@ async function main() {
   // Gerçek hash ama yetersiz zorluk (seed:0) → hedef denetimi çalışır.
   const ph0 = crypto.createHash("sha256").update(`${powSeed}:0`).digest("hex");
   check("PoW: gerçek hash + hedef denetimi tutarlı", powDogrulaT(powZor, powSeed, 0, ph0) === (bastakiSifirBitT(ph0) >= powZor));
+
+  // ---- BAŞLIK-SAHTEKÂRLIĞI TESPİTİ (UA-taklidine bağışık) ----
+  // UA "Chrome" iddia eden ama gerçek tarayıcı başlık setini (Client Hints +
+  // Accept-Language) göndermeyen bot otomasyon olarak yakalanmalı; meşru Chrome
+  // (tam set) yakalanmamalı (yanlış-pozitif yok). Kaynak: request-meta.ts
+  // baslikSahtekarligi. Saf mantık reprodüksiyon (deriveAnswer deseni).
+  // NOT: Canlı endpoint testinde Node fetch/undici otomatik `accept-language: *`
+  // enjekte ettiği için gerçek "header'sız bot" simüle edilemez; bu yüzden saf
+  // mantık reprodüksiyonu + ayrıca düşük-seviye http.request (aşağıda) kullanılır.
+  const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0) Chrome/120.0.0.0 Safari/537.36";
+  function uaChromiumT(ua) {
+    const u = ua.toLowerCase();
+    return (u.includes("chrome") || u.includes("edg/")) && !u.includes("headless") &&
+      !/python|curl|go-http|node-fetch|axios|scrapy|wget|okhttp|libwww/.test(u);
+  }
+  function baslikSahtekarligiT(uaChromium, clientHints, acceptLang, acceptTarayici) {
+    if (!uaChromium) return false;
+    if (!acceptTarayici && !acceptLang) return true;
+    return !acceptLang && !clientHints;
+  }
+  // Chromium UA + hem Accept-Language HEM Client Hints yok → sahtekârlık.
+  check("Başlık-sahtekârlığı: Chrome-UA + dil/ClientHints yok → yakalanır",
+    baslikSahtekarligiT(uaChromiumT(CHROME_UA), false, false, true) === true);
+  // Meşru Chrome (tam set) → yakalanmaz (yanlış-pozitif yok).
+  check("Başlık-sahtekârlığı: meşru Chrome (tam header) → yakalanmaz",
+    baslikSahtekarligiT(uaChromiumT(CHROME_UA), true, true, true) === false);
+  // Gerçek Chrome ama Client Hints proxy'de düşmüş (dil VAR) → yakalanmaz (kritik FP koruması).
+  check("Başlık-sahtekârlığı: Chrome + dil VAR ama ClientHints yok (proxy) → yakalanmaz",
+    baslikSahtekarligiT(uaChromiumT(CHROME_UA), false, true, true) === false);
+  // curl (Chromium iddiası yok) → başlık-vetosu dokunmaz (ayrı sinyal yakalar).
+  check("Başlık-sahtekârlığı: curl UA (Chromium değil) → başlık-vetosu değerlendirmez",
+    baslikSahtekarligiT(uaChromiumT("curl/8.7.1"), false, false, false) === false);
+  // CANLI DÜŞÜK-SEVİYE: http.request ile gerçekten header'sız Chrome-UA isteği
+  // (undici enjeksiyonu yok) → automation_detected dönmeli.
+  const spoofReason = await new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", signals: { mouseSamples: 60, mousePathLength: 900, keyIntervals: [100, 120, 90, 110] } });
+    const req = http.request(`${BASE}/api/v1/passive`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "User-Agent": CHROME_UA },
+    }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b).reason); } catch { resolve(null); } }); });
+    req.on("error", () => resolve(null));
+    req.end(body);
+  });
+  check("Başlık-sahtekârlığı (canlı, header'sız Chrome-UA) → automation_detected",
+    spoofReason === "automation_detected");
 
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);

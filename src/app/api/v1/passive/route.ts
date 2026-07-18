@@ -13,7 +13,7 @@ import { Sites, Events, Users, Usage } from "@/lib/db/db";
 import { rateLimit } from "@/lib/db/rate";
 import { scoreBehavior, emptySignals, type BehaviorSignals } from "@/lib/specter/behavior";
 import { signVerification, secureSeed, type VerificationClaim } from "@/lib/specter/crypto";
-import { extractMeta, classifyUA } from "@/lib/specter/request-meta";
+import { extractMeta, classifyUA, baslikSahtekarligi } from "@/lib/specter/request-meta";
 import { evaluateRules } from "@/lib/specter/rule-engine";
 import { Rules } from "@/lib/db/db";
 import { aiAjanTespit } from "@/lib/specter/ai-agents";
@@ -127,7 +127,13 @@ export async function POST(req: Request) {
   // çünkü bu işaretler "ben otomasyonum" itirafıdır. AI "izin" bunu bypass etmez
   // (izin verilen AI zaten davranış eşiğinden muaf ama otomasyon-yalanı söyleyen
   // bir crawler değil, dürüst UA ile gelir; yine de veto güvenlik için kalır).
-  const otomasyonKaniti = signals.webdriver === true || fpKural.headless === true;
+  // GERÇEK, UA-taklidine BAĞIŞIK üçüncü kanıt: istemci "Chrome/Edge" iddia
+  // ediyor ama gerçek Chromium'un daima gönderdiği başlık setini (Client Hints
+  // sec-ch-ua + Accept-Language + tarayıcı Accept) göndermiyor → UA sahtekârlığı.
+  // signals.webdriver istemci-beyanıdır (bot yalanlar); baslikSahtekarligi ise
+  // sunucunun GÖRDÜĞÜ ham başlıklardan türer — bot bunu enjekte edemez.
+  const baslikYalani = baslikSahtekarligi(meta.headerSinyal);
+  const otomasyonKaniti = signals.webdriver === true || fpKural.headless === true || baslikYalani;
 
   // Doğrulanmış arama botu VEYA "izin"li AI ajanı davranış eşiğinden muaftır
   // (ikisi de fare/klavye üretmez). Yine de kural-block, tehdit-beslemesi ve

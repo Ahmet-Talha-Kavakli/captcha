@@ -16,7 +16,7 @@ import { rateLimit, trackRate, retryAfterSn } from "@/lib/db/rate";
 import { verifyAttempt } from "@/lib/specter/verify";
 import { verifyToken } from "@/lib/specter/crypto";
 import { emptySignals, type BehaviorSignals } from "@/lib/specter/behavior";
-import { extractMeta, classifyUA } from "@/lib/specter/request-meta";
+import { extractMeta, classifyUA, baslikSahtekarligi } from "@/lib/specter/request-meta";
 import { originIzinli } from "@/lib/specter/origin-esles";
 import { evaluateRules } from "@/lib/specter/rule-engine";
 import { aiAjanTespit } from "@/lib/specter/ai-agents";
@@ -241,6 +241,27 @@ export async function POST(req: Request) {
   const basariliHitler: string[] = ["ghost-font"];
   if (signals.powNonce !== undefined) basariliHitler.push("pow");
   if (tutarlilik.karar === "sahte") basariliHitler.push("tutarlilik");
+
+  // ── BAŞLIK-SAHTEKÂRLIĞI VETOSU (sunucu-tarafı, UA-taklidine bağışık) ──
+  // İstemci "Chrome/Edge" iddia ediyor ama gerçek Chromium'un daima gönderdiği
+  // başlık setini (Client Hints sec-ch-ua + Accept-Language + tarayıcı Accept)
+  // göndermiyor → UA sahtekârlığı. Bu, JS sinyallerinden BAĞIMSIZ ham başlık
+  // kanıtıdır (bot enjekte edemez). "sahte" vetosuyla aynı sonucu doğurur.
+  const baslikYalani = baslikSahtekarligi(meta.headerSinyal);
+  if (baslikYalani && tutarlilik.karar !== "sahte") {
+    if (site.mode === "monitor") {
+      logEvent(site.id, req, "flagged", outcome.score, ["Başlık sahtekârlığı (UA Chromium ama Client Hints/Accept-Language eksik)"], basariliHitler, fp.ja3.slice(0, 8), t0);
+      return NextResponse.json(
+        { success: true, monitor: true, wouldBlock: true, reason: "spoofed_browser", score: outcome.score },
+        { status: 200, headers },
+      );
+    }
+    logEvent(site.id, req, "blocked", outcome.score, ["Başlık sahtekârlığı (UA Chromium ama Client Hints/Accept-Language eksik)"], basariliHitler, fp.ja3.slice(0, 8), t0);
+    return NextResponse.json(
+      { success: false, reason: "spoofed_browser", kanit: "Chromium-UA ama gerçek tarayıcı başlık seti eksik", score: outcome.score },
+      { status: 200, headers },
+    );
+  }
 
   // ── SAHTE-TARAYICI VETOSU ───────────────────────────────────────────
   // UA-JS çapraz doğrulaması "sahte" dediyse (ör. UA "Chrome" ama window.chrome
