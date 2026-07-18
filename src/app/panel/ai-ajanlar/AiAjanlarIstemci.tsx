@@ -8,6 +8,7 @@ import {
   CheckCircle2, SlashSquare, Copy, Download, FileCode2, Info, Zap, Loader2,
 } from "lucide-react";
 import { Panel, StatKart, Badge, useToast, useScrollKilit } from "@/components/panel/kit";
+import { AiOperatorLogo } from "@/components/panel/AiOperatorLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import type { AiKategori, AiPolitika } from "@/lib/specter/ai-agents";
@@ -434,9 +435,9 @@ export function AiAjanlarIstemci({
                   onClick={() => setSecili(a)}
                   className="group flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 text-left transition hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card"
                 >
-                  <span className="relative grid size-10 shrink-0 place-items-center rounded-2xl text-[15px] font-bold text-white" style={{ background: a.logo }}>
-                    {a.urun.charAt(0)}
-                    <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-danger2 text-[10px] font-bold text-white">{i + 1}</span>
+                  <span className="relative shrink-0">
+                    <AiOperatorLogo operator={a.operator} urun={a.urun} logo={a.logo} boyut={40} />
+                    <span className="absolute -right-1.5 -top-1.5 z-10 grid size-5 place-items-center rounded-full bg-danger2 text-[10px] font-bold text-white">{i + 1}</span>
                   </span>
                   <div className="min-w-0">
                     <div className="truncate text-[13.5px] font-semibold text-slate-ink">{a.urun}</div>
@@ -541,10 +542,8 @@ function AjanKart({ a, politika, onPolitika, onAc, t }: { a: AjanVeri; politika:
     <div onClick={onAc} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onAc(); } }} role="button" tabIndex={0} aria-label={t("ai.kart.detayEtiket").replace("{urun}", a.urun)} className="group cursor-pointer overflow-hidden rounded-3xl border border-line bg-surface p-5 transition hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          {/* marka-renkli baş-harf rozeti */}
-          <span className="grid size-11 shrink-0 place-items-center rounded-2xl text-[17px] font-bold text-white shadow-sm" style={{ background: a.logo }}>
-            {a.urun.charAt(0)}
-          </span>
+          {/* gerçek AI operatör logosu (fallback: baş-harf rozeti) */}
+          <AiOperatorLogo operator={a.operator} urun={a.urun} logo={a.logo} boyut={44} />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="truncate font-semibold text-slate-ink">{a.urun}</span>
@@ -614,7 +613,7 @@ function AjanDrawer({ a, politika, onPolitika, kapat, t }: { a: AjanVeri; politi
       >
         <div className="flex items-start justify-between border-b border-line px-6 py-5">
           <div className="flex items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl text-xl font-bold text-white shadow-sm" style={{ background: a.logo }}>{a.urun.charAt(0)}</span>
+            <AiOperatorLogo operator={a.operator} urun={a.urun} logo={a.logo} boyut={48} />
             <div>
               <h2 className="text-lg font-bold text-slate-ink">{a.urun}</h2>
               <p className="text-[13px] text-slate-muted">{a.operator} · {t(KATEGORI_ANAHTAR[a.kategori])}</p>

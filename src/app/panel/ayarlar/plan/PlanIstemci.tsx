@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check, X, CreditCard, Download, TrendingUp, Zap, Globe, Users, ArrowUpRight, Sparkles, Ticket, Loader2,
+  Coins, Plus, Minus, Wallet,
 } from "lucide-react";
 import { Panel, Badge, Ilerleme, Modal, NotKutusu, useToast, Girdi } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
@@ -42,6 +44,22 @@ const OZELLIKLER: { ad: string; free: boolean | string; pro: boolean | string; s
   { ad: "Destek", free: "Topluluk", pro: "Öncelikli", scale: "Adanmış yönetici" },
 ];
 
+/* Kredi tipleri (page.tsx'ten prop olarak gelir). */
+interface KrediHareketVM {
+  id: string;
+  tur: "satinalma" | "tuketim" | "bonus" | "iade";
+  miktar: number;
+  aciklama: string;
+  createdAt: number;
+}
+interface KrediPaketVM {
+  id: string;
+  ad: string;
+  kredi: number;
+  fiyat: number;
+  populer: boolean;
+}
+
 const FATURALAR = [
   { id: "f1", tarih: "01.07.2026", aciklama: "Pro plan — Temmuz", tutar: 490, no: "SPC-2026-0007" },
   { id: "f2", tarih: "01.06.2026", aciklama: "Pro plan — Haziran", tutar: 490, no: "SPC-2026-0006" },
@@ -54,13 +72,20 @@ const FATURALAR = [
 export function PlanIstemci({
   plan,
   kullanim,
+  kredi,
 }: {
   plan: Plan;
   kullanim: { dogrulama: number; siteSayisi: number; ekipSayisi: number };
+  kredi: { bakiye: number; hareketler: KrediHareketVM[]; paketler: KrediPaketVM[] };
 }) {
   const { goster } = useToast();
+  const router = useRouter();
   const [yukseltModal, setYukseltModal] = useState<PlanTanim | null>(null);
   const [kartModal, setKartModal] = useState(false);
+
+  // Kredi durumu — satın alma sonrası bakiye anında güncellenir + router.refresh.
+  const [krediBakiye, setKrediBakiye] = useState(kredi.bakiye);
+  const [alinanPaket, setAlinanPaket] = useState<string | null>(null);
 
   const mevcut = PLANLAR.find((p) => p.key === plan)!;
   const kota = mevcut.kotalar;
@@ -76,6 +101,38 @@ export function PlanIstemci({
     { ad: "Korunan site", ikon: <Globe className="size-4" />, deger: kullanim.siteSayisi, limit: kota.site === 999 ? Infinity : kota.site, birim: "site" },
     { ad: "Ekip üyesi", ikon: <Users className="size-4" />, deger: kullanim.ekipSayisi, limit: kota.ekip === 999 ? Infinity : kota.ekip, birim: "üye" },
   ];
+
+  async function krediSatinAl(paket: KrediPaketVM) {
+    if (alinanPaket) return;
+    setAlinanPaket(paket.id);
+    try {
+      const res = await fetch("/api/account/kredi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paket: paket.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        goster({ tip: "hata", baslik: "Satın alma tamamlanamadı", aciklama: "Lütfen tekrar deneyin." });
+        return;
+      }
+      setKrediBakiye(data.bakiye ?? krediBakiye + paket.kredi);
+      goster({
+        tip: "basari",
+        baslik: "Kredi yüklendi",
+        aciklama: `${paket.kredi.toLocaleString("tr-TR")} kredi hesabınıza eklendi.`,
+      });
+      router.refresh();
+    } catch {
+      goster({ tip: "hata", baslik: "Bağlantı hatası", aciklama: "Lütfen tekrar deneyin." });
+    } finally {
+      setAlinanPaket(null);
+    }
+  }
+
+  function krediTarih(ts: number) {
+    return new Date(ts).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" });
+  }
 
   function ozellikHucre(v: boolean | string) {
     if (v === true) return <span className="inline-grid size-6 place-items-center rounded-full bg-ok-soft text-ok"><Check className="size-3.5" strokeWidth={3} /></span>;
@@ -165,6 +222,100 @@ export function PlanIstemci({
             Ay sonuna kadar tahmini {tahminiDogrulama.toLocaleString("tr-TR")} doğrulama gerçekleşecek. Kesintisiz koruma için bir üst plana yükseltmeyi değerlendirin.
           </NotKutusu>
         )}
+      </Panel>
+
+      {/* ---------------- Kredi bakiyesi + hareketler ---------------- */}
+      <Panel baslik="Kredi">
+        <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+          {/* Bakiye kartı */}
+          <div className="rounded-2xl border border-line bg-gradient-to-br from-brand-50 to-canvas/40 p-5">
+            <div className="flex items-center gap-2 text-[13px] font-medium text-slate-muted">
+              <span className="grid size-8 place-items-center rounded-xl bg-brand-600/10 text-brand-600"><Wallet className="size-4" /></span>
+              Kredi bakiyesi
+            </div>
+            <div className="mt-3 flex items-baseline gap-1.5">
+              <span className="num text-[38px] font-bold leading-none text-slate-ink">{krediBakiye.toLocaleString("tr-TR")}</span>
+              <span className="text-sm font-medium text-slate-faint">kredi</span>
+            </div>
+            <p className="mt-2.5 text-[12.5px] leading-relaxed text-slate-muted">
+              Kota dolduğunda ek doğrulama krediyle karşılanır. Kredi plan kotanızın üstünde esnek kapasitedir; aylık yenilenmez, bitene kadar geçerlidir.
+            </p>
+          </div>
+
+          {/* Hareketler mini-liste */}
+          <div className="rounded-2xl border border-line bg-surface p-4">
+            <div className="mb-2 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-slate-faint">
+              <Coins className="size-3.5" /> Son hareketler
+            </div>
+            {kredi.hareketler.length === 0 ? (
+              <div className="grid place-items-center py-6 text-center text-[13px] text-slate-faint">
+                Henüz kredi hareketi yok.
+              </div>
+            ) : (
+              <ul className="divide-y divide-line">
+                {kredi.hareketler.map((h) => {
+                  const arti = h.miktar >= 0;
+                  return (
+                    <li key={h.id} className="flex items-center justify-between gap-3 py-2.5">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg", arti ? "bg-ok-soft text-ok" : "bg-slate-100 text-slate-400")}>
+                          {arti ? <Plus className="size-3.5" strokeWidth={2.5} /> : <Minus className="size-3.5" strokeWidth={2.5} />}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate text-[13px] font-medium text-slate-ink">{h.aciklama}</div>
+                          <div className="text-[11.5px] text-slate-faint">{krediTarih(h.createdAt)}</div>
+                        </div>
+                      </div>
+                      <span className={cn("num shrink-0 text-[13px] font-semibold", arti ? "text-ok" : "text-slate-muted")}>
+                        {arti ? "+" : "−"}{Math.abs(h.miktar).toLocaleString("tr-TR")}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Kredi satın al — paket kartları */}
+        <div className="mt-6 border-t border-line pt-5">
+          <div className="mb-3 text-[13px] font-semibold text-slate-ink">Kredi satın al</div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {kredi.paketler.map((p) => {
+              const yukleniyor = alinanPaket === p.id;
+              return (
+                <div
+                  key={p.id}
+                  className={cn(
+                    "relative flex flex-col rounded-2xl border p-5 transition",
+                    p.populer ? "border-brand-300 bg-brand-50/40 shadow-card" : "border-line bg-surface",
+                  )}
+                >
+                  {p.populer && (
+                    <span className="absolute -top-2.5 left-5 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                      <Sparkles className="size-3" /> En popüler
+                    </span>
+                  )}
+                  <div className="num text-[26px] font-bold text-slate-ink">{p.kredi.toLocaleString("tr-TR")}</div>
+                  <div className="text-[12px] text-slate-faint">kredi</div>
+                  <div className="mt-3 num text-[15px] font-semibold text-slate-ink">
+                    ₺{p.fiyat.toLocaleString("tr-TR")}
+                    <span className="text-[11.5px] font-normal text-slate-faint"> · {(p.fiyat / (p.kredi / 1000)).toFixed(2).replace(".", ",")}₺/bin</span>
+                  </div>
+                  <Button
+                    variant={p.populer ? "accent" : "outline"}
+                    size="sm"
+                    className="mt-4 w-full"
+                    disabled={!!alinanPaket}
+                    onClick={() => krediSatinAl(p)}
+                  >
+                    {yukleniyor ? <Loader2 className="size-4 animate-spin" /> : <><Coins className="size-4" /> Satın al</>}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </Panel>
 
       {/* ---------------- Plan karşılaştırma matrisi ---------------- */}
@@ -301,6 +452,7 @@ function YukseltModal({
   kapat: () => void;
 }) {
   const { goster } = useToast();
+  const router = useRouter();
   const yukseltme = tanim ? (tanim.fiyat ?? Infinity) > (mevcut.fiyat ?? 0) : true;
 
   // Promo durumu
@@ -359,25 +511,43 @@ function YukseltModal({
     }
   }
 
+  const [islemVar, setIslemVar] = useState(false);
   async function satinAl() {
-    // İndirim uygulandıysa kullanımı gerçekten kaydet (sayaç + log).
-    if (promo) {
-      await fetch("/api/promo/kullan", {
+    if (islemVar) return;
+    setIslemVar(true);
+    try {
+      // Planı GERÇEKTEN değiştir (DB'de user.plan güncellenir). Scale → satış talebi.
+      // Promo kullanımı bu çağrıda kaydedilir (sayaç + redemption log).
+      const res = await fetch("/api/account/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promoId: promo.id, planId: tanim!.key, indirimTutari: promo.indirimTutari }),
-      }).catch(() => {});
+        body: JSON.stringify({
+          plan: tanim!.key,
+          promoId: promo?.id,
+          indirimTutari: promo?.indirimTutari,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || (!data.ok && !data.talep)) {
+        goster({ tip: "hata", baslik: "İşlem tamamlanamadı", aciklama: "Lütfen tekrar deneyin." });
+        return;
+      }
+      kapatVeTemizle();
+      goster({
+        tip: "basari",
+        baslik: scaleMi ? "Talebiniz alındı" : yukseltme ? "Plan yükseltildi" : "Plan güncellendi",
+        aciklama: scaleMi
+          ? "Satış ekibi en kısa sürede iletişime geçecek."
+          : promo
+            ? `${tanim!.ad} planı aktif · ${promo.kod} uygulandı (₺${indirim.toLocaleString("tr-TR")} indirim)`
+            : `${tanim!.ad} planı aktif`,
+      });
+      router.refresh();
+    } catch {
+      goster({ tip: "hata", baslik: "Bağlantı hatası", aciklama: "Lütfen tekrar deneyin." });
+    } finally {
+      setIslemVar(false);
     }
-    kapatVeTemizle();
-    goster({
-      tip: "basari",
-      baslik: scaleMi ? "Talebiniz alındı" : yukseltme ? "Plan yükseltildi (demo)" : "Plan düşürüldü (demo)",
-      aciklama: scaleMi
-        ? "Satış ekibi en kısa sürede iletişime geçecek."
-        : promo
-          ? `${tanim!.ad} planı · ${promo.kod} uygulandı (₺${indirim.toLocaleString("tr-TR")} indirim)`
-          : `${tanim!.ad} planı`,
-    });
   }
 
   return (

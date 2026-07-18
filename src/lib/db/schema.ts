@@ -54,6 +54,21 @@ export interface User {
   /** Clerk kullanıcı kimliği (Clerk ile giriş yapan kullanıcılar için).
    *  Kendi cookie-auth (demo) kullanıcılarında tanımsızdır. */
   clerkId?: string;
+  /** Kredi bakiyesi — ek doğrulama / premium işlem için harcanabilir kredi.
+   *  Plan kotasının ÜSTÜNDE esnek kapasite. Tanımsız = 0. */
+  krediBakiye?: number;
+  /** Kredi hareket geçmişi (satın alma + tüketim). */
+  krediHareketler?: KrediHareket[];
+}
+
+/** Tekil kredi hareketi (satın alma "+" veya tüketim "-"). */
+export interface KrediHareket {
+  id: string;
+  tur: "satinalma" | "tuketim" | "bonus" | "iade";
+  miktar: number; // pozitif = ekleme, negatif = tüketim
+  aciklama: string;
+  bakiyeSonrasi: number;
+  createdAt: number;
 }
 
 /** Bir müşteri sitesi (uygulaması). */

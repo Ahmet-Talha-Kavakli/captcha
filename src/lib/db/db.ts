@@ -45,6 +45,7 @@ import type {
   PromoKod,
   PromoKullanim,
   IletisimMesaji,
+  KrediHareket,
   PromoTur,
   Plan,
 } from "./schema";
@@ -310,6 +311,50 @@ export const Users = {
     u.aiPolicies = { ...(u.aiPolicies ?? {}), ...politikalar };
     persist();
     return u;
+  },
+  /** Plan değiştir (gerçek abonelik yükseltme/düşürme). */
+  setPlan(uid: string, plan: Plan): User | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    u.plan = plan;
+    persist();
+    return u;
+  },
+
+  /* ---------------------------------------------------------------- Kredi */
+  krediBakiye(uid: string): number {
+    return Users.byId(uid)?.krediBakiye ?? 0;
+  },
+  /** Kredi hareketi işler (ekleme + / tüketim -). Yetersiz bakiyede tüketimi
+   *  reddeder (null). Hareketi geçmişe yazar, atomik persist. */
+  krediHareket(
+    uid: string,
+    tur: KrediHareket["tur"],
+    miktar: number,
+    aciklama: string,
+  ): { user: User; hareket: KrediHareket } | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    const mevcut = u.krediBakiye ?? 0;
+    const yeni = mevcut + miktar;
+    if (yeni < 0) return null; // yetersiz bakiye
+    u.krediBakiye = yeni;
+    if (!u.krediHareketler) u.krediHareketler = [];
+    const hareket: KrediHareket = {
+      id: id("krd"),
+      tur,
+      miktar,
+      aciklama,
+      bakiyeSonrasi: yeni,
+      createdAt: Date.now(),
+    };
+    u.krediHareketler.unshift(hareket);
+    if (u.krediHareketler.length > 200) u.krediHareketler.length = 200;
+    persist();
+    return { user: u, hareket };
+  },
+  krediGecmis(uid: string, limit = 50): KrediHareket[] {
+    return (Users.byId(uid)?.krediHareketler ?? []).slice(0, limit);
   },
 
   /**

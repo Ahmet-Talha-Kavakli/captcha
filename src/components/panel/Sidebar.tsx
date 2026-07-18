@@ -26,7 +26,7 @@ function LucideIcon({ name, className }: { name: string; className?: string }) {
 
 /** Tavily-stil sol sidebar: krem zemin, workspace switcher pill, mavi aktif menü.
  *  Küçük mod (collapse): sadece ikonlar + hover tooltip. Scrollbar gizli. */
-export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: string; avatarColor: string; rol: Role; gercekRol: Role }; dil?: Dil }) {
+export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: string; avatarColor: string; rol: Role; gercekRol: Role; krediBakiye?: number }; dil?: Dil }) {
   const pathname = usePathname();
   const router = useRouter();
   const [wsAcik, setWsAcik] = useState(false);
@@ -286,6 +286,19 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
           </button>
         </Tooltip>
       </div>
+
+      {/* alt: kredi bakiyesi (yalnızca geniş mod) */}
+      {!dar && typeof me.krediBakiye === "number" && (
+        <Link
+          href="/panel/ayarlar/plan"
+          className="mt-1 flex items-center justify-between gap-2 rounded-xl border border-line bg-canvas/50 px-3 py-2 transition hover:border-brand-200 hover:bg-brand-50/50"
+        >
+          <span className="flex items-center gap-2 text-[12.5px] font-medium text-slate-muted">
+            <Icons.Wallet className="size-4 text-brand-600" /> Kredi
+          </span>
+          <span className="num text-[13px] font-semibold text-slate-ink">{me.krediBakiye.toLocaleString("tr-TR")}</span>
+        </Link>
+      )}
 
       {/* alt: kullanıcı */}
       <div className={cn("mt-1 flex items-center gap-2.5 border-t border-line pt-3", dar && "flex-col")}>

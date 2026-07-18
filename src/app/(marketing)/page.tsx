@@ -4,10 +4,10 @@ import {
   Fingerprint, GitBranch, Sparkles, Lock, Activity, Server, Layers, Star,
 } from "lucide-react";
 import { Badge, Highlight, Reveal } from "@/components/site/primitives";
-import { HeroGorsel, GhostFontGorsel, IzgaraArka } from "@/components/site/gorseller";
+import { HeroGorsel, GhostFontGorsel, IzgaraArka, UrunEkranGorseli, AiAjanKoruma } from "@/components/site/gorseller";
 import { GhostHero } from "@/components/site/GhostHero";
 import { AkisDiyagram, MimariSema } from "@/components/site/illustrasyonlar";
-import { AmblemliLogo } from "@/components/site/marka-logolari";
+import { MarkaLogo, GUVEN_MARKALARI } from "@/components/site/marka-logolari";
 import { Faq, SORULAR } from "@/components/site/Faq";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { MARKA } from "@/lib/marka";
@@ -22,6 +22,8 @@ export default function LandingPage() {
       <GhostFont />
       <HowItWorks />
       <Features />
+      <UrunOnizleme />
+      <AiKoruma />
       <Compare />
       <Testimonials />
       <Stats />
@@ -97,23 +99,15 @@ function Hero() {
 
 /* ============================================================ LOGO STRIP */
 function LogoStrip() {
-  const markalar: { ad: string; tip: "daire" | "kare" | "ucgen" | "altigen" | "yildiz" | "dalga" }[] = [
-    { ad: "Trendyol", tip: "dalga" },
-    { ad: "Getir", tip: "daire" },
-    { ad: "Hepsiburada", tip: "kare" },
-    { ad: "Insider", tip: "ucgen" },
-    { ad: "Armut", tip: "altigen" },
-    { ad: "Modanisa", tip: "yildiz" },
-  ];
   return (
     <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-10 lg:px-8">
       <div className="mx-auto max-w-6xl text-center">
         <p className="text-[13px] font-medium uppercase tracking-wider text-slate-400">
-          Türkiye&apos;nin ve dünyanın önde gelen ekipleri güveniyor
+          Kullandığınız yığınla sorunsuz çalışır
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          {markalar.map((m) => (
-            <AmblemliLogo key={m.ad} ad={m.ad} tip={m.tip} />
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
+          {GUVEN_MARKALARI.map((ad) => (
+            <MarkaLogo key={ad} ad={ad} />
           ))}
         </div>
       </div>
@@ -278,6 +272,86 @@ function Features() {
               </div>
             </Reveal>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================ ÜRÜN ÖNİZLEME */
+function UrunOnizleme() {
+  const noktalar = [
+    { ikon: Activity, baslik: "Canlı komuta merkezi", metin: "Her isteğin kararını gerçek zamanlı izle: izin, doğrula, engelle." },
+    { ikon: Bot, baslik: "AI ajan istihbaratı", metin: "GPTBot'tan Bytespider'a kadar her operatörü tek panelde yönet." },
+    { ikon: Gauge, baslik: "Milisaniye içgörü", metin: "48ms altında karar, 14 günlük trafik trendleri, ısı haritaları." },
+  ];
+  return (
+    <section className="relative overflow-hidden px-5 py-20 lg:px-8">
+      <div className="pointer-events-none absolute -left-32 top-20 -z-10 size-80 rounded-full bg-veylify-100/40 blur-3xl" />
+      <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <Badge variant="indigo">Ürünü gör</Badge>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
+            Tek panelden bütün bot trafiğin
+          </h2>
+          <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
+            İnsan mı, bot mu, hangi AI ajanı — her şey tek ekranda, canlı ve okunur.
+          </p>
+        </Reveal>
+        <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr]">
+          <Reveal>
+            <UrunEkranGorseli />
+          </Reveal>
+          <Reveal delay={1} className="flex flex-col gap-5">
+            {noktalar.map((n) => (
+              <div key={n.baslik} className="flex items-start gap-3.5 rounded-2xl border border-veylify-100 bg-white p-5 transition hover:border-veylify-200 hover:shadow-[0_18px_44px_-24px_rgba(79,70,229,0.3)]">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-veylify-50 text-veylify-600 ring-1 ring-veylify-100">
+                  <n.ikon className="size-5" />
+                </span>
+                <div>
+                  <h3 className="text-[15.5px] font-bold text-veylify-950">{n.baslik}</h3>
+                  <p className="mt-1 text-[13.5px] leading-relaxed text-slate-600">{n.metin}</p>
+                </div>
+              </div>
+            ))}
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================ AI-AJAN KORUMASI */
+function AiKoruma() {
+  return (
+    <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.15fr]">
+          <Reveal>
+            <Badge variant="indigo">AI ajan kataloğu</Badge>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
+              Her AI ajanına ayrı politika
+            </h2>
+            <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
+              GPTBot, ClaudeBot, Google-Extended, Bytespider — 15+ tanınan AI
+              crawler&apos;ı User-Agent ve TLS parmak iziyle doğrular. İzin ver,
+              doğrula ya da engelle; kararların tek tıkla gerçek robots.txt&apos;e döner.
+            </p>
+            <div className="mt-7 flex flex-col gap-3">
+              {[
+                "Model eğitimi crawler'larını engelle, aramayı serbest bırak",
+                "robots.txt'i yok sayan ajanları AKTİF olarak durdur",
+                "Tek tıkla hazır politika profilleri (sıkı / dengeli / açık)",
+              ].map((t) => (
+                <span key={t} className="flex items-start gap-2.5 text-[14px] text-slate-700">
+                  <Check className="mt-0.5 size-[18px] shrink-0 text-veylify-600" /> {t}
+                </span>
+              ))}
+            </div>
+          </Reveal>
+          <Reveal delay={1}>
+            <AiAjanKoruma />
+          </Reveal>
         </div>
       </div>
     </section>

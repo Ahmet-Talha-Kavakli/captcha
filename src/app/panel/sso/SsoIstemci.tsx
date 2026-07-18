@@ -49,6 +49,7 @@ import {
   useToast,
 } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { PlanKilit } from "@/components/panel/PlanKilit";
 import { TrendGrafik, DonutDagilim } from "@/components/panel/grafikler";
 import { Gauge } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
@@ -543,6 +544,22 @@ ${t("sso.spkod.oidc.yanit")}
       </Panel>
 
       {/* ---------------------------------------------- protokol seçimi */}
+      {kullanici.plan === "free" ? (
+        <PlanKilit
+          plan={kullanici.plan}
+          ozellik="sso"
+          gerekliPlan="scale"
+          aciklama="SSO / SAML kurumsal kimlik doğrulama Scale planında açılır. IdP bağlama, öznitelik eşleme ve SCIM sağlama için yükseltin."
+        >
+          <Panel baslik={t("sso.protokol.baslik")}>
+            <p className="mb-4 text-[13px] text-slate-muted">{t("sso.protokol.aciklama")}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="h-24 rounded-2xl border border-line bg-canvas/40" />
+              <div className="h-24 rounded-2xl border border-line bg-canvas/40" />
+            </div>
+          </Panel>
+        </PlanKilit>
+      ) : (
       <Panel baslik={t("sso.protokol.baslik")}>
         <p className="mb-4 text-[13px] text-slate-muted">
           {t("sso.protokol.aciklama")}
@@ -581,6 +598,7 @@ ${t("sso.spkod.oidc.yanit")}
           })}
         </div>
       </Panel>
+      )}
 
       {/* ---------------------------------------------- bağlantı yapılandırması */}
       <Panel baslik={config.protokol === "saml" ? t("sso.baglanti.saml") : t("sso.baglanti.oidc")}>

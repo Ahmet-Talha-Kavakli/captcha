@@ -27,39 +27,54 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 transition-all duration-300",
+        "sticky top-0 z-50 transition-all duration-300 relative",
+        // Apple "liquid glass": her zaman blur + yarı-saydam beyaz zemin;
+        // scroll'da daha opak + belirgin alt-border + yumuşak gölge.
         scrolled
-          ? "border-b border-veylify-100 bg-white/85 backdrop-blur-xl"
-          : "bg-transparent",
+          ? "border-b border-veylify-100/80 bg-white/70 shadow-[0_8px_30px_-12px_rgba(79,70,229,0.18)] backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/60"
+          : "border-b border-transparent bg-white/40 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-white/30",
       )}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 lg:px-8">
-        <Link href="/" className="flex items-center">
-          <Logo size={28} tone="dark" />
+      {/* üstte ince ışık çizgisi — cam kenarı hissi */}
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent transition-opacity duration-300",
+          scrolled ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <nav
+        className={cn(
+          "mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 transition-all duration-300 lg:px-8",
+          scrolled ? "py-3.5" : "py-5",
+        )}
+      >
+        <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
+          <Logo size={scrolled ? 30 : 34} tone="dark" />
         </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-0.5 md:flex">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-veylify-50 hover:text-veylify-700"
+              className="rounded-xl px-3.5 py-2.5 text-[15px] font-medium text-slate-600 transition hover:bg-veylify-50 hover:text-veylify-700"
             >
               {l.label}
             </Link>
           ))}
         </div>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2.5 md:flex">
           <Link
             href="/giris"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:text-veylify-700"
+            className="rounded-xl px-3.5 py-2.5 text-[15px] font-medium text-slate-600 transition hover:text-veylify-700"
           >
             Giriş
           </Link>
           <Link
             href="/kayit"
-            className="inline-flex items-center gap-1.5 rounded-full bg-veylify-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(79,70,229,0.6)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
+            className="inline-flex items-center gap-1.5 rounded-full bg-veylify-600 px-5 py-2.5 text-[15px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(79,70,229,0.6)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
           >
             Ücretsiz başla <ArrowRight className="h-4 w-4" />
           </Link>
@@ -75,7 +90,7 @@ export function Navbar() {
       </nav>
 
       {open && (
-        <div className="border-t border-veylify-100 bg-white px-5 py-4 md:hidden">
+        <div className="border-t border-veylify-100 bg-white/90 px-5 py-4 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-1">
             {LINKS.map((l) => (
               <Link

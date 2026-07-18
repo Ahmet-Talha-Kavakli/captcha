@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { PanelBaslik, Badge, Modal, Alan, Girdi, Alan2, Secim, Ilerleme, BosDurum, SatirMenu, useToast, Tablo, type Kolon } from "@/components/panel/kit";
 import { Toggle } from "@/components/panel/Toggle";
 import { Button } from "@/components/ui/Button";
+import { PlanKilit } from "@/components/panel/PlanKilit";
 import { DonutDagilim, MiniSpark } from "@/components/panel/grafikler";
 import { RULE_TEMPLATES, KATEGORI_ETIKET } from "@/lib/specter/rule-templates";
 import { AI_AJANLAR, AI_KATEGORI_ETIKET } from "@/lib/specter/ai-agents";
@@ -90,7 +91,7 @@ function kosulEtiket(field: string, op: string, value: string, t: (k: string) =>
 /** HTTP sürüm seçenekleri. */
 const HTTP_VERSIONS = ["h2", "h3", "http/1.1"];
 
-export function KurallarIstemci({ dil, sites, rules: ilk }: { dil: Dil; sites: { id: string; name: string }[]; rules: Rule[] }) {
+export function KurallarIstemci({ dil, sites, rules: ilk, plan = "pro" }: { dil: Dil; sites: { id: string; name: string }[]; rules: Rule[]; plan?: string }) {
   const router = useRouter();
   const { goster } = useToast();
   const t = (k: string) => kurallarCeviri(k, dil);
@@ -346,6 +347,11 @@ export function KurallarIstemci({ dil, sites, rules: ilk }: { dil: Dil; sites: {
         }
       />
 
+      <PlanKilit
+        plan={plan}
+        ozellik="kural_motoru"
+        aciklama="Gelişmiş kural motoru Pro planında açılır. Koşullu eylemler, öncelik sıralaması ve site-bazlı özel kurallar tanımlamak için yükseltin."
+      >
       <div className="flex items-center gap-2">
         <span className="text-[13px] text-slate-muted">{t("kr.site")}</span>
         <select aria-label={t("kr.siteSec")} value={siteFilter} onChange={(e) => setSiteFilter(e.target.value)} className="h-9 rounded-xl border border-line-strong bg-surface px-3 text-sm outline-none focus:border-brand-400">
@@ -419,6 +425,7 @@ export function KurallarIstemci({ dil, sites, rules: ilk }: { dil: Dil; sites: {
       )}
 
       {siteFilter !== "all" && <KuralPlayground siteId={siteFilter} kuralSayisi={filtreli.filter((r) => r.enabled).length} t={t} goster={goster} />}
+      </PlanKilit>
 
       <Modal acik={modal} kapat={() => setModal(false)} baslik={t("kr.modalBaslik")} aciklama={t("kr.modalAciklama")} genislik="max-w-xl">
         <div className="space-y-4">

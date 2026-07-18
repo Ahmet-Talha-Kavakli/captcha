@@ -84,6 +84,7 @@ export default async function GelistiriciPage() {
         sites={sites.map((s) => ({ id: s.id, name: s.name, siteKey: s.siteKey }))}
         istekLog={istekLog}
         ozet={{ aktifAnahtar, aylikCagri, teslimOrani, ortLatency, webhookSayi: webhooks.length }}
+        plan={user.plan}
       />
     </>
   );

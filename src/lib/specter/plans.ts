@@ -45,6 +45,50 @@ export function planTanim(plan: string): PlanTanim {
   return PLANLAR[(plan as Plan)] ?? PLANLAR.free;
 }
 
+/* ------------------------------------------------------------------ Özellik matrisi
+ * Premium özellik erişim tablosu. Tek kaynak: hangi plan hangi premium
+ * özelliği açar. UI kilitleri (PlanKilit) ve gerekirse sunucu zorlaması bunu
+ * kullanır. Not: temel koruma tüm planlarda vardır; burada YALNIZCA plana göre
+ * ayrışan premium özellikler listelenir. */
+export type PlanOzellik =
+  | "davranissal_analiz"   // gelişmiş davranışsal analiz
+  | "kural_motoru"         // gelişmiş kural motoru (kill-chain kuralları)
+  | "webhook"              // webhook & giden entegrasyon
+  | "api_erisim"           // public API anahtarları
+  | "sso"                  // SSO / SAML kurumsal kimlik
+  | "sla"                  // SLA garantisi
+  | "ozel_model";          // özel AI ajan modeli
+
+/** Her plan hangi premium özelliklere sahip. free = temel; pro = üretim; scale = kurumsal. */
+export const PLAN_OZELLIKLERI: Record<Plan, PlanOzellik[]> = {
+  free: [],
+  pro: ["davranissal_analiz", "kural_motoru", "webhook", "api_erisim"],
+  scale: ["davranissal_analiz", "kural_motoru", "webhook", "api_erisim", "sso", "sla", "ozel_model"],
+};
+
+/** İnsan-okur özellik etiketleri (kilit UI başlıkları için). */
+export const OZELLIK_ETIKET: Record<PlanOzellik, string> = {
+  davranissal_analiz: "Davranışsal analiz",
+  kural_motoru: "Gelişmiş kural motoru",
+  webhook: "Webhook & entegrasyon",
+  api_erisim: "API erişimi",
+  sso: "SSO / SAML",
+  sla: "SLA garantisi",
+  ozel_model: "Özel AI ajan modeli",
+};
+
+/** Bir plan verilen premium özelliğe sahip mi? */
+export function planOzellikVar(plan: string, ozellik: PlanOzellik): boolean {
+  return (PLAN_OZELLIKLERI[(plan as Plan)] ?? PLAN_OZELLIKLERI.free).includes(ozellik);
+}
+
+/** Bir özelliği açan EN DÜŞÜK plan (kilit UI'da "X planına yükselt" demek için). */
+export function ozellikGerekliPlan(ozellik: PlanOzellik): Plan {
+  if (PLAN_OZELLIKLERI.pro.includes(ozellik)) return "pro";
+  if (PLAN_OZELLIKLERI.scale.includes(ozellik)) return "scale";
+  return "pro";
+}
+
 /** Kullanım durumunu değerlendir: aşıldı mı, yakında mı, ne kadar kaldı. */
 export function kotaDurumu(kullanilan: number, plan: string): {
   kota: number;

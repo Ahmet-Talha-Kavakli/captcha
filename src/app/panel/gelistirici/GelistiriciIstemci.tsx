@@ -12,6 +12,7 @@ import {
   SatirMenu, useToast, NotKutusu, KodBlok, Tooltip, DurumRozeti,
 } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { PlanKilit } from "@/components/panel/PlanKilit";
 import { TrendGrafik, DonutDagilim, SkorCubugu, MiniSpark } from "@/components/panel/grafikler";
 import { Histogram, IsiMatris, Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
 import { cn } from "@/lib/cn";
@@ -347,9 +348,9 @@ function statusTon(s: number): "yesil" | "sari" | "kirmizi" | "gri" {
 /* ================================================================== Ana bileşen */
 
 export function GelistiriciIstemci({
-  dil, tokens: ilkTokens, webhooks: ilkWebhooks, sites, istekLog, ozet,
+  dil, tokens: ilkTokens, webhooks: ilkWebhooks, sites, istekLog, ozet, plan = "pro",
 }: {
-  dil: Dil; tokens: Token[]; webhooks: Wh[]; sites: SiteLite[]; istekLog: IstekKaydi[]; ozet: Ozet;
+  dil: Dil; tokens: Token[]; webhooks: Wh[]; sites: SiteLite[]; istekLog: IstekKaydi[]; ozet: Ozet; plan?: string;
 }) {
   const t: CevirFn = (anahtar) => gelCeviri(anahtar, dil);
   const router = useRouter();
@@ -398,7 +399,13 @@ export function GelistiriciIstemci({
         <AnahtarlarSekme tokens={tokens} setTokens={setTokens} router={router} goster={goster} t={t} dil={dil} />
       )}
       {sekme === "webhooks" && (
-        <WebhooksSekme webhooks={webhooks} setWebhooks={setWebhooks} sites={sites} router={router} goster={goster} t={t} dil={dil} />
+        <PlanKilit
+          plan={plan}
+          ozellik="webhook"
+          aciklama="Webhook & giden entegrasyonlar Pro planında açılır. Doğrulama olaylarını kendi sistemlerinize gerçek zamanlı iletmek için yükseltin."
+        >
+          <WebhooksSekme webhooks={webhooks} setWebhooks={setWebhooks} sites={sites} router={router} goster={goster} t={t} dil={dil} />
+        </PlanKilit>
       )}
       {sekme === "olaylar" && <OlaylarSekme istekLog={istekLog} t={t} dil={dil} />}
       {sekme === "referans" && <ReferansSekme t={t} />}

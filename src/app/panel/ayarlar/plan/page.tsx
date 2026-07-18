@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
-import { Usage, Sites, Team } from "@/lib/db/db";
+import { Usage, Sites, Team, Users } from "@/lib/db/db";
+import { KREDI_PAKETLERI } from "@/app/api/account/kredi/route";
 import { PanelUst } from "@/components/panel/PanelUst";
 import { AyarlarSekme } from "@/components/panel/AyarlarSekme";
 import { PlanIstemci } from "./PlanIstemci";
@@ -16,6 +17,23 @@ export default async function PlanPage() {
   const siteSayisi = Sites.forOwner(user.id).length;
   const ekipSayisi = Team.forOwner(user.id).filter((t) => t.status !== "invited").length;
 
+  // Kredi: bakiye + son hareketler (satın alma/tüketim). Backend hazır.
+  const krediBakiye = Users.krediBakiye(user.id);
+  const krediHareketler = Users.krediGecmis(user.id, 8).map((h) => ({
+    id: h.id,
+    tur: h.tur,
+    miktar: h.miktar,
+    aciklama: h.aciklama,
+    createdAt: h.createdAt,
+  }));
+  const krediPaketleri = KREDI_PAKETLERI.map((p) => ({
+    id: p.id,
+    ad: p.ad,
+    kredi: p.kredi,
+    fiyat: p.fiyat,
+    populer: "populer" in p ? !!p.populer : false,
+  }));
+
   return (
     <>
       <PanelUst kirintilar={[{ ad: "Ayarlar", href: "/panel/ayarlar" }, { ad: "Plan & Fatura" }]} baslik="Ayarlar" />
@@ -25,6 +43,7 @@ export default async function PlanPage() {
           <PlanIstemci
             plan={user.plan}
             kullanim={{ dogrulama, siteSayisi, ekipSayisi }}
+            kredi={{ bakiye: krediBakiye, hareketler: krediHareketler, paketler: krediPaketleri }}
           />
         </div>
       </div>

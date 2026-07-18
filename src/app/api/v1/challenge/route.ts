@@ -73,19 +73,28 @@ export async function POST(req: Request) {
   }
 
   // Aylık kota zorlaması: plan limitini kontrol et. Ücretsiz planda aşımda
-  // reddedilir (429 quota_exceeded); ücretli planda overage ile devam eder.
+  // reddedilir (429 quota_exceeded) — AMA kullanıcı kredi yüklediyse aşımı
+  // krediyle karşılar (kota dolsa bile koruma sürer). Ücretli planda overage.
   const sahip = Users.byId(site.ownerId);
   const durum = kotaDurumu(Usage.aylikIssued(site.ownerId), sahip?.plan ?? "free");
+  let krediKullanildi = false;
   if (durum.asildi && durum.asimDavranisi === "block") {
-    return NextResponse.json(
-      {
-        error: "Aylık doğrulama kotası doldu",
-        code: "quota_exceeded",
-        used: durum.kullanilan,
-        limit: durum.kota,
-      },
-      { status: 429, headers: { ...headers, "X-Veylify-Quota": "exceeded" } },
-    );
+    // Kredi ile karşılamayı dene (1 kredi = 1 doğrulama).
+    const krediSonuc = Users.krediHareket(site.ownerId, "tuketim", -1, "Kota aşımı — ek doğrulama");
+    if (krediSonuc) {
+      krediKullanildi = true;
+    } else {
+      return NextResponse.json(
+        {
+          error: "Aylık doğrulama kotası doldu",
+          code: "quota_exceeded",
+          used: durum.kullanilan,
+          limit: durum.kota,
+          hint: "Planı yükseltin veya kredi yükleyin.",
+        },
+        { status: 429, headers: { ...headers, "X-Veylify-Quota": "exceeded" } },
+      );
+    }
   }
 
   // Kullanımı say (gerçek ölçüm — panel/fatura bu sayaçtan beslenir).

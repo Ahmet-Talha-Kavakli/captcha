@@ -21,6 +21,7 @@ export default async function KurallarPage() {
       <PanelUst kirintilar={[{ ad: ceviri("nav.rules", dil) }]} baslik={kurallarCeviri("kr.baslik", dil)} />
       <KurallarIstemci
         dil={dil}
+        plan={user.plan}
         sites={sites.map((s) => ({ id: s.id, name: s.name }))}
         rules={rules.map((r) => ({
           id: r.id, siteId: r.siteId, name: r.name, description: r.description, enabled: r.enabled,
