@@ -314,6 +314,20 @@ async function main() {
   const chYon = await (await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: monSite.siteKey }) })).json();
   check("challengeType=yon → challenge 'yon' türünde gelir", chYon.params?.type === "yon");
 
+  // 18e) SİTE-SAHİBİ ÖZEL RATE-LİMİT — site.rateLimit ayarı IP-başı enforce edilmeli.
+  const rlEmail = `rl${Date.now()}@x.dev`;
+  const rlReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: rlEmail, name: "U", password: "test1234" }) });
+  const rlJar = (rlReg.headers.get("set-cookie") || "").split(";")[0];
+  const { site: rlSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: rlJar }, body: JSON.stringify({ name: "rl.com", domains: "localhost" }) })).json();
+  await fetch(`${BASE}/api/sites/${rlSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: rlJar }, body: JSON.stringify({ rateLimit: 5 }) });
+  const rlKodlar = [];
+  for (let i = 0; i < 8; i++) {
+    const r = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "88.77.66.55" }, body: JSON.stringify({ siteKey: rlSite.siteKey }) });
+    rlKodlar.push(r.status);
+  }
+  check("Site-sahibi özel rate-limit (5/dk) → 5×200 sonra 429 (ayar enforce edilir)",
+    rlKodlar.filter((c) => c === 200).length === 5 && rlKodlar.filter((c) => c === 429).length === 3);
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;

@@ -64,14 +64,19 @@ export async function POST(req: Request) {
 
   const headers = cors(origin, site.domains);
 
-  // Rate limit — İKİ KADEMELİ (DoS koruması):
+  // Rate limit — İKİ KADEMELİ (DoS koruması) + SİTE-SAHİBİ ÖZEL LİMİTİ:
   // 1) IP+site başına 60/dk: bir saldırgan yalnızca KENDİ IP'sini kilitler;
   //    meşru kullanıcılar etkilenmez. (Site-geneli tek anahtar kullanmak tek bir
   //    saldırgana tüm sitenin challenge servisini kilitleme imkânı verirdi.)
   // 2) Site geneli 1200/dk: aşırı dağıtık kötüye-kullanıma karşı üst tavan.
+  // 3) site.rateLimit: site sahibinin panelden belirlediği IP-başı dk limiti.
+  //    Daha önce bu ayar HİÇ enforce edilmiyordu (schema'da vardı, süstü).
+  //    Belirlendiyse (>0) IP-başı limit onun değeri olur (DoS tabanı yerine);
+  //    belirlenmediyse taban 60 (görünmez DoS koruması) geçerli kalır.
   const ipErken = extractMeta(req).ip;
-  const rlIp = rateLimit(`chal:${site.id}:${ipErken}`, 60, 60_000);
-  const rlSite = rateLimit(`chal:${site.id}`, 1200, 60_000);
+  const ipLimit = site.rateLimit && site.rateLimit > 0 ? site.rateLimit : 60;
+  const rlIp = rateLimit(`chal:${site.id}:${ipErken}`, ipLimit, 60_000);
+  const rlSite = rateLimit(`chal:${site.id}`, Math.max(1200, ipLimit * 20), 60_000);
   if (!rlIp.ok || !rlSite.ok) {
     return NextResponse.json(
       { error: "Çok fazla istek, biraz bekleyin" },
