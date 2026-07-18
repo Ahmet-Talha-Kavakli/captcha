@@ -19,8 +19,9 @@ import { signToken, secureSeed, randomNonce, type TokenPayload } from "@/lib/spe
 import { originIzinli } from "@/lib/specter/origin-esles";
 import { powZorluk, TABAN_ZORLUK_BIT } from "@/lib/specter/proof-of-work";
 import { kotaDurumu } from "@/lib/specter/plans";
-import { extractMeta } from "@/lib/specter/request-meta";
-import { IpRep } from "@/lib/db/db";
+import { extractMeta, classifyUA } from "@/lib/specter/request-meta";
+import { IpRep, Events } from "@/lib/db/db";
+import { fingerprintUret } from "@/lib/specter/fingerprint";
 import { tehditBeslemeEslestir } from "@/lib/specter/threat-feed";
 
 const CHALLENGE_TTL_MS = 2 * 60 * 1000;
@@ -138,7 +139,15 @@ export async function POST(req: Request) {
   const itibarOlasilik = ipItibar ? Math.min(1, ipItibar.threatScore / 100) : 0;
   const besleme = tehditBeslemeEslestir(meta.ip, meta.asn);
   const beslemeOlasilik = besleme.eslesti ? besleme.maxGuven : 0;
-  const botOlasilik = Math.max(itibarOlasilik, beslemeOlasilik);
+  //   3) BOTNET KORELASYONU: bu isteğin cihaz-profilini (fingerprint) kaç farklı
+  //      IP paylaşıyor? Çok IP tek fingerprint = botnet imzası. Her IP tek başına
+  //      "temiz" görünse bile küme geneli yüksek risktir → PoW maliyeti artar.
+  //      3 IP eşiği altı yok say (meşru NAT/paylaşımlı cihaz gürültüsü); üstünde
+  //      logaritmik yüksel (5→~0.35, 10→~0.5, 30→~0.75), tavan 0.85.
+  const fpBu = fingerprintUret(meta.ua, classifyUA(meta.ua), meta.ip).ja3.slice(0, 8);
+  const paylasanIp = Events.fingerprintPaylasanIp(site.id, fpBu);
+  const botnetOlasilik = paylasanIp >= 3 ? Math.min(0.85, Math.log2(paylasanIp) / 6) : 0;
+  const botOlasilik = Math.max(itibarOlasilik, beslemeOlasilik, botnetOlasilik);
   const pow = powZorluk(botOlasilik);
   const powBit = pow.hedefBit;
 

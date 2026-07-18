@@ -551,6 +551,31 @@ async function main() {
   check("IP itibar öğrenmesi: tekrar bloklanan IP'nin PoW zorluğu artar (adaptif caydırıcılık)",
     sonPow > ilkPow);
 
+  // ---- BOTNET KORELASYONU → POW ESKALASYONU ----
+  // Aynı cihaz-profilini (fingerprint) paylaşan ÇOK IP = botnet. Her IP tek
+  // başına "temiz" olsa bile küme tespit edilir → yeni bir botnet-üyesi IP
+  // yüksek PoW alır. Kaynak: fingerprint IP-bağımsız ja3 + Events.fingerprintPaylasanIp
+  // + challenge botnetOlasilik.
+  const HEADLESS_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/121 Safari/537.36";
+  const chFp = (ip) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public" });
+    const req = http.request(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "x-forwarded-for": ip, "User-Agent": HEADLESS_UA } }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  const verFp = (ip, token) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", token, input: "x", signals: {} });
+    const req = http.request(`${BASE}/api/v1/verify`, { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "x-forwarded-for": ip, "User-Agent": HEADLESS_UA } }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => resolve()); });
+    req.on("error", () => resolve());
+    req.end(body);
+  });
+  // 10 farklı IP aynı headless fingerprint → botnet oluştur.
+  for (let i = 1; i <= 10; i++) { const c = await chFp(`91.202.14.${i}`); await verFp(`91.202.14.${i}`, c.token); }
+  // Yeni IP, aynı fingerprint → botnet-üyesi olduğu için yüksek PoW.
+  const botnetCh = await chFp("91.202.14.200");
+  check("Botnet korelasyonu: tek fingerprint'i paylaşan çok IP → yeni üye yüksek PoW alır",
+    (botnetCh.pow?.hedefBit ?? 0) > 16);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

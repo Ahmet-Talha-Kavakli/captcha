@@ -621,6 +621,24 @@ export const Events = {
     // Kaynak ekleme (ts) sıralı; eşikten yeni olanları al, en yeni önce.
     return src.filter((e) => e.ts >= esik).reverse();
   },
+  /**
+   * BOTNET GÖSTERGESİ: bir site'ın son `limit` olayında, verilen fingerprint'i
+   * kaç FARKLI IP kullanmış? Yüksek sayı = tek bir cihaz-profilini (fingerprint)
+   * paylaşan çok IP = klasik botnet imzası. Challenge PoW zorluğuna beslenir:
+   * botnet-üyesi IP her IP'si "temiz görünse" bile küme geneli yüksek risktir.
+   * Hafif — yalnızca son `limit` olayı tarar (challenge sıcak yolunda ucuz).
+   */
+  fingerprintPaylasanIp(siteId: string, fingerprint: string, limit = 400): number {
+    if (!fingerprint) return 0;
+    const arr = eventsBySite(load()).get(siteId);
+    if (!arr) return 0;
+    const ipler = new Set<string>();
+    const bas = Math.max(0, arr.length - limit);
+    for (let i = arr.length - 1; i >= bas; i--) {
+      if (arr[i].fingerprint === fingerprint) ipler.add(arr[i].ip);
+    }
+    return ipler.size;
+  },
   add(ev: Omit<BotEvent, "id">): BotEvent {
     const db = load();
     const full: BotEvent = { ...ev, id: id("ev") };

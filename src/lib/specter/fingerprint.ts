@@ -6,9 +6,11 @@
  * (JA3/JA4, HTTP sürümü, headless bayrağı, TLS-UA uyumsuzluğu, header
  * anomalisi) taklit eder — bunlar olay detayında derinlemesine gösterilir.
  *
- * NOT: Değerler deterministiktir (aynı UA+ip → aynı parmak izi), böylece
- * aynı bot tutarlı bir imza taşır. Gerçek üründe bu veriler TLS el sıkışma
- * ve HTTP/2 çerçeve analizinden gelir; burada onları modelliyoruz.
+ * NOT: Değerler deterministiktir. ja3 (TLS parmak izi) GERÇEK dünyada olduğu
+ * gibi IP'DEN BAĞIMSIZ, yalnızca istemci yazılımına (UA) bağlıdır — böylece aynı
+ * araç/headless-tarayıcıyı kullanan FARKLI IP'ler AYNI ja3'ü taşır ve botnet
+ * korelasyonu (tek fingerprint'i paylaşan çok IP) çalışır. Gerçek üründe bu
+ * veriler TLS el sıkışma ve HTTP/2 çerçeve analizinden gelir; burada modelliyoruz.
  */
 
 export interface FingerprintProfil {
@@ -56,6 +58,12 @@ const TARAYICI_JA3: Record<string, string> = {
 export function fingerprintUret(ua: string, botClass: string, ip: string): FingerprintProfil {
   const u = (ua || "").toLowerCase();
   const seed = ua + "|" + ip;
+  // ja3 (TLS parmak izi) GERÇEK dünyada IP'DEN BAĞIMSIZDIR — istemci yazılımına
+  // (TLS stack) özgüdür. Modellemede de ja3 seed'i YALNIZCA UA'dan türetilir;
+  // böylece aynı araç/headless-tarayıcı → AYNI ja3 → botnet korelasyonu (tek
+  // fingerprint'i paylaşan çok IP) çalışır. IP-bağımlı varyasyon isteyen alanlar
+  // (headerAnomali) `seed`'i (IP dahil) kullanmaya devam eder.
+  const ja3Seed = u; // sadece UA — IP yok
   const sinyaller: string[] = [];
   const automationFlags: string[] = [];
 
@@ -76,7 +84,7 @@ export function fingerprintUret(ua: string, botClass: string, ip: string): Finge
     // HTTP kütüphanesi: tarayıcı değil. TLS parmak izi araç imzası taşır.
     engine = "None";
     httpVersion = u.includes("go-http") ? "h2" : "http/1.1";
-    ja3 = hexHash("tool:" + seed, 32);
+    ja3 = hexHash("tool:" + ja3Seed, 32);
     tlsUaUyumsuz = u.includes("mozilla"); // UA tarayıcı taklidi ama TLS araç
     headerAnomali = 0.55 + (hash32(seed) % 40) / 100;
     sinyaller.push("Tarayıcı olmayan TLS imzası (HTTP kütüphanesi)");
@@ -85,7 +93,7 @@ export function fingerprintUret(ua: string, botClass: string, ip: string): Finge
   } else if (isHeadless) {
     engine = "Blink (headless)";
     httpVersion = "h2";
-    ja3 = hexHash("headless:" + seed, 32);
+    ja3 = hexHash("headless:" + ja3Seed, 32);
     tlsUaUyumsuz = false;
     headerAnomali = 0.4 + (hash32(seed) % 35) / 100;
     sinyaller.push("Headless tarayıcı imzası tespit edildi");
@@ -94,7 +102,7 @@ export function fingerprintUret(ua: string, botClass: string, ip: string): Finge
   } else if (isAiCrawler) {
     engine = "None (crawler)";
     httpVersion = "h2";
-    ja3 = hexHash("ai:" + seed, 32);
+    ja3 = hexHash("ai:" + ja3Seed, 32);
     headerAnomali = 0.25 + (hash32(seed) % 20) / 100;
     sinyaller.push("İlan edilmiş AI ajan User-Agent");
     sinyaller.push("Robots-uyumlu tarama deseni");
@@ -112,7 +120,7 @@ export function fingerprintUret(ua: string, botClass: string, ip: string): Finge
     sinyaller.push("Tutarlı Firefox/Gecko TLS parmak izi");
   } else {
     engine = "Bilinmiyor";
-    ja3 = hexHash("unknown:" + seed, 32);
+    ja3 = hexHash("unknown:" + ja3Seed, 32);
     headerAnomali = 0.3;
     sinyaller.push("Sınıflandırılamayan istemci imzası");
   }
