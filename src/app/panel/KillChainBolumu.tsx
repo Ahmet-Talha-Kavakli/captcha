@@ -268,7 +268,7 @@ function onerilenAksiyon(z: SaldirganZincir): { baslik: string; aciklama: string
 }
 
 /** Genişleyen detay: adım-adım zaman çizelgesi + IP istihbaratı + önerilen aksiyon. */
-function ZincirDetay({ zincir, siteId }: { zincir: SaldirganZincir; siteId: string | null }) {
+function ZincirDetay({ zincir, siteId, zatenEngelli }: { zincir: SaldirganZincir; siteId: string | null; zatenEngelli: boolean }) {
   const [kopyalandi, setKopyalandi] = useState(false);
   const aksiyon = onerilenAksiyon(zincir);
   const aksiyonTon =
@@ -401,14 +401,20 @@ function ZincirDetay({ zincir, siteId }: { zincir: SaldirganZincir; siteId: stri
           </div>
           <p className="text-[11.5px] leading-relaxed opacity-90">{aksiyon.aciklama}</p>
 
-          {/* GERÇEK AKSİYON: tek tıkla bu IP'yi engelle (kural motoruna block kuralı) */}
+          {/* GERÇEK AKSİYON: tek tıkla bu IP'yi engelle — zaten engelliyse rozet göster */}
           {siteId && (
             <div className="mt-3">
-              <IpEngelleButonu
-                ip={zincir.ip}
-                siteId={siteId}
-                aciklama={`Kill-Chain'den engellendi — ${ASAMA_TANIM[zincir.ilerlemeAsama].ad} aşamasına ulaşan saldırgan.`}
-              />
+              {zatenEngelli ? (
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-ok-soft px-2.5 py-1.5 text-[12px] font-semibold text-green-700 ring-1 ring-inset ring-green-300">
+                  <ShieldCheck className="size-3.5" /> Bu IP zaten engelli
+                </span>
+              ) : (
+                <IpEngelleButonu
+                  ip={zincir.ip}
+                  siteId={siteId}
+                  aciklama={`Kill-Chain'den engellendi — ${ASAMA_TANIM[zincir.ilerlemeAsama].ad} aşamasına ulaşan saldırgan.`}
+                />
+              )}
             </div>
           )}
         </div>
@@ -426,6 +432,7 @@ function ZincirSatir({
   acik,
   onToggle,
   siteId,
+  zatenEngelli,
 }: {
   zincir: SaldirganZincir;
   azHareket: boolean;
@@ -433,6 +440,7 @@ function ZincirSatir({
   acik: boolean;
   onToggle: () => void;
   siteId: string | null;
+  zatenEngelli: boolean;
 }) {
   const tehdit = TEHDIT_TANIM[zincir.tehdit];
   const durduruldu = zincir.durduruldu;
@@ -513,7 +521,7 @@ function ZincirSatir({
             transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <ZincirDetay zincir={zincir} siteId={siteId} />
+            <ZincirDetay zincir={zincir} siteId={siteId} zatenEngelli={zatenEngelli} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -528,12 +536,15 @@ export function KillChainBolumu({
   ozet,
   azHareket,
   siteId = null,
+  engelliIpler = [],
 }: {
   zincirler: SaldirganZincir[];
   ozet: KillChainOzet;
   azHareket: boolean;
   siteId?: string | null;
+  engelliIpler?: string[];
 }) {
+  const engelliSet = useMemo(() => new Set(engelliIpler), [engelliIpler]);
   // Açık drill-down zinciri (IP) + tehdit-seviyesi filtresi (null = hepsi).
   const [acikIp, setAcikIp] = useState<string | null>(null);
   const [filtre, setFiltre] = useState<SaldirganZincir["tehdit"] | null>(null);
@@ -777,6 +788,7 @@ export function KillChainBolumu({
                   acik={acikIp === z.ip}
                   onToggle={() => setAcikIp(acikIp === z.ip ? null : z.ip)}
                   siteId={siteId}
+                  zatenEngelli={engelliSet.has(z.ip)}
                 />
               ))}
             </div>

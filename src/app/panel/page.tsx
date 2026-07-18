@@ -172,6 +172,11 @@ export default async function PanelAnaSayfa() {
   // Kill-chain (saldırgan başına 6-aşama zincir) + özet.
   const killZincirler = killChainCikar(anomaliOlaylar, 40);
   const killOzet = killChainOzet(killZincirler);
+  // Halihazırda IP-engel kuralıyla bloklanmış IP'ler (dashboard aksiyonu bunu
+  // gösterir: analist zaten engelli bir IP'yi tekrar engellemeye çalışmaz).
+  const engelliIpler = rules
+    .filter((r) => r.enabled && r.field === "ip" && r.op === "eq" && r.action === "block")
+    .map((r) => r.value);
 
   // İlişki grafiği (aynı fingerprint/ASN paylaşan IP'ler → botnet kümeleri).
   const iliskiGraf = iliskiGrafigi(anomaliOlaylar);
@@ -323,6 +328,7 @@ export default async function PanelAnaSayfa() {
         ekonomi={ekonomi}
         killZincirler={killZincirler}
         killOzet={killOzet}
+        engelliIpler={engelliIpler}
         korelasyonlar={korelasyonlar}
         korOzet={korOzet}
         iliskiGraf={iliskiGraf}

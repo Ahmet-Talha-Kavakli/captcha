@@ -108,6 +108,7 @@ interface Props {
   ekonomi: BotEkonomiRaporu;
   killZincirler: SaldirganZincir[];
   killOzet: KillChainOzet;
+  engelliIpler: string[];
   korelasyonlar: Korelasyon[];
   korOzet: KorelasyonOzet;
   iliskiGraf: GrafSonuc;
@@ -159,7 +160,7 @@ export function GenelBakisIstemci({
   dil, ad, planAd, kullanilan, kota, ozet, sayilar, onboarding, events, campaigns,
   anomaliler, icgoru, trendBlok, trendVerilen, trendEtiket, moduller, baslicaSaldirgan, aktifOlay, skorSonuc,
   durus, yuzey, nabiz, cografya, savunma, aiRadar,
-  brifing24, brifing7, brifing30, roi, ekonomi, killZincirler, killOzet, korelasyonlar, korOzet, iliskiGraf,
+  brifing24, brifing7, brifing30, roi, ekonomi, killZincirler, killOzet, engelliIpler, korelasyonlar, korOzet, iliskiGraf,
   aktorSonuc, niyetGenel, niyetSaldirgan, niyetOzeti, zamanIncidentler, zamanOzeti,
   tlsSonuc, savunmaKatman, otoBosluklar, otoRapor, otoSiteId,
   apiAbuse, kalibrasyon, federe,
@@ -447,7 +448,7 @@ export function GenelBakisIstemci({
 
       {/* SALDIRI KILL-CHAIN — saldırgan başına 6-aşama zincir + Specter'ın kesişi */}
       <motion.div {...bolum((bolumSira++) * 0.06)}>
-        <KillChainBolumu zincirler={killZincirler} ozet={killOzet} azHareket={!!azHareket} siteId={otoSiteId} />
+        <KillChainBolumu zincirler={killZincirler} ozet={killOzet} azHareket={!!azHareket} siteId={otoSiteId} engelliIpler={engelliIpler} />
       </motion.div>
 
       {/* OLAY KORELASYONU (SIEM) — ilişkili olayları saldırı kampanyalarına gruplar */}
