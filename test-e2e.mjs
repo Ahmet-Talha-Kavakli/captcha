@@ -206,6 +206,28 @@ async function main() {
   check("Gerçek insan (webdriver:false, iyi davranış) → görünmez geçer",
     gercekInsan.passed === true);
 
+  // 15) MEŞRU ARAMA BOTU — CIDR doğrulamalı allowlist.
+  // Googlebot/Bingbot davranış sinyali üretmez; challenge'a düşerse müşterinin
+  // SEO'su bozulur. UA + kaynak IP'nin operatör CIDR'inde olması BİRLİKTE
+  // doğrulanır: gerçek Googlebot geçer, UA'yı taklit eden sahte bot geçemez.
+  const gercekGooglebot = await (await fetch(`${BASE}/api/v1/passive`, {
+    method: "POST", headers: { "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "x-forwarded-for": "66.249.66.1" },
+    body: JSON.stringify({ siteKey: DEMO, signals: {} }),
+  })).json();
+  check("Gerçek Googlebot (Google CIDR) → görünmez geçer (SEO korunur)",
+    gercekGooglebot.passed === true);
+
+  const sahteGooglebot = await (await fetch(`${BASE}/api/v1/passive`, {
+    method: "POST", headers: { "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "x-forwarded-for": "45.11.22.33" },
+    body: JSON.stringify({ siteKey: DEMO, signals: {} }),
+  })).json();
+  check("Sahte Googlebot (UA taklidi, yanlış IP) → geçemez",
+    sahteGooglebot.passed === false);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

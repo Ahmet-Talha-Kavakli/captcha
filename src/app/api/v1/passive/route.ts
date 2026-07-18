@@ -19,6 +19,7 @@ import { Rules } from "@/lib/db/db";
 import { aiAjanTespit } from "@/lib/specter/ai-agents";
 import { fingerprintUret } from "@/lib/specter/fingerprint";
 import { tehditBeslemeEslestir } from "@/lib/specter/threat-feed";
+import { aramaBotuDegerlendir } from "@/lib/specter/arama-botu";
 import type { Verdict } from "@/lib/db/schema";
 
 function cors(origin: string | null): Record<string, string> {
@@ -71,6 +72,15 @@ export async function POST(req: Request) {
   });
   if (evalRes.matched.length) Rules.bumpHits(evalRes.matched.map((m) => m.ruleId));
 
+  // MEŞRU ARAMA BOTU: Googlebot/Bingbot gibi klasik arama motoru botları
+  // davranış sinyali üretmez → aksi halde challenge'a düşer ve müşterinin SEO'su
+  // zarar görür. UA imzası + kaynak IP'nin operatörün RESMİ CIDR bloğunda olması
+  // BİRLİKTE doğrulanır (UA taklidi yeterli değil; sahte Googlebot geçemez).
+  // Doğrulanmış arama botu → davranış eşiğini bypass eder (AI "izin" gibi), ama
+  // otomasyon vetosu + tehdit beslemesi + block kuralı yine geçerli kalır.
+  const aramaBotu = aramaBotuDegerlendir(meta.ua, meta.ip);
+  const dogrulanmisAramaBotu = aramaBotu.eslesti && aramaBotu.dogrulandi;
+
   // AI Ajan politikası: istek bilinen bir AI crawler'dan geliyorsa, site
   // sahibinin bu ajan için belirlediği politikayı uygula (izin/doğrula/engelle).
   // Belirtilmemişse Veylify'ın önerilen varsayılanı geçerli.
@@ -112,7 +122,10 @@ export async function POST(req: Request) {
   // bir crawler değil, dürüst UA ile gelir; yine de veto güvenlik için kalır).
   const otomasyonKaniti = signals.webdriver === true || fpKural.headless === true;
 
-  const davranisGecti = aiIzin || behavior.score >= invisibleEsik;
+  // Doğrulanmış arama botu VEYA "izin"li AI ajanı davranış eşiğinden muaftır
+  // (ikisi de fare/klavye üretmez). Yine de kural-block, tehdit-beslemesi ve
+  // otomasyon vetosu geçerli — meşru bir arama botu bunları zaten tetiklemez.
+  const davranisGecti = aiIzin || dogrulanmisAramaBotu || behavior.score >= invisibleEsik;
   const gecti = davranisGecti && !kuralEngeli && !aiEngeli && !beslemeEngeli && !otomasyonKaniti;
 
   const now = Date.now();
