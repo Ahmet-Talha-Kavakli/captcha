@@ -328,6 +328,28 @@ async function main() {
   check("Site-sahibi özel rate-limit (5/dk) → 5×200 sonra 429 (ayar enforce edilir)",
     rlKodlar.filter((c) => c === 200).length === 5 && rlKodlar.filter((c) => c === 429).length === 3);
 
+  // 18f) SİTE AKTİF/PASİF — pasif site challenge servisi vermemeli.
+  const actEmail = `act${Date.now()}@x.dev`;
+  const actReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: actEmail, name: "U", password: "test1234" }) });
+  const actJar = (actReg.headers.get("set-cookie") || "").split(";")[0];
+  const { site: actSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ name: "act.com", domains: "localhost" }) })).json();
+  const actOn = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: actSite.siteKey }) });
+  check("Aktif site → challenge 200", actOn.status === 200);
+  await fetch(`${BASE}/api/sites/${actSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ active: false }) });
+  const actOff = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: actSite.siteKey }) });
+  check("Pasif site → challenge 403 (koruma kapalı gerçekten enforce edilir)", actOff.status === 403);
+
+  // 18g) ENTEGRASYON TESLİMATI — Slack/Discord webhook gerçek HTTP POST atmalı.
+  let intAlinan = null;
+  const intSrv = http.createServer((rq, rs) => { let b = ""; rq.on("data", (c) => (b += c)); rq.on("end", () => { intAlinan = b; rs.writeHead(200); rs.end("ok"); }); });
+  await new Promise((r) => intSrv.listen(9862, r));
+  const intAdd = await (await fetch(`${BASE}/api/integrations`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ tur: "slack", hedef: "http://127.0.0.1:9862/s", ad: "Slack", olaylar: ["bot.blocked"] }) })).json();
+  check("Entegrasyon (Slack) bağlandı", !!intAdd.integration?.id);
+  await fetch(`${BASE}/api/integrations`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ id: intAdd.integration.id, action: "test" }) });
+  await new Promise((r) => setTimeout(r, 1000));
+  intSrv.close();
+  check("Entegrasyon test → gerçek HTTP POST teslim edildi (yakında değil)", !!intAlinan);
+
   // 19) WEBHOOK TESLİMATI — bot engellenince müşteri backend'ine imzalı POST.
   // Local alıcı sunucu kur, webhook kaydet, bot engelle, POST + HMAC imza gelsin.
   let whAlinan = null;
