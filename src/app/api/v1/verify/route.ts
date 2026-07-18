@@ -229,6 +229,28 @@ export async function POST(req: Request) {
   if (signals.powNonce !== undefined) basariliHitler.push("pow");
   if (tutarlilik.karar === "sahte") basariliHitler.push("tutarlilik");
 
+  // ── SAHTE-TARAYICI VETOSU ───────────────────────────────────────────
+  // UA-JS çapraz doğrulaması "sahte" dediyse (ör. UA "Chrome" ama window.chrome
+  // yok + deviceMemory yok + SwiftShader WebGL = spoof), DOĞRU CEVABA ve iyi fare
+  // sinyaline RAĞMEN geçiş reddedilir. UA sahtekârlığı zaten kötü-niyet kanıtıdır;
+  // bir bot tarayıcı kimliğini yalanlıyorsa güvenilmez. (passive'deki otomasyon
+  // vetosuyla simetrik — daha önce verify'da bu yalnızca kural motoruna sinyaldi,
+  // kural yoksa sahte-tarayıcı geçiyordu.) Monitor modda engellemez, işaretler.
+  if (tutarlilik.karar === "sahte") {
+    if (site.mode === "monitor") {
+      logEvent(site.id, req, "flagged", outcome.score, ["Sahte tarayıcı (UA-JS uyumsuz)"], basariliHitler, fp.ja3.slice(0, 8), t0);
+      return NextResponse.json(
+        { success: true, monitor: true, wouldBlock: true, reason: "spoofed_browser", score: outcome.score },
+        { status: 200, headers },
+      );
+    }
+    logEvent(site.id, req, "blocked", outcome.score, ["Sahte tarayıcı (UA-JS uyumsuz)"], basariliHitler, fp.ja3.slice(0, 8), t0);
+    return NextResponse.json(
+      { success: false, reason: "spoofed_browser", kanit: tutarlilik.enGucluKanit, score: outcome.score },
+      { status: 200, headers },
+    );
+  }
+
   // MONITOR MODU: "sadece izle" — kural block dese bile kullanıcı ENGELLENMEZ.
   // Olay yine de GERÇEK verdict'iyle loglanır (istihbarat/rapor için "bu istek
   // block modda engellenirdi"), ama isteğe success döner. Yeni kurulumlarda

@@ -113,6 +113,17 @@ async function main() {
   })).json();
   check("Bot (doğru cevap ama davranış yok) → engellendi", botVer.success === false && botVer.reason === "low_behavior_score");
 
+  // 6b) SAHTE-TARAYICI VETOSU — UA-JS uyumsuz (spoof) doğru cevaba+iyi fareye
+  // rağmen geçememeli; gerçek tutarlı tarayıcı geçmeli (false-positive yok).
+  const spoofSig = { ...goodSignals, chromeNesnesi: false, deviceMemory: 0, hardwareConcurrency: 1, webglRenderer: "SwiftShader" };
+  const chSpoof = await (await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: site.siteKey }) })).json();
+  const spoofVer = await (await fetch(`${BASE}/api/v1/verify`, { method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/120.0.0.0" }, body: JSON.stringify({ siteKey: site.siteKey, token: chSpoof.token, input: deriveAnswer(chSpoof.params.seed, chSpoof.params.length), signals: spoofSig }) })).json();
+  check("Sahte tarayıcı (UA 'Chrome' ama JS uyumsuz) → spoofed_browser reddi", spoofVer.success === false && spoofVer.reason === "spoofed_browser");
+  const realSig = { ...goodSignals, chromeNesnesi: true, deviceMemory: 8, hardwareConcurrency: 8, webglRenderer: "Intel Iris" };
+  const chReal = await (await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: site.siteKey }) })).json();
+  const realVer = await (await fetch(`${BASE}/api/v1/verify`, { method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/120.0.0.0" }, body: JSON.stringify({ siteKey: site.siteKey, token: chReal.token, input: deriveAnswer(chReal.params.seed, chReal.params.length), signals: realSig }) })).json();
+  check("Gerçek tutarlı Chrome → geçer (spoof vetosu false-positive yapmaz)", realVer.success === true);
+
   // 7) Yanlış cevap → reddedilmeli
   const chal3 = await (await fetch(`${BASE}/api/v1/challenge`, {
     method: "POST", headers: { "Content-Type": "application/json" },
