@@ -659,6 +659,49 @@ export const IpRep = {
       .sort((a, b) => b.ts - a.ts)
       .slice(0, limit);
   },
+  /**
+   * GERÇEK ÖĞRENME: bir IP her istekte gözlemlenir. Bloklanan/işaretlenen istek
+   * threatScore'u yükseltir, temiz geçiş yavaşça düşürür. Böylece tekrar saldıran
+   * bir IP'nin itibarı runtime'da bozulur → challenge/PoW zorluğu adaptif olarak
+   * artar (ekonomik caydırıcılık). Kayıt yoksa ilk gözlemde oluşturulur.
+   * @param bloklandi verdict "blocked" | "flagged" ise true.
+   */
+  gozlemle(ip: string, meta: { country?: string; asn?: string; bloklandi: boolean }): void {
+    if (!ip || ip === "127.0.0.1") return; // yerel/boş IP itibar tutma
+    const db = load();
+    const now = Date.now();
+    let r = db.ipReputation.find((x) => x.ip === ip);
+    if (!r) {
+      r = {
+        ip, country: meta.country ?? "—", asn: meta.asn ?? "AS0 Unknown",
+        threatScore: 0, category: "clean", firstSeen: now, lastSeen: now,
+        requests: 0, blocked: 0,
+      };
+      db.ipReputation.push(r);
+    }
+    r.requests += 1;
+    r.lastSeen = now;
+    if (meta.country && r.country === "—") r.country = meta.country;
+    if (meta.bloklandi) {
+      r.blocked += 1;
+      // Bloklama itibarı hızlı yükseltir (+8, tavan 100); tekrarlayan saldırgan
+      // hızla "malicious" olur → sonraki challenge'ları zorlaşır.
+      r.threatScore = Math.min(100, r.threatScore + 8);
+    } else {
+      // Temiz geçiş itibarı yavaşça iyileştirir (-2, taban 0) — meşru kullanıcı
+      // paylaşılan IP'de yanlış-negatif birikimi önlenir.
+      r.threatScore = Math.max(0, r.threatScore - 2);
+    }
+    r.category =
+      r.threatScore > 70 ? "malicious" : r.threatScore > 40 ? "suspicious" :
+      (r.asn.includes("VPN") ? "vpn" : r.asn.includes("Amazon") || r.asn.includes("DigitalOcean") || r.asn.includes("Hetzner") ? "datacenter" : "clean");
+    // Bellek sınırı: en fazla 5000 IP tut (en eski lastSeen'leri düşür).
+    if (db.ipReputation.length > 5000) {
+      db.ipReputation.sort((a, b) => b.lastSeen - a.lastSeen);
+      db.ipReputation.length = 5000;
+    }
+    persist();
+  },
 };
 
 // --------------------------------------------------------------- Rules

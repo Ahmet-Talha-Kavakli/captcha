@@ -523,6 +523,34 @@ async function main() {
   check("Katmanlı savunma: mükemmel enjekte davranış + tool başlıkları → yine yakalanır",
     katmanliRes.passed === false);
 
+  // ---- IP İTİBAR ÖĞRENMESİ + ADAPTİF POW ESKALASYONU (ekonomik caydırıcılık) ----
+  // Bir IP tekrar tekrar bloklandıkça threatScore runtime'da yükselir (seed değil,
+  // GERÇEK öğrenme) → sonraki challenge'ın PoW zorluğu artar. "botnet CPU öder"
+  // iddiasının canlı kanıtı. Kaynak: db.ts IpRep.gozlemle + challenge adaptif PoW.
+  const kotuIp = "45.133.88." + (100 + (pass % 50)); // testler arası çakışmasın
+  const chBad = (extraHdr = {}) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public" });
+    const req = http.request(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "x-forwarded-for": kotuIp, ...extraHdr } }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  const verifyBot = (token) => new Promise((resolve) => {
+    const body = JSON.stringify({ siteKey: "pk_demo_veylify_public", token, input: "x", signals: { honeypotTetik: true } });
+    const req = http.request(`${BASE}/api/v1/verify`, { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body), "x-forwarded-for": kotuIp } }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => { try { resolve(JSON.parse(b)); } catch { resolve({}); } }); });
+    req.on("error", () => resolve({}));
+    req.end(body);
+  });
+  // Başlangıç challenge (temiz itibar) — PoW muhtemelen taban (yok/düşük).
+  const ilkCh = await chBad();
+  const ilkPow = ilkCh.pow?.hedefBit ?? 0;
+  // IP'yi 5 kez blokla (honeypot) → itibar bozulur.
+  for (let i = 0; i < 5; i++) { const c = await chBad(); await verifyBot(c.token); }
+  // Sonraki challenge → PoW zorluğu artmış olmalı.
+  const sonCh = await chBad();
+  const sonPow = sonCh.pow?.hedefBit ?? 0;
+  check("IP itibar öğrenmesi: tekrar bloklanan IP'nin PoW zorluğu artar (adaptif caydırıcılık)",
+    sonPow > ilkPow);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

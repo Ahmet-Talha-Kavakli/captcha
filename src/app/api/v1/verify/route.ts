@@ -65,6 +65,10 @@ function logEvent(
   if (verdict === "allowed") Usage.increment(siteId, "verified", 1);
   else if (verdict === "blocked") Usage.increment(siteId, "blocked", 1);
   else Usage.increment(siteId, "challenged", 1);
+  // GERÇEK ÖĞRENME: IP itibarını gözlemle. Bloklanan/işaretlenen istek threatScore'u
+  // yükseltir → o IP'nin sonraki challenge/PoW zorluğu adaptif artar (ekonomik
+  // caydırıcılık). Temiz geçiş itibarı iyileştirir (paylaşılan-IP yanlış-negatif önlenir).
+  IpRep.gozlemle(m.ip, { country: m.country, asn: m.asn, bloklandi: verdict === "blocked" || verdict === "flagged" });
 }
 
 // CORS başlıkları — origin YALNIZCA izinli domain listesindeyse yansıtılır.
