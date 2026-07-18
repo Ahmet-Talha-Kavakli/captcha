@@ -15,7 +15,8 @@
  * tabular-nums, rounded kartlar; framer-motion fade+rise (azHareket → sade).
  */
 
-import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Crosshair,
   Search,
@@ -30,6 +31,15 @@ import {
   GitBranch,
   Flame,
   Layers,
+  ChevronDown,
+  Clock,
+  MapPin,
+  Server,
+  Activity,
+  ArrowRight,
+  Copy,
+  Check,
+  Filter,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -214,16 +224,201 @@ function KillChainBar({
   );
 }
 
+/* ============================================================ Drill-down detay */
+
+/** verdict → TR etiket + ton. */
+const VERDICT_TANIM: Record<string, { ad: string; ton: string; hex: string }> = {
+  blocked: { ad: "Engellendi", ton: "text-red-700", hex: "#dc2626" },
+  challenged: { ad: "Doğrulama", ton: "text-amber-700", hex: "#d97706" },
+  flagged: { ad: "İşaretlendi", ton: "text-amber-700", hex: "#d97706" },
+  allowed: { ad: "İzin verildi", ton: "text-green-700", hex: "#16a34a" },
+};
+function verdictTanim(v: string) {
+  return VERDICT_TANIM[v] ?? { ad: v || "—", ton: "text-slate-muted", hex: "#64748b" };
+}
+
+/** Göreli zaman ("3dk önce") — page.tsx now'ını prop geçmediği için mutlak saat gösteririz. */
+function saatBicim(ts: number): string {
+  const d = new Date(ts);
+  const ss = String(d.getHours()).padStart(2, "0");
+  const dd = String(d.getMinutes()).padStart(2, "0");
+  return `${ss}:${dd}`;
+}
+
+/** İki adım arası süre farkını insan-okur ver ("+2dk", "+15sn"). */
+function farkBicim(ms: number): string {
+  if (ms < 1000) return "+0sn";
+  const sn = Math.round(ms / 1000);
+  if (sn < 60) return `+${sn}sn`;
+  const dk = Math.round(sn / 60);
+  if (dk < 60) return `+${dk}dk`;
+  return `+${Math.round(dk / 60)}sa`;
+}
+
+/** Zincire göre önerilen savunma aksiyonu (durduruldu mu / ne kadar ilerledi). */
+function onerilenAksiyon(z: SaldirganZincir): { baslik: string; aciklama: string; ton: "yesil" | "sari" | "kirmizi" } {
+  if (z.durduruldu && z.kesilenSira !== null && z.kesilenSira <= 3) {
+    return { baslik: "Aksiyon gerekmiyor", aciklama: "Saldırı erken aşamada (keşif/tarama) otomatik kesildi. Mevcut kurallar bu aktörü etkili engelliyor.", ton: "yesil" };
+  }
+  if (z.durduruldu) {
+    return { baslik: "İzle — kural sıkılaştır", aciklama: "Saldırı durduruldu ama ileri aşamaya ulaştı. Bu IP/ASN için erken-aşama kuralı ekleyerek kesme noktasını öne çekin.", ton: "sari" };
+  }
+  return { baslik: "Acil — kalıcı engelle", aciklama: `Saldırgan ${ASAMA_TANIM[z.ilerlemeAsama].ad} aşamasına ulaştı ve durdurulmadı. Bu IP'yi kalıcı engel listesine alın ve ASN geneli hız-limiti uygulayın.`, ton: "kirmizi" };
+}
+
+/** Genişleyen detay: adım-adım zaman çizelgesi + IP istihbaratı + önerilen aksiyon. */
+function ZincirDetay({ zincir }: { zincir: SaldirganZincir }) {
+  const [kopyalandi, setKopyalandi] = useState(false);
+  const aksiyon = onerilenAksiyon(zincir);
+  const aksiyonTon =
+    aksiyon.ton === "yesil"
+      ? "border-green-200 bg-ok-soft/40 text-green-800"
+      : aksiyon.ton === "sari"
+        ? "border-amber-200 bg-amber-50/60 text-amber-800"
+        : "border-red-200 bg-danger-soft/40 text-red-800";
+  const kopyala = () => {
+    try {
+      navigator.clipboard?.writeText(zincir.ip);
+      setKopyalandi(true);
+      setTimeout(() => setKopyalandi(false), 1500);
+    } catch { /* pano yok */ }
+  };
+  const ilkTs = zincir.adimlar.length ? zincir.adimlar[0].ts : 0;
+
+  return (
+    <div className="mt-4 grid gap-4 border-t border-line pt-4 lg:grid-cols-12">
+      {/* Sol: adım-adım zaman çizelgesi */}
+      <div className="lg:col-span-7">
+        <div className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+          <Clock className="size-3.5 text-slate-faint" />
+          Saldırı zaman çizelgesi — {sayi(zincir.adimlar.length)} adım
+        </div>
+        <div className="relative space-y-0">
+          {zincir.adimlar.map((adim, i) => {
+            const tanim = ASAMA_TANIM[adim.asama];
+            const Ikon = tanim.ikon;
+            const v = verdictTanim(adim.verdict);
+            const asamaHex = ASAMA_RENK[adim.asama];
+            const fark = i > 0 ? adim.ts - zincir.adimlar[i - 1].ts : 0;
+            const sonMu = i === zincir.adimlar.length - 1;
+            return (
+              <div key={i} className="flex gap-3">
+                {/* Dikey çizgi + nokta */}
+                <div className="flex flex-col items-center">
+                  <span
+                    className={cn(
+                      "grid size-7 shrink-0 place-items-center rounded-lg ring-2 ring-inset",
+                      adim.kesildi && "ring-green-300",
+                    )}
+                    style={{ background: `${asamaHex}18`, color: asamaHex, ...(adim.kesildi ? {} : { borderColor: `${asamaHex}33` }) }}
+                  >
+                    {adim.kesildi ? <ShieldCheck className="size-3.5 text-green-600" /> : <Ikon className="size-3.5" />}
+                  </span>
+                  {!sonMu && <span className="my-0.5 w-px flex-1 bg-line" style={{ minHeight: 18 }} />}
+                </div>
+                {/* İçerik */}
+                <div className={cn("min-w-0 flex-1", sonMu ? "pb-0" : "pb-3")}>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="text-[12.5px] font-semibold text-slate-ink">{tanim.ad}</span>
+                    <span className={cn("text-[11px] font-medium", v.ton)}>{v.ad}</span>
+                    {adim.kesildi && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-ok-soft px-1.5 py-0.5 text-[10px] font-semibold text-green-700 ring-1 ring-inset ring-green-200">
+                        <ShieldCheck className="size-2.5" /> kesildi
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-faint">
+                    <span className="inline-flex items-center gap-1 tabular-nums">
+                      <Clock className="size-3" /> {saatBicim(adim.ts)}
+                    </span>
+                    {i > 0 && <span className="tabular-nums text-slate-300">{farkBicim(fark)}</span>}
+                    {adim.path && (
+                      <>
+                        <span className="text-slate-300">·</span>
+                        <span className="truncate font-mono">{adim.path}</span>
+                      </>
+                    )}
+                    {adim.botClass && adim.botClass !== "human" && (
+                      <>
+                        <span className="text-slate-300">·</span>
+                        <span className="truncate">{adim.botClass}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Sağ: IP istihbaratı + önerilen aksiyon */}
+      <div className="space-y-3 lg:col-span-5">
+        <div className="rounded-xl border border-line bg-surface p-3.5">
+          <div className="mb-2.5 flex items-center gap-1.5 text-[12px] font-semibold text-slate-muted">
+            <Server className="size-3.5 text-slate-faint" />
+            Aktör istihbaratı
+          </div>
+          <dl className="space-y-2 text-[12px]">
+            <div className="flex items-center justify-between gap-2">
+              <dt className="flex items-center gap-1.5 text-slate-faint"><MapPin className="size-3" /> IP adresi</dt>
+              <dd className="flex items-center gap-1.5">
+                <span className="font-mono font-semibold text-slate-ink">{zincir.ip}</span>
+                <button
+                  onClick={kopyala}
+                  className="grid size-5 place-items-center rounded text-slate-faint transition hover:bg-canvas hover:text-slate-ink"
+                  aria-label="IP adresini kopyala"
+                >
+                  {kopyalandi ? <Check className="size-3 text-ok" /> : <Copy className="size-3" />}
+                </button>
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="flex items-center gap-1.5 text-slate-faint"><Server className="size-3" /> ASN</dt>
+              <dd className="truncate font-mono text-slate-ink">{zincir.asn}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="flex items-center gap-1.5 text-slate-faint"><MapPin className="size-3" /> Ülke</dt>
+              <dd className="flex items-center gap-1.5 text-slate-ink"><Ulke kod={zincir.country} /> {zincir.country}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="flex items-center gap-1.5 text-slate-faint"><Activity className="size-3" /> Toplam olay</dt>
+              <dd className="tabular-nums font-semibold text-slate-ink">{sayi(zincir.olaySayisi)}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <dt className="flex items-center gap-1.5 text-slate-faint"><GitBranch className="size-3" /> Ulaşılan aşama</dt>
+              <dd className="tabular-nums font-semibold text-slate-ink">{zincir.ilerlemeSira}/6 · {ASAMA_TANIM[zincir.ilerlemeAsama].ad}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* Önerilen aksiyon */}
+        <div className={cn("rounded-xl border p-3.5", aksiyonTon)}>
+          <div className="mb-1 flex items-center gap-1.5 text-[12px] font-bold">
+            <ArrowRight className="size-3.5" />
+            {aksiyon.baslik}
+          </div>
+          <p className="text-[11.5px] leading-relaxed opacity-90">{aksiyon.aciklama}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ================================================================== Zincir satırı */
 
 function ZincirSatir({
   zincir,
   azHareket,
   gecikme,
+  acik,
+  onToggle,
 }: {
   zincir: SaldirganZincir;
   azHareket: boolean;
   gecikme: number;
+  acik: boolean;
+  onToggle: () => void;
 }) {
   const tehdit = TEHDIT_TANIM[zincir.tehdit];
   const durduruldu = zincir.durduruldu;
@@ -235,10 +430,17 @@ function ZincirSatir({
       className={cn(
         "rounded-2xl border bg-canvas/40 p-4 transition",
         durduruldu ? "border-line" : "border-red-200 bg-danger-soft/30",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: kimlik + durum */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      {/* Üst şerit: kimlik + durum — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${zincir.ip} saldırı zinciri detayını ${acik ? "kapat" : "aç"}`}
+        className="mb-4 flex w-full flex-wrap items-center justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-8 shrink-0 place-items-center rounded-lg ring-1 ring-inset"
@@ -275,11 +477,32 @@ function ZincirSatir({
               {ilerlemeAd} aşamasına ulaştı
             </span>
           )}
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
         </div>
-      </div>
+      </button>
 
       {/* Kill-chain görseli */}
       <KillChainBar zincir={zincir} azHareket={azHareket} gecikme={gecikme} />
+
+      {/* Drill-down detay — tıklayınca açılır */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <ZincirDetay zincir={zincir} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -295,7 +518,10 @@ export function KillChainBolumu({
   ozet: KillChainOzet;
   azHareket: boolean;
 }) {
-  const gosterilecek = zincirler.slice(0, 9);
+  // Açık drill-down zinciri (IP) + tehdit-seviyesi filtresi (null = hepsi).
+  const [acikIp, setAcikIp] = useState<string | null>(null);
+  const [filtre, setFiltre] = useState<SaldirganZincir["tehdit"] | null>(null);
+
   const durdurulanOran = ozet.durdurulanOran; // 0..100
   // En "geniş" aşama huni değeri — bar oranları için.
   const huniMax = Math.max(1, ...ozet.asamaHunisi.map((a) => a.ulasan));
@@ -310,6 +536,12 @@ export function KillChainBolumu({
     sayi: tehditSay[s],
   }));
   const toplamTehdit = zincirler.length;
+
+  // Filtreye göre gösterilecek zincirler (en fazla 9). Filtre tıklandığında liste daralır.
+  const gosterilecek = useMemo(
+    () => zincirler.filter((z) => !filtre || z.tehdit === filtre).slice(0, 9),
+    [zincirler, filtre],
+  );
 
   return (
     <Bolum azHareket={azHareket}>
@@ -460,15 +692,24 @@ export function KillChainBolumu({
                   />
                 ))}
             </div>
-            {/* Rozet-ızgarası (sayı + oran) */}
+            {/* Rozet-ızgarası (sayı + oran) — TIKLANABİLİR FİLTRE */}
             <div className="mt-3 grid grid-cols-2 gap-2">
               {tehditDagilim.map((t) => {
                 const tt = TEHDIT_TANIM[t.seviye];
                 const oran = toplamTehdit > 0 ? Math.round((t.sayi / toplamTehdit) * 100) : 0;
+                const secili = filtre === t.seviye;
                 return (
-                  <div
+                  <button
                     key={t.seviye}
-                    className="flex items-center gap-2 rounded-lg border border-line bg-surface px-2.5 py-2"
+                    type="button"
+                    onClick={() => { setFiltre(secili ? null : t.seviye); setAcikIp(null); }}
+                    disabled={t.sayi === 0}
+                    aria-pressed={secili}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
+                      secili ? "border-slate-400 bg-canvas ring-1 ring-inset ring-slate-300" : "border-line bg-surface hover:border-slate-300",
+                      t.sayi === 0 && "cursor-not-allowed opacity-40",
+                    )}
                   >
                     <span className="size-2.5 shrink-0 rounded-full" style={{ background: tt.hex }} />
                     <div className="min-w-0 flex-1">
@@ -478,7 +719,8 @@ export function KillChainBolumu({
                         <span className="text-[10px] tabular-nums text-slate-faint">%{oran}</span>
                       </div>
                     </div>
-                  </div>
+                    {secili && <Filter className="size-3 shrink-0 text-slate-muted" />}
+                  </button>
                 );
               })}
             </div>
@@ -495,16 +737,37 @@ export function KillChainBolumu({
             </p>
           </div>
         ) : (
-          <div className="mt-5 space-y-3">
-            {gosterilecek.map((z, i) => (
-              <ZincirSatir
-                key={z.ip}
-                zincir={z}
-                azHareket={azHareket}
-                gecikme={azHareket ? 0 : 0.05 + i * 0.03}
-              />
-            ))}
-          </div>
+          <>
+            {filtre && (
+              <div className="mt-4 flex items-center gap-2 text-[12px] text-slate-muted">
+                <Filter className="size-3.5 text-slate-faint" />
+                <span><span className="font-semibold text-slate-ink">{TEHDIT_TANIM[filtre].etiket}</span> tehditli {sayi(gosterilecek.length)} zincir gösteriliyor</span>
+                <button
+                  type="button"
+                  onClick={() => setFiltre(null)}
+                  className="rounded-full border border-line px-2 py-0.5 text-[11px] font-medium text-slate-muted transition hover:bg-canvas hover:text-slate-ink"
+                >
+                  Filtreyi kaldır
+                </button>
+              </div>
+            )}
+            <div className="mt-3 space-y-3">
+              {gosterilecek.map((z, i) => (
+                <ZincirSatir
+                  key={z.ip}
+                  zincir={z}
+                  azHareket={azHareket}
+                  gecikme={azHareket ? 0 : 0.05 + i * 0.03}
+                  acik={acikIp === z.ip}
+                  onToggle={() => setAcikIp(acikIp === z.ip ? null : z.ip)}
+                />
+              ))}
+            </div>
+            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+              <ChevronDown className="size-3" />
+              Bir saldırgana tıklayarak adım-adım saldırı zaman çizelgesini ve önerilen aksiyonu görün.
+            </p>
+          </>
         )}
 
         {/* Aşama lejantı */}
