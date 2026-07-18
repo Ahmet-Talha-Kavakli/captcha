@@ -21,7 +21,8 @@
  * (azHareket → sade). whileInView / viewport / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Terminal,
@@ -39,6 +40,7 @@ import {
   Cpu,
   Sparkles,
   Worm,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -222,6 +224,7 @@ export function TehditAviBolumu({
   const { sorgu, aciklama, sonuc } = av;
   const ornekler = sonuc.eslesmeler.slice(0, 6);
   const varEslesme = sonuc.eslesme > 0;
+  const [acikOlay, setAcikOlay] = useState<string | null>(null);
 
   // Kapsama/tespit oranları (Gauge). toplam 0 olamaz mantıken ama koru.
   const toplamGuvenli = Math.max(1, sonuc.toplam);
@@ -351,25 +354,64 @@ export function TehditAviBolumu({
               Örnek eşleşen olaylar
             </div>
             <div className="overflow-hidden rounded-2xl border border-line">
-              {ornekler.map((e, i) => (
-                <div
-                  key={e.id}
-                  className={cn(
-                    "flex flex-wrap items-center gap-x-3 gap-y-1 px-3.5 py-2.5",
-                    i > 0 && "border-t border-line",
-                  )}
-                >
-                  <span className="w-32 shrink-0 truncate font-mono text-[12px] font-medium text-slate-ink">{e.ip}</span>
-                  <Ulke kod={e.country} />
-                  <span className="text-[12px] text-slate-muted">{BOT_ETIKET[e.botClass] ?? e.botClass}</span>
-                  <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-slate-faint" title={e.path}>
-                    {pathKisa(e.path)}
-                  </span>
-                  <span className="shrink-0 text-[11.5px] tabular-nums text-slate-faint">skor {e.score.toFixed(2)}</span>
-                  <Badge ton={VERDICT_TON[e.verdict] ?? "gri"}>{VERDICT_AD[e.verdict] ?? e.verdict}</Badge>
+              {ornekler.map((e, i) => {
+                const acik = acikOlay === e.id;
+                return (
+                <div key={e.id} className={cn(i > 0 && "border-t border-line")}>
+                  <button
+                    type="button"
+                    onClick={() => setAcikOlay(acik ? null : e.id)}
+                    aria-expanded={acik}
+                    aria-label={`${e.ip} olay detayını ${acik ? "kapat" : "aç"}`}
+                    className={cn(
+                      "flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-3.5 py-2.5 text-left transition hover:bg-canvas/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-400",
+                      acik && "bg-canvas/40",
+                    )}
+                  >
+                    <span className="w-32 shrink-0 truncate font-mono text-[12px] font-medium text-slate-ink">{e.ip}</span>
+                    <Ulke kod={e.country} />
+                    <span className="text-[12px] text-slate-muted">{BOT_ETIKET[e.botClass] ?? e.botClass}</span>
+                    <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-slate-faint" title={e.path}>
+                      {pathKisa(e.path)}
+                    </span>
+                    <span className="shrink-0 text-[11.5px] tabular-nums text-slate-faint">skor {e.score.toFixed(2)}</span>
+                    <Badge ton={VERDICT_TON[e.verdict] ?? "gri"}>{VERDICT_AD[e.verdict] ?? e.verdict}</Badge>
+                    <ChevronDown className={cn("size-3.5 shrink-0 text-slate-faint transition-transform", acik && "rotate-180")} />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {acik && (
+                      <motion.div
+                        initial={azHareket ? false : { height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                        transition={{ duration: azHareket ? 0 : 0.2, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 bg-canvas/30 px-3.5 py-3 text-[12px] sm:grid-cols-4">
+                          <div><dt className="text-slate-faint">Kaynak IP</dt><dd className="font-mono font-medium text-slate-ink">{e.ip}</dd></div>
+                          <div><dt className="text-slate-faint">Ülke</dt><dd className="flex items-center gap-1 text-slate-ink"><Ulke kod={e.country} /> {e.country}</dd></div>
+                          <div><dt className="text-slate-faint">Bot sınıfı</dt><dd className="text-slate-ink">{BOT_ETIKET[e.botClass] ?? e.botClass}</dd></div>
+                          <div><dt className="text-slate-faint">Tehdit skoru</dt><dd className="tabular-nums font-semibold text-slate-ink">{e.score.toFixed(2)}</dd></div>
+                          <div className="col-span-2 sm:col-span-4"><dt className="text-slate-faint">İstek yolu</dt><dd className="truncate font-mono text-slate-ink" title={e.path}>{e.path}</dd></div>
+                          <div className="col-span-2 sm:col-span-4">
+                            <dt className="text-slate-faint">Karar</dt>
+                            <dd className="text-slate-ink">
+                              <Badge ton={VERDICT_TON[e.verdict] ?? "gri"}>{VERDICT_AD[e.verdict] ?? e.verdict}</Badge>
+                              <span className="ml-2 text-slate-muted">Bu istek av sorgusu &ldquo;{sorgu}&rdquo; ile eşleşti.</span>
+                            </dd>
+                          </div>
+                        </dl>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              ))}
+                );
+              })}
             </div>
+            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-faint">
+              <ChevronDown className="size-3" />
+              Bir olaya tıklayarak tam kaynak/yol/karar detayını görün.
+            </p>
           </div>
         ) : (
           <div className="mt-4 grid place-items-center rounded-2xl border border-dashed border-line py-10 text-center">

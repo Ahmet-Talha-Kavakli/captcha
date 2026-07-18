@@ -19,7 +19,8 @@
  * kırıldı). framer-motion rise (azHareket → sade). whileInView / opacity-fade YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Radio,
   Database,
@@ -36,6 +37,11 @@ import {
   RefreshCw,
   Layers,
   Clock,
+  ChevronDown,
+  MapPin,
+  Activity,
+  ArrowRight,
+  Gauge as GaugeIkon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -169,13 +175,63 @@ function KpiKart({
   );
 }
 
+/* ================================================================== Vuruş drill-down yardımcıları */
+
+/** Besleme kaynağı → kısa istihbarat açıklaması (drill-down detayında gösterilir). */
+const KAYNAK_ACIKLAMA: Record<BeslemeKaynak, string> = {
+  tor:         "Tor anonimlik ağının çıkış düğümü. Gerçek köken gizlenir; meşru kullanıcı nadir, otomatik kötüye kullanım yaygın. Kimlik doğrulama için güçlü zorluk önerilir.",
+  bulletproof: "Kötüye kullanım şikâyetlerini görmezden gelen kurşun-geçirmez barındırma. Bu ASN'lerde meşru trafik oranı çok düşük; kaynak neredeyse tümüyle saldırgan altyapısıdır.",
+  botnet:      "Aktif botnet komuta-kontrol (C2) altyapısı. Ele geçirilmiş cihazlardan koordineli otomatik saldırı; insan trafiği beklenmez.",
+  vpn:         "VPN / proxy çıkış noktası. Kaynağı gizler — meşru gizlilik kullanımı da olabilir, bu yüzden engel yerine zorluk/doğrulama tercih edilir.",
+  datacenter:  "Veri merkezi / bulut IP aralığı. Son kullanıcı değil sunucu trafiği; otomasyon/kazıma olasılığı yüksek, insan tarayıcı davranışı beklenmez.",
+  scanner:     "Bilinen internet-geneli tarayıcı (Shodan/Censys benzeri). Yüzey keşfi yapar; genelde zararsız ama açık uçları haritalar — izlenmeli.",
+  spam:        "Bilinen spam / kötüye kullanım kaynağı. Form doldurma, kimlik-bilgisi denemesi ve toplu gönderim için işaretlenmiş altyapı.",
+};
+
+/** Kaynak + güvene göre önerilen savunma aksiyonu (uydurma yok — kurala dayalı). */
+function vurusAksiyon(v: BeslemeVurus): { baslik: string; aciklama: string; ton: "kirmizi" | "sari" | "yesil" } {
+  const yuksek = v.guven >= 0.8;
+  if (v.kaynak === "bulletproof" || v.kaynak === "botnet") {
+    return {
+      baslik: "Acil — kalıcı engelle",
+      aciklama: `${KAYNAK_TANIM[v.kaynak].ad} altyapısından geliyor. Bu IP'yi ve mümkünse ASN'yi (${v.asn || "—"}) kalıcı engel listesine alın.`,
+      ton: "kirmizi",
+    };
+  }
+  if ((v.kaynak === "tor" || v.kaynak === "datacenter" || v.kaynak === "spam") && yuksek) {
+    return {
+      baslik: "Güçlü zorluk uygula",
+      aciklama: "Yüksek güvenli tehdit eşleşmesi. Bu kaynağa ghost-font CAPTCHA + hız-limiti zorunlu kılın; başarısız doğrulamada engelleyin.",
+      ton: "sari",
+    };
+  }
+  return {
+    baslik: "İzle — doğrulama iste",
+    aciklama: "Meşru kullanım ihtimali var (VPN/gizlilik veya tarayıcı). Doğrulama iste ve davranış anormalse zorluğu yükselt.",
+    ton: "yesil",
+  };
+}
+
 /* ================================================================== Isı-renkli vuruş kartı */
 
 /**
  * Bir besleme vuruşunu güven değerine göre ısı-renkli kart olarak gösterir —
  * yatay-bar yerine kompakt, renk-yoğunluklu görsel dil.
+ *
+ * DRILL-DOWN: üst şerit tıklanabilir; altında bu kaynağın istihbarat açıklaması,
+ * güven ölçeri ve önerilen aksiyon açılır (KillChainBolumu deseni).
  */
-function VurusKart({ vurus }: { vurus: BeslemeVurus }) {
+function VurusKart({
+  vurus,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  vurus: BeslemeVurus;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const tanim = KAYNAK_TANIM[vurus.kaynak];
   const Ikon = tanim.ikon;
   const guvenYuzde = Math.round(vurus.guven * 100);
@@ -183,31 +239,59 @@ function VurusKart({ vurus }: { vurus: BeslemeVurus }) {
   const alfa = Math.round(16 + vurus.guven * 26)
     .toString(16)
     .padStart(2, "0");
+  const aksiyon = vurusAksiyon(vurus);
+  const aksiyonTon =
+    aksiyon.ton === "yesil"
+      ? "border-green-200 bg-ok-soft/40 text-green-800"
+      : aksiyon.ton === "sari"
+        ? "border-amber-200 bg-amber-50/60 text-amber-800"
+        : "border-red-200 bg-danger-soft/40 text-red-800";
   return (
     <div
-      className="relative flex flex-col gap-2 overflow-hidden rounded-2xl border p-3.5"
+      className={cn(
+        "relative flex flex-col gap-2 overflow-hidden rounded-2xl border p-3.5",
+        acik && "ring-1 ring-inset ring-slate-300",
+      )}
       style={{ borderColor: `${tanim.hex}40`, background: `${tanim.hex}${alfa}` }}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className="grid size-8 shrink-0 place-items-center rounded-lg ring-1 ring-inset"
-          style={{ background: tanim.soft, color: tanim.hex, borderColor: `${tanim.hex}33` }}
-        >
-          <Ikon className="size-4" />
-        </span>
-        <span
-          className="rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums text-white"
-          style={{ background: tanim.hex }}
-        >
-          %{guvenYuzde}
-        </span>
-      </div>
-      <div className="min-w-0">
-        <p className="truncate font-mono text-[12.5px] font-semibold text-slate-ink">{vurus.ip}</p>
-        <p className="mt-0.5 text-[11px] font-medium" style={{ color: tanim.hex }}>
-          {tanim.ad}
-        </p>
-      </div>
+      {/* Üst şerit — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${vurus.ip} besleme eşleşmesi detayını ${acik ? "kapat" : "aç"}`}
+        className="w-full text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className="grid size-8 shrink-0 place-items-center rounded-lg ring-1 ring-inset"
+            style={{ background: tanim.soft, color: tanim.hex, borderColor: `${tanim.hex}33` }}
+          >
+            <Ikon className="size-4" />
+          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className="rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums text-white"
+              style={{ background: tanim.hex }}
+            >
+              %{guvenYuzde}
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-4 shrink-0 text-slate-faint transition-transform",
+                acik && "rotate-180",
+              )}
+            />
+          </div>
+        </div>
+        <div className="mt-2 min-w-0">
+          <p className="truncate font-mono text-[12.5px] font-semibold text-slate-ink">{vurus.ip}</p>
+          <p className="mt-0.5 text-[11px] font-medium" style={{ color: tanim.hex }}>
+            {tanim.ad}
+          </p>
+        </div>
+      </button>
+
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t pt-2 text-[11px]" style={{ borderColor: `${tanim.hex}22` }}>
         <Ulke kod={vurus.country} />
         <span className="min-w-0 flex-1 truncate text-slate-muted" title={vurus.asn}>
@@ -215,6 +299,79 @@ function VurusKart({ vurus }: { vurus: BeslemeVurus }) {
         </span>
         <span className="shrink-0 tabular-nums text-slate-faint">{sayi(vurus.olaySayisi)} olay</span>
       </div>
+
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
+      )}
+
+      {/* Drill-down detay — tıklayınca açılır */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 border-t pt-3" style={{ borderColor: `${tanim.hex}22` }}>
+              {/* Kaynak istihbarat açıklaması */}
+              <p className="text-[11.5px] leading-relaxed text-slate-muted">
+                {KAYNAK_ACIKLAMA[vurus.kaynak]}
+              </p>
+
+              {/* Güven ölçeri */}
+              <div>
+                <div className="mb-1 flex items-center justify-between text-[10.5px] font-medium uppercase tracking-wide text-slate-faint">
+                  <span className="inline-flex items-center gap-1">
+                    <GaugeIkon className="size-3" />
+                    Kaynak güveni
+                  </span>
+                  <span className="tabular-nums text-slate-muted">%{guvenYuzde}</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-surface/70">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: tanim.hex }}
+                    initial={azHareket ? false : { width: 0 }}
+                    animate={azHareket ? undefined : { width: `${guvenYuzde}%` }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  />
+                </div>
+              </div>
+
+              {/* Eşleşme künyesi */}
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-xl bg-surface/60 p-2.5 text-[11px]">
+                <div className="flex items-center gap-1.5">
+                  <dt className="inline-flex items-center gap-1 text-slate-faint"><MapPin className="size-3" /> Ülke</dt>
+                  <dd className="flex items-center gap-1 font-medium text-slate-ink"><Ulke kod={vurus.country} /> {vurus.country}</dd>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <dt className="inline-flex items-center gap-1 text-slate-faint"><Activity className="size-3" /> Olay</dt>
+                  <dd className="tabular-nums font-medium text-slate-ink">{sayi(vurus.olaySayisi)}</dd>
+                </div>
+                <div className="col-span-2 flex items-center gap-1.5">
+                  <dt className="inline-flex items-center gap-1 text-slate-faint"><Server className="size-3" /> ASN</dt>
+                  <dd className="min-w-0 flex-1 truncate font-mono font-medium text-slate-ink" title={vurus.asn}>{vurus.asn || "—"}</dd>
+                </div>
+              </dl>
+
+              {/* Önerilen aksiyon */}
+              <div className={cn("rounded-xl border p-2.5", aksiyonTon)}>
+                <div className="mb-0.5 flex items-center gap-1.5 text-[11.5px] font-bold">
+                  <ArrowRight className="size-3.5" />
+                  {aksiyon.baslik}
+                </div>
+                <p className="text-[11px] leading-relaxed opacity-90">{aksiyon.aciklama}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -232,6 +389,9 @@ export function TehditBeslemeBolumu({
   const siraliBeslemeler = [...beslemeler].sort((a, b) => b.kayitSayisi - a.kayitSayisi);
   const gosterVurus = vuruslar.slice(0, 6);
   const tehditVar = besleme.eslesenIp > 0;
+
+  // Açık drill-down vuruş kartı (IP). null = hepsi kapalı.
+  const [acikIp, setAcikIp] = useState<string | null>(null);
 
   // Kaynak dağılımı donutu — her beslemenin kayıt payı.
   const kaynakSegmentleri = siraliBeslemeler
@@ -364,11 +524,21 @@ export function TehditBeslemeBolumu({
               <ShieldAlert className="size-3" />
               Beslemede bulunan gözlemlenen IP'ler — güven ısı-haritası
             </div>
-            <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid items-start gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
               {gosterVurus.map((v) => (
-                <VurusKart key={v.ip} vurus={v} />
+                <VurusKart
+                  key={v.ip}
+                  vurus={v}
+                  azHareket={azHareket}
+                  acik={acikIp === v.ip}
+                  onToggle={() => setAcikIp(acikIp === v.ip ? null : v.ip)}
+                />
               ))}
             </div>
+            <p className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-faint">
+              <ChevronDown className="size-3" />
+              Bir eşleşmeye tıklayarak kaynak istihbaratını ve önerilen aksiyonu görün.
+            </p>
           </div>
         ) : (
           <div className="mt-4 grid place-items-center rounded-2xl border border-dashed border-line py-10 text-center">

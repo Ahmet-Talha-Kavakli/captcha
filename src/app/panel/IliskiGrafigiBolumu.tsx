@@ -18,7 +18,8 @@
  * (azHareket → sade). whileInView/viewport YOK.
  */
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Network,
   Share2,
@@ -31,6 +32,7 @@ import {
   Flame,
   Globe,
   Link2,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Panel, Badge, Ulke } from "@/components/panel/kit";
@@ -363,7 +365,17 @@ function TehditGauge({ skor, hex, azHareket }: { skor: number; hex: string; azHa
 
 /* ================================================================== Küme kartı */
 
-function KumeKart({ kume, azHareket }: { kume: Kume; azHareket: boolean }) {
+function KumeKart({
+  kume,
+  azHareket,
+  acik,
+  onToggle,
+}: {
+  kume: Kume;
+  azHareket: boolean;
+  acik: boolean;
+  onToggle: () => void;
+}) {
   const boyut = BOYUT_TANIM[kume.boyut];
   const tehdit = tehditRenk(kume.tehditSkoru);
   const vurgulu = kume.boyut === "buyuk" || kume.boyut === "orta";
@@ -379,10 +391,17 @@ function KumeKart({ kume, azHareket }: { kume: Kume; azHareket: boolean }) {
       className={cn(
         "rounded-2xl border bg-canvas/40 p-4 transition",
         vurgulu ? "border-red-200 bg-danger-soft/25" : "border-line",
+        acik && "ring-1 ring-inset ring-slate-300",
       )}
     >
-      {/* Üst şerit: boyut + sınıf + tehdit skoru */}
-      <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
+      {/* Üst şerit: boyut + sınıf + tehdit skoru — TIKLANABİLİR (drill-down aç/kapa) */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={acik}
+        aria-label={`${sinifAd(kume.dominantBotClass)} ${boyut.etiket} küme detayını ${acik ? "kapat" : "aç"}`}
+        className="mb-3.5 flex w-full flex-wrap items-start justify-between gap-3 rounded-lg text-left transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset"
@@ -424,9 +443,33 @@ function KumeKart({ kume, azHareket }: { kume: Kume; azHareket: boolean }) {
             </span>
           </div>
           <TehditGauge skor={kume.tehditSkoru} hex={tehdit.hex} azHareket={azHareket} />
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-slate-faint transition-transform",
+              acik && "rotate-180",
+            )}
+          />
         </div>
-      </div>
+      </button>
 
+      {/* Kapalıyken ipucu */}
+      {!acik && (
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-faint">
+          <ChevronDown className="size-3" />
+          Detay için tıklayın
+        </p>
+      )}
+
+      {/* Drill-down detay — tıklayınca açılır */}
+      <AnimatePresence initial={false}>
+        {acik && (
+          <motion.div
+            initial={azHareket ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={azHareket ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: azHareket ? 0 : 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
       {/* Metrikler */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         <Metrik ikon={Fingerprint} etiket="IP sayısı">
@@ -504,6 +547,9 @@ function KumeKart({ kume, azHareket }: { kume: Kume; azHareket: boolean }) {
           </div>
         </div>
       )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -512,6 +558,8 @@ function KumeKart({ kume, azHareket }: { kume: Kume; azHareket: boolean }) {
 
 export function IliskiGrafigiBolumu({ graf, azHareket }: { graf: GrafSonuc; azHareket: boolean }) {
   const { kumeler, odakGraf, ozet } = graf;
+  // Açık drill-down kümesi (id) — tıklanınca adım-adım küme detayı açılır.
+  const [acikId, setAcikId] = useState<string | null>(null);
   // Tehdit skoruna göre sırala (motor IP sayısına göre sıralıyor; burada tehdit önceliği).
   const gosterilecek = [...kumeler].sort((a, b) => b.tehditSkoru - a.tehditSkoru).slice(0, 8);
   const botnetVar = ozet.botnetKume > 0;
@@ -569,7 +617,12 @@ export function IliskiGrafigiBolumu({ graf, azHareket }: { graf: GrafSonuc; azHa
           <div className="mt-5 space-y-3">
             {gosterilecek.map((k, i) => (
               <Bolum key={k.id} azHareket={azHareket} gecikme={azHareket ? 0 : 0.05 + i * 0.03}>
-                <KumeKart kume={k} azHareket={azHareket} />
+                <KumeKart
+                  kume={k}
+                  azHareket={azHareket}
+                  acik={acikId === k.id}
+                  onToggle={() => setAcikId(acikId === k.id ? null : k.id)}
+                />
               </Bolum>
             ))}
           </div>
