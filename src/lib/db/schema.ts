@@ -51,6 +51,9 @@ export interface User {
   passwordChangedAt?: number;
   /** Bildirim tercihleri (olay × kanal matrisi). */
   notificationPrefs?: BildirimTercihleri;
+  /** Clerk kullanıcı kimliği (Clerk ile giriş yapan kullanıcılar için).
+   *  Kendi cookie-auth (demo) kullanıcılarında tanımsızdır. */
+  clerkId?: string;
 }
 
 /** Bir müşteri sitesi (uygulaması). */

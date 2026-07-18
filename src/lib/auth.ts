@@ -1,18 +1,47 @@
 /**
- * Specter — Sunucu Auth Yardımcıları
- * -----------------------------------
- * Cookie-tabanlı gerçek oturum yönetimi. Session token httpOnly
- * cookie'de tutulur; DB'de token -> userId eşlemesi vardır.
+ * Veylify — Sunucu Auth Yardımcıları (ÇİFT MODLU)
+ * ------------------------------------------------
+ * 1) Clerk oturumu: Clerk ile giriş yapan kullanıcı — Clerk kimliği yerel
+ *    User modeline eşlenir (just-in-time). Birincil yol.
+ * 2) Cookie oturumu: kendi httpOnly cookie-session — demo hesabı + widget
+ *    test akışları + geriye uyum. Clerk oturumu yoksa bu devreye girer.
+ *
+ * currentUser() imzası KORUNUR (User | null) — 180+ çağrı yeri değişmez.
  */
 
 import { cookies, headers } from "next/headers";
+import { auth as clerkAuth, currentUser as clerkCurrentUser } from "@clerk/nextjs/server";
 import { Sessions, Users } from "./db/db";
 import type { User } from "./db/schema";
 
 export const SESSION_COOKIE = "specter_session";
 
-/** Mevcut istekteki kullanıcıyı çözer (yoksa null). */
+/** Mevcut istekteki kullanıcıyı çözer (yoksa null). Önce Clerk, sonra cookie. */
 export async function currentUser(): Promise<User | null> {
+  // 1) Clerk oturumu var mı?
+  try {
+    const { userId } = await clerkAuth();
+    if (userId) {
+      const yerel = Users.byClerkId(userId);
+      if (yerel) return yerel;
+      // İlk kez görülüyor → Clerk profilinden yerel User üret.
+      const ck = await clerkCurrentUser();
+      if (ck) {
+        const email =
+          ck.primaryEmailAddress?.emailAddress ||
+          ck.emailAddresses?.[0]?.emailAddress ||
+          `${userId}@clerk.local`;
+        const name =
+          [ck.firstName, ck.lastName].filter(Boolean).join(" ") ||
+          ck.username ||
+          email.split("@")[0];
+        return Users.clerkSenkron({ clerkId: userId, email, name });
+      }
+    }
+  } catch {
+    // Clerk yapılandırılmamış/erişilemiyor → cookie moduna düş.
+  }
+  // 2) Kendi cookie oturumu (demo + geriye uyum).
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   return Sessions.resolve(token);

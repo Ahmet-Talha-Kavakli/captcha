@@ -211,6 +211,54 @@ export const Users = {
   all: (): User[] => load().users,
   byEmail: (email: string) => load().users.find((u) => u.email.toLowerCase() === email.toLowerCase()),
   byId: (uid: string) => load().users.find((u) => u.id === uid),
+  byClerkId: (cid: string) => load().users.find((u) => u.clerkId === cid),
+
+  /**
+   * Clerk kullanıcısını yerel DB User'ına eşler (just-in-time provisioning).
+   * Önce clerkId ile, sonra e-posta ile eşleşme aranır; yoksa yeni User
+   * oluşturulur. Mevcut demo/cookie-auth kullanıcıları etkilenmez.
+   */
+  clerkSenkron(input: { clerkId: string; email: string; name: string; avatarColor?: string }): User {
+    const db = load();
+    let u = db.users.find((x) => x.clerkId === input.clerkId)
+      || db.users.find((x) => x.email.toLowerCase() === input.email.toLowerCase());
+    if (u) {
+      // Var olan kullanıcıya clerkId'yi bağla + isim/e-posta güncelle.
+      let degisti = false;
+      if (u.clerkId !== input.clerkId) { u.clerkId = input.clerkId; degisti = true; }
+      if (input.name && u.name !== input.name) { u.name = input.name; degisti = true; }
+      if (input.email && u.email.toLowerCase() !== input.email.toLowerCase()) { u.email = input.email; degisti = true; }
+      u.lastSeenAt = Date.now();
+      if (degisti) persist(); else persist();
+      return u;
+    }
+    // Yeni kullanıcı — Clerk parola tuttuğu için yerel passwordHash boş.
+    const yeni: User = {
+      id: id("usr"),
+      email: input.email,
+      name: input.name || input.email.split("@")[0],
+      passwordHash: "",
+      plan: "free",
+      role: "owner",
+      avatarColor: input.avatarColor || "#4f46e5",
+      createdAt: Date.now(),
+      lastSeenAt: Date.now(),
+      clerkId: input.clerkId,
+    };
+    db.users.push(yeni);
+    db.team.push({
+      id: id("tm"),
+      ownerId: yeni.id,
+      name: yeni.name,
+      email: yeni.email,
+      role: "owner",
+      avatarColor: yeni.avatarColor,
+      status: "active",
+      lastActive: Date.now(),
+    });
+    persist();
+    return yeni;
+  },
   create(input: { email: string; name: string; password: string }): User {
     const db = load();
     const user: User = {

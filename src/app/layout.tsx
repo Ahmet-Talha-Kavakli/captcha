@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
+import { ClerkProvider } from "@clerk/nextjs";
+import { trTR } from "@clerk/localizations";
 import "./globals.css";
 import { MARKA } from "@/lib/marka";
+
+const GA_ID = "G-35MZVLZKX2";
 
 // Tavily gibi TEK aile: Inter her yerde. (Sora display fontu kaldırıldı.)
 const inter = Inter({
@@ -79,11 +84,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="tr"
-      className={`${inter.variable} ${jbMono.variable} h-full`}
+    <ClerkProvider
+      localization={trTR}
+      appearance={{ variables: { colorPrimary: MARKA.renk } }}
+      signInUrl="/giris"
+      signUpUrl="/kayit"
     >
-      <body className="min-h-full">{children}</body>
-    </html>
+      <html
+        lang="tr"
+        className={`${inter.variable} ${jbMono.variable} h-full`}
+      >
+        <body className="min-h-full">
+          {children}
+          {/* Google Analytics (gtag.js) — sayfa etkileşimden sonra yüklenir. */}
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="ga-init" strategy="afterInteractive">
+            {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+          </Script>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
