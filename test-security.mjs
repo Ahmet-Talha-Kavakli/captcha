@@ -328,6 +328,41 @@ async function main() {
   });
   check("Webhook SSRF: ftp şema → endpoint reddeder (400)", kotuSema.status === 400);
 
+  // ---- PoW BYPASS KORUMASI (hashcash bütünlüğü) ----
+  // KRİTİK: powDogrula, istemci hash'ini SHA-256(seed:nonce) ile YENİDEN
+  // hesaplayıp eşleştirmelidir. Aksi halde bot, gerçek CPU harcamadan uydurma
+  // bir "0000…"-hash gönderip PoW'u bypass eder (savunmanın tamamı çöker).
+  // Kaynak: src/lib/specter/proof-of-work.ts powDogrula. Reprodüksiyon (deriveAnswer
+  // deseni — .ts import yok); gerçek crypto ile bütünlük+hedef adımlarını doğrular.
+  function bastakiSifirBitT(hashHex) {
+    const h = String(hashHex).trim().toLowerCase().replace(/^0x/, "");
+    let bit = 0;
+    for (const ch of h) { const n = parseInt(ch, 16); if (Number.isNaN(n)) break; if (n === 0) { bit += 4; continue; } bit += 4 - (32 - Math.clz32(n)); break; }
+    return bit;
+  }
+  function powDogrulaT(zorlukBit, seed, nonce, hashHex) {
+    const bit = bastakiSifirBitT(hashHex);
+    const gerekli = Math.max(0, Math.round(zorlukBit));
+    const beklenen = crypto.createHash("sha256").update(`${seed}:${nonce}`).digest("hex");
+    const istemci = String(hashHex).trim().toLowerCase().replace(/^0x/, "");
+    let hashDogru = false;
+    try { const a = Buffer.from(beklenen, "hex"), b = Buffer.from(istemci, "hex"); hashDogru = a.length === b.length && crypto.timingSafeEqual(a, b); } catch { /* geçersiz hex */ }
+    return hashDogru && bit >= gerekli;
+  }
+  const powSeed = 987654, powZor = 12;
+  // Meşru: gerçekten nonce ara (widget davranışı) → KABUL.
+  let pn = 0, ph;
+  while (true) { ph = crypto.createHash("sha256").update(`${powSeed}:${pn}`).digest("hex"); if (bastakiSifirBitT(ph) >= powZor) break; pn++; }
+  check("PoW: meşru çözüm (gerçek nonce+hash) → kabul", powDogrulaT(powZor, powSeed, pn, ph) === true);
+  // Bypass: uydurma sıfır-hash (gerçek SHA değil) → RED.
+  check("PoW: uydurma 0000-hash (CPU'suz) → reddedilir (bypass kapalı)",
+    powDogrulaT(powZor, powSeed, 999, "000" + "a".repeat(61)) === false);
+  // Yanlış nonce (hash başka nonce'a ait) → RED.
+  check("PoW: hash'e uymayan nonce → reddedilir", powDogrulaT(powZor, powSeed, pn + 1, ph) === false);
+  // Gerçek hash ama yetersiz zorluk (seed:0) → hedef denetimi çalışır.
+  const ph0 = crypto.createHash("sha256").update(`${powSeed}:0`).digest("hex");
+  check("PoW: gerçek hash + hedef denetimi tutarlı", powDogrulaT(powZor, powSeed, 0, ph0) === (bastakiSifirBitT(ph0) >= powZor));
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

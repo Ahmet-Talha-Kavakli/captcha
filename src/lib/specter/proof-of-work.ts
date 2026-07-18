@@ -18,15 +18,17 @@
  * temiz insan trafiği hafif bulmaca çözer. Böylece sürtünme yalnızca riskli
  * trafiğe biner.
  *
- * SAFLIK: Bu modül tamamen deterministiktir. Date.now / Math.random YOKTUR —
- * tüm çıktı GİRDİLERDEN türetilir. Hash doğrulaması saf hex-ayrıştırmasıyla
- * yapılır (harici crypto kütüphanesi gerekmez): hex dizesinin baştaki sıfır
- * bitleri sayılır.
+ * SAFLIK: Bu modül deterministiktir (Date.now / Math.random YOKTUR — tüm çıktı
+ * GİRDİLERDEN türetilir). Doğrulama GERÇEK hashcash'tir: powDogrula, istemci
+ * hash'ini SHA-256(seed:nonce) ile YENİDEN HESAPLAYIP eşleştirir (crypto.hash)
+ * ve ancak sonra baştaki sıfır-bit hedefini denetler. Bu iki-adım şarttır —
+ * yalnızca sıfır-bit saymak, uydurma "0000…"-hash ile CPU'suz bypass'a açıktır.
  *
  * DÜRÜSTLÜK NOTU: Zorluk seçimi ve doğrulama GERÇEK bir mekanizmadır. Ekonomi
  * rakamları (saat maliyeti, caydırıcılık katı) ise gözlemlenen olay hacmine
  * dayanan MODEL/gösterim amaçlı tahminlerdir — kesin ölçüm değil.
  */
+import crypto from "node:crypto";
 import type { BotEvent } from "@/lib/db/schema";
 
 /* ------------------------------------------------------------------ Sabitler / model parametreleri */
@@ -200,22 +202,38 @@ export function powZorluk(botOlasilik: number, tabanZorluk: number = TABAN_ZORLU
 /* ------------------------------------------------------------------ 2) Çözüm doğrulama */
 
 /**
- * powDogrula — bir çözümü (nonce + hash) doğrular. Sunucu, istemcinin hesapladığı
- * hash'in baştaki sıfır bitlerinin gereken zorluğu karşıladığını denetler.
- * @param zorlukBit gerekli baştaki sıfır-bit sayısı.
- * @param nonce istemcinin bulduğu nonce (imza/kayıt amaçlı; hesaba katılmaz —
- *              hash zaten nonce'tan türetildiği için doğrulama hash üzerinden).
- * @param hashHex istemcinin ürettiği hash (hex).
+ * powDogrula — bir çözümü (seed + nonce + hash) doğrular. İKİ ADIM (hashcash):
+ *   1) BÜTÜNLÜK: hash GERÇEKTEN SHA-256(seed:nonce) mı? Sunucu yeniden hesaplar
+ *      ve istemci hash'iyle sabit-zamanlı karşılaştırır. Bu adım OLMADAN bot,
+ *      hiç CPU harcamadan uydurma bir "0000…"-hash gönderip PoW'u bypass eder.
+ *   2) HEDEF: doğrulanmış hash'in baştaki sıfır bitleri >= gerekli zorluk mu?
  *
- * NOT (gerçek dünyada): sunucu ayrıca hash === H(challenge || nonce) olduğunu
- * yeniden hesaplayıp doğrular; bu saf/deterministik modül harici hash almadan
- * hedef-karşılama denetimini yapar (mekanizmanın çekirdek adımı).
+ * @param zorlukBit gerekli baştaki sıfır-bit sayısı.
+ * @param seed challenge'ın yayınladığı tohum (sunucu-tarafı; token'da taşınır).
+ * @param nonce istemcinin bulduğu nonce.
+ * @param hashHex istemcinin ürettiği hash (hex) — yeniden hesapla ve eşleştir.
+ *
+ * İstemci (widget) SHA-256(`${seed}:${nonce}`) hex üretir; sunucu birebir aynısını
+ * hesaplar. Format değişirse İKİ taraf da güncellenmelidir (public/veylify.js +
+ * public/specter.js: `enc.encode(seed + ":" + nonce)`).
  */
-export function powDogrula(zorlukBit: number, nonce: string, hashHex: string): DogrulamaSonuc {
-  void nonce; // kayıt/imza için taşınır; hedef-denetimi hash üzerindendir
+export function powDogrula(zorlukBit: number, seed: string, nonce: string, hashHex: string): DogrulamaSonuc {
   const oncekiSifirBit = bastakiSifirBit(hashHex);
+  const gerekli = Math.max(0, Math.round(zorlukBit));
+  // 1) BÜTÜNLÜK: hash === SHA-256(seed:nonce)? (uydurma-hash bypass'ı önler)
+  const beklenen = crypto.createHash("sha256").update(`${seed}:${nonce}`).digest("hex");
+  const istemci = String(hashHex).trim().toLowerCase().replace(/^0x/, "");
+  let hashDogru = false;
+  try {
+    const a = Buffer.from(beklenen, "hex");
+    const b = Buffer.from(istemci, "hex");
+    hashDogru = a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch {
+    hashDogru = false;
+  }
   return {
-    gecerli: oncekiSifirBit >= Math.max(0, Math.round(zorlukBit)),
+    // Hem hash gerçek OLMALI hem hedef sıfır-biti karşılanmalı.
+    gecerli: hashDogru && oncekiSifirBit >= gerekli,
     oncekiSifirBit,
   };
 }

@@ -92,7 +92,14 @@ export function verifyAttempt(
   if (payload.powBit && payload.powBit > 0) {
     const nonce = attempt.signals.powNonce;
     const hash = attempt.signals.powHashHex;
-    if (nonce === undefined || !hash || !powDogrula(payload.powBit, String(nonce), hash).gecerli) {
+    // seed token'da İMZALI taşınır (istemci değiştiremez); istemci
+    // SHA-256(`${seed}:${nonce}`) hesaplar, powDogrula aynısını yeniden üretip
+    // eşleştirir — uydurma-hash bypass'ı kapalı.
+    if (
+      nonce === undefined ||
+      !hash ||
+      !powDogrula(payload.powBit, String(payload.seed), String(nonce), hash).gecerli
+    ) {
       return { success: false, reason: "pow_failed", score: 0 };
     }
   }
