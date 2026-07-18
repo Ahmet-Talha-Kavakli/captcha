@@ -34,6 +34,18 @@ const nextConfig: NextConfig = {
         source: "/((?!specter\\.js).*)",
         headers: guvenlikBasliklari,
       },
+      {
+        // WIDGET CACHE: 3. taraf sitelere gömülen widget her sayfa yüklemesinde
+        // yeniden indirilmesin. Daha önce Cache-Control:max-age=0 idi (her ziyaret
+        // round-trip). stale-while-revalidate: tarayıcı cache'ten ANINDA servis
+        // eder, arka planda yeni sürümü çeker → sürüm değişince cache-bust'a gerek
+        // yok, otomatik güncellenir. CORS için widget zaten * ile erişilebilir.
+        source: "/:file(veylify\\.js|specter\\.js)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
     ];
   },
 };
