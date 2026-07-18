@@ -172,6 +172,15 @@ async function main() {
   const zayif = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: `z${Date.now()}@x.dev`, name: "U", password: "123" }) });
   check("Zayıf şifre kaydı → reddedilir (400)", zayif.status === 400);
 
+  // RAPOR İNDİRME — gerçek içerikli indirilebilir rapor (attachment) + izolasyon.
+  const repJson = await fetch(`${BASE}/api/reports/download?type=trafik&format=json&days=30`, { headers: { Cookie: jarA } });
+  check("Rapor indirme (JSON) → 200 + attachment", repJson.status === 200 && /attachment/.test(repJson.headers.get("content-disposition") || ""));
+  const repCsv = await fetch(`${BASE}/api/reports/download?type=trafik&format=csv&days=7`, { headers: { Cookie: jarA } });
+  const csvText = await repCsv.text();
+  check("Rapor indirme (CSV) → gerçek başlıklı CSV", repCsv.status === 200 && csvText.startsWith("tarih,ip,ulke"));
+  const repAnon = await fetch(`${BASE}/api/reports/download?type=trafik`);
+  check("Oturumsuz rapor indirme → 401 (izolasyon)", repAnon.status === 401);
+
   // PLAN LİMİTLERİ — free plan (site 1, ekip 1) aşımı reddedilmeli; aksi halde
   // plan farkı anlamsız olurdu (gelir kaçağı). Pro yükseltince limit açılmalı.
   const planEmail = `plan${Date.now()}@x.dev`;
