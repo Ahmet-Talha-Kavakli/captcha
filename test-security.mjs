@@ -16,6 +16,14 @@ function check(name, cond) {
   else { fail++; console.log(`  ✗ ${name}`); }
 }
 
+// crypto.ts signVerification ile birebir (verification token üretimi — exp/imza testi).
+function _b64url(buf) { return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+function signVerification(claim, secret) {
+  const body = _b64url(Buffer.from(JSON.stringify(claim), "utf8"));
+  const sig = _b64url(crypto.createHmac("sha256", secret).update("verify:" + body).digest());
+  return `${body}.${sig}`;
+}
+
 async function kayit(email) {
   const r = await fetch(`${BASE}/api/auth/register`, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -205,6 +213,23 @@ async function main() {
   };
   check("passive CORS: yabancı origin (evil.com) → null (körü körüne yansıtmaz)", (await passiveCors("https://evil.com")) === "null");
   check("passive CORS: meşru domain → yansıtılır", (await passiveCors("https://acme-shop.com")) === "https://acme-shop.com");
+
+  // SITEVERIFY TOKEN GÜVENLİĞİ — exp (süre) + imza reddi. Bir saldırgan eski
+  // token'ı yeniden kullanamamalı, exp'i uzatmaya çalışsa imza tutmamalı.
+  const svJar = await kayit(`sv${Date.now()}@x.dev`);
+  const { site: svSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: svJar }, body: JSON.stringify({ name: "sv.com", domains: "localhost" }) })).json();
+  if (svSite) {
+    await fetch(`${BASE}/api/sites/verify`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: svJar }, body: JSON.stringify({ siteId: svSite.id }) }).catch(() => {});
+    const sec = svSite.secretKey;
+    const now = Date.now();
+    const svPost = async (resp) => (await (await fetch(`${BASE}/api/v1/siteverify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: sec, response: resp }) })).json());
+    const taze = signVerification({ cid: "t1", site: svSite.siteKey, success: true, iat: now, exp: now + 120000, score: 0.9 }, sec);
+    check("siteverify: taze token (exp gelecekte) → success", (await svPost(taze)).success === true);
+    const eski = signVerification({ cid: "t2", site: svSite.siteKey, success: true, iat: now - 300000, exp: now - 180000, score: 0.9 }, sec);
+    check("siteverify: süresi dolmuş token → expired reddi", (await svPost(eski))["error-codes"]?.includes("expired"));
+    const sahte = signVerification({ cid: "t3", site: svSite.siteKey, success: true, iat: now, exp: now + 9e11, score: 1 }, "sk_yanlis");
+    check("siteverify: yanlış secret imzalı token → reddedilir", (await svPost(sahte)).success === false);
+  }
 
   // PLAN LİMİTLERİ — free plan (site 1, ekip 1) aşımı reddedilmeli; aksi halde
   // plan farkı anlamsız olurdu (gelir kaçağı). Pro yükseltince limit açılmalı.
