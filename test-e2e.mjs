@@ -178,6 +178,34 @@ async function main() {
   const passData = await passRes.json();
   check("Görünmez mod (zayıf davranış → geçmez)", passData.passed === false);
 
+  // 14) ADVERSARIAL — görünmez modda sahte-sinyal bypass'ı.
+  // Demo site (pk_demo_veylify_public) invisibleMode AÇIK. İstemci sinyalleri
+  // UYDURULABİLİR: bir bot mükemmel fare/tuş sinyalleri enjekte edip yüksek
+  // skor toplayabilir. Ama navigator.webdriver=true bir 'ben botum' itirafıdır
+  // ve kesin otomasyon vetosu tetiklemelidir — skor ne olursa olsun geçememeli.
+  const DEMO = "pk_demo_veylify_public";
+  const insansiSinyal = {
+    mouseSamples: 60, mousePathLength: 840, mouseSpeedVariance: 0.12,
+    mouseCorners: 7, mouseAccelVariance: 0.05, keyIntervals: [110, 145, 98, 167, 120],
+    timeToSubmit: 3200, mouseBeforeKey: true, focusEvents: 2, scrollEvents: 4,
+    hardwareConcurrency: 8, deviceMemory: 8,
+  };
+  // (a) Bot: mükemmel insan sinyali UYDURUR ama webdriver:true → VETO
+  const sahteBot = await (await fetch(`${BASE}/api/v1/passive`, {
+    method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/120" },
+    body: JSON.stringify({ siteKey: DEMO, signals: { ...insansiSinyal, webdriver: true } }),
+  })).json();
+  check("Sahte insan sinyali + webdriver:true → automation_detected (bypass kapalı)",
+    sahteBot.passed === false && sahteBot.reason === "automation_detected");
+
+  // (b) Gerçek insan: aynı sinyaller ama webdriver:false → GEÇER (false-positive yok)
+  const gercekInsan = await (await fetch(`${BASE}/api/v1/passive`, {
+    method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15" },
+    body: JSON.stringify({ siteKey: DEMO, signals: { ...insansiSinyal, webdriver: false } }),
+  })).json();
+  check("Gerçek insan (webdriver:false, iyi davranış) → görünmez geçer",
+    gercekInsan.passed === true);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
