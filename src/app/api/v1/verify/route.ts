@@ -102,8 +102,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Geçersiz site anahtarı" }, { status: 403, headers });
   }
 
-  const rl = rateLimit(`ver:${site.id}`, 240, 60_000);
-  if (!rl.ok) {
+  // İki kademeli rate-limit (DoS koruması): IP+site 120/dk (saldırgan yalnızca
+  // kendi IP'sini kilitler) + site geneli 2400/dk üst tavan.
+  const istekIp = extractMeta(req).ip;
+  const rlIp = rateLimit(`ver:${site.id}:${istekIp}`, 120, 60_000);
+  const rlSite = rateLimit(`ver:${site.id}`, 2400, 60_000);
+  if (!rlIp.ok || !rlSite.ok) {
     return NextResponse.json({ error: "Çok fazla istek" }, { status: 429, headers });
   }
 

@@ -228,6 +228,27 @@ async function main() {
   check("Sahte Googlebot (UA taklidi, yanlış IP) → geçemez",
     sahteGooglebot.passed === false);
 
+  // 16) DoS İZOLASYONU — rate-limit IP başına olmalı, site başına değil.
+  // Bir saldırgan IP sınırı aşınca YALNIZCA kendi IP'si kilitlenmeli; aynı
+  // sitedeki meşru kullanıcılar (farklı IP) hizmet almaya devam etmeli. Aksi
+  // halde tek bir saldırgan tüm sitenin challenge servisini DoS'lardı.
+  let saldirgan429 = false;
+  for (let i = 0; i < 70; i++) {
+    const r = await fetch(`${BASE}/api/v1/challenge`, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "203.0.113.7" },
+      body: JSON.stringify({ siteKey: DEMO }),
+    });
+    if (r.status === 429) { saldirgan429 = true; }
+  }
+  check("Saldırgan IP challenge sınırını aşınca 429 alır", saldirgan429);
+
+  const mesruKullanici = await fetch(`${BASE}/api/v1/challenge`, {
+    method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": "198.51.100.42" },
+    body: JSON.stringify({ siteKey: DEMO }),
+  });
+  check("Meşru kullanıcı (farklı IP) saldırıya rağmen hizmet alır (DoS izolasyonu)",
+    mesruKullanici.status === 200);
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }

@@ -63,9 +63,15 @@ export async function POST(req: Request) {
 
   const headers = cors(origin, site.domains);
 
-  // Rate limit: site başına dakikada 120 challenge.
-  const rl = rateLimit(`chal:${site.id}`, 120, 60_000);
-  if (!rl.ok) {
+  // Rate limit — İKİ KADEMELİ (DoS koruması):
+  // 1) IP+site başına 60/dk: bir saldırgan yalnızca KENDİ IP'sini kilitler;
+  //    meşru kullanıcılar etkilenmez. (Site-geneli tek anahtar kullanmak tek bir
+  //    saldırgana tüm sitenin challenge servisini kilitleme imkânı verirdi.)
+  // 2) Site geneli 1200/dk: aşırı dağıtık kötüye-kullanıma karşı üst tavan.
+  const ipErken = extractMeta(req).ip;
+  const rlIp = rateLimit(`chal:${site.id}:${ipErken}`, 60, 60_000);
+  const rlSite = rateLimit(`chal:${site.id}`, 1200, 60_000);
+  if (!rlIp.ok || !rlSite.ok) {
     return NextResponse.json(
       { error: "Çok fazla istek, biraz bekleyin" },
       { status: 429, headers },

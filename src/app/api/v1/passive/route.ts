@@ -51,11 +51,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ passed: false, reason: "invisible_disabled" }, { status: 200, headers });
   }
 
-  const rl = rateLimit(`passive:${site.id}`, 300, 60_000);
-  if (!rl.ok) return NextResponse.json({ passed: false, reason: "rate" }, { status: 200, headers });
+  const meta = extractMeta(req);
+  // İki kademeli rate-limit (DoS koruması): IP+site 150/dk (saldırgan yalnızca
+  // kendi IP'sini kilitler; meşru kullanıcılar etkilenmez) + site geneli 3000/dk.
+  const rlIp = rateLimit(`passive:${site.id}:${meta.ip}`, 150, 60_000);
+  const rlSite = rateLimit(`passive:${site.id}`, 3000, 60_000);
+  if (!rlIp.ok || !rlSite.ok) return NextResponse.json({ passed: false, reason: "rate" }, { status: 200, headers });
 
   const behavior = scoreBehavior(signals);
-  const meta = extractMeta(req);
 
   // AI ajanı + parmak izini kural değerlendirmesinden ÖNCE türet; böylece
   // kurallar aiAgent/aiCategory/headless/tlsMismatch/httpVersion alanlarını görebilir.
