@@ -8,7 +8,7 @@
  * ENUM GÜVENLİĞİ
  * --------------
  * Plan `key` ("free" | "pro" | "scale") kararlı enum'dur; asla çevrilmez.
- * Plan ADI ("Ücretsiz"/"Pro"/"Scale") ve FİYATI ("₺0"/"₺490/ay"/"Özel") lib'de
+ * Plan ADI ("Ücretsiz"/"Pro"/"Scale") ve FİYATI ("₺0"/"₺990/ay"/"Özel") lib'de
  * Türkçe/temsili tutulur; burada `key` ile eşlenip yeniden türetilir:
  *   - "Ücretsiz" → çevrilir; "Pro"/"Scale" marka adı olarak korunur.
  *   - Fiyat: para birimi (₺, sayı) VERİDİR; yalnızca "/ay" son eki ve "Özel"
@@ -16,6 +16,7 @@
  * Diğer tüm sayılar/₺/yüzde VERİ olarak kalır; yalnızca yerelleştirilmiş biçimlenir.
  */
 import type { Dil } from "@/lib/i18n/panel";
+import { planTanim } from "@/lib/specter/plans";
 
 const sozluk: Record<Dil, Record<string, string>> = {
   tr: {
@@ -64,9 +65,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ma.planAd.free": "Ücretsiz",
     "ma.planAd.pro": "Pro",
     "ma.planAd.scale": "Scale",
-    "ma.fiyat.free": "₺0",
-    "ma.fiyat.pro": "₺490/ay",
-    "ma.fiyat.scale": "Özel",
+    "ma.fiyatEk.ay": "/ay",
+    "ma.fiyatEk.ozel": "Özel",
   },
 
   en: {
@@ -108,9 +108,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ma.planAd.free": "Free",
     "ma.planAd.pro": "Pro",
     "ma.planAd.scale": "Scale",
-    "ma.fiyat.free": "₺0",
-    "ma.fiyat.pro": "₺490/mo",
-    "ma.fiyat.scale": "Custom",
+    "ma.fiyatEk.ay": "/mo",
+    "ma.fiyatEk.ozel": "Custom",
   },
 
   de: {
@@ -152,9 +151,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ma.planAd.free": "Kostenlos",
     "ma.planAd.pro": "Pro",
     "ma.planAd.scale": "Scale",
-    "ma.fiyat.free": "₺0",
-    "ma.fiyat.pro": "₺490/Mon.",
-    "ma.fiyat.scale": "Individuell",
+    "ma.fiyatEk.ay": "/Mon.",
+    "ma.fiyatEk.ozel": "Individuell",
   },
 
   fr: {
@@ -196,9 +194,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ma.planAd.free": "Gratuit",
     "ma.planAd.pro": "Pro",
     "ma.planAd.scale": "Scale",
-    "ma.fiyat.free": "₺0",
-    "ma.fiyat.pro": "₺490/mois",
-    "ma.fiyat.scale": "Sur mesure",
+    "ma.fiyatEk.ay": "/mois",
+    "ma.fiyatEk.ozel": "Sur mesure",
   },
 
   es: {
@@ -240,9 +237,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ma.planAd.free": "Gratis",
     "ma.planAd.pro": "Pro",
     "ma.planAd.scale": "Scale",
-    "ma.fiyat.free": "₺0",
-    "ma.fiyat.pro": "₺490/mes",
-    "ma.fiyat.scale": "Personalizado",
+    "ma.fiyatEk.ay": "/mes",
+    "ma.fiyatEk.ozel": "Personalizado",
   },
 };
 
@@ -266,7 +262,17 @@ export function planAdi(key: string, dil: Dil): string {
   return maliyetCeviri(`ma.planAd.${key}`, dil);
 }
 
-/** Plan fiyatı — `key` (enum) ile eşlenir; para birimi VERİ, yalnızca "/ay"/"Özel" çevrilir. */
+/**
+ * Plan fiyatı — SAYI + para birimi plans.ts'ten (tek kaynak) TÜRETİLİR; böylece
+ * maliyet ekranı landing/fatura ile daima tutarlıdır. Yalnızca "/ay" son-eki ve
+ * "Özel" kelimesi dile göre çevrilir (i18n `ma.fiyatEk.*` ile). Örn plans.ts
+ * "₺990/ay" → tr "₺990/ay", en "₺990/mo".
+ */
 export function planFiyati(key: string, dil: Dil): string {
-  return maliyetCeviri(`ma.fiyat.${key}`, dil);
+  const p = planTanim(key); // free/pro/scale → PlanTanim (bilinmeyen key → free)
+  const ham = p.fiyat; // "₺0" | "₺990/ay" | "Özel"
+  if (ham === "Özel") return maliyetCeviri("ma.fiyatEk.ozel", dil);
+  if (!ham.includes("/ay")) return ham; // "₺0" — son-ek yok, aynen
+  const tutar = ham.replace("/ay", "");
+  return `${tutar}${maliyetCeviri("ma.fiyatEk.ay", dil)}`;
 }

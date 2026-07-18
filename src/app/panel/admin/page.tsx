@@ -45,12 +45,16 @@ import { AdminIstemci, type AdminVeri, type HesapSatir } from "./AdminIstemci";
 export const metadata: Metadata = { title: "Yönetici Konsolu — Veylify" };
 
 /**
- * MRR (aylık yinelenen gelir) tahmini için plan başına aylık USD-eşdeğeri.
- * Fiyatlar plans.ts'te metin (₺) tutulduğundan burada MRR hesabı için sayısal
- * temsil kullanılır: Free ₺0, Pro ₺490/ay, Scale (özel/kurumsal) ~₺4.900/ay
- * temsili sözleşme değeri. Bu bir TAHMİN'dir; gerçek sözleşmeler değişir.
+ * MRR (aylık yinelenen gelir) tahmini için plan başına aylık ₺ değeri.
+ * free/pro fiyatı plans.ts'ten (tek kaynak) türetilir — böylece admin MRR
+ * hesabı fatura/landing ile tutarlıdır. Scale "Özel" (sözleşmeye bağlı)
+ * olduğundan MRR için temsili ~₺4.900/ay sözleşme değeri kullanılır (TAHMİN).
  */
-const PLAN_AYLIK_TL: Record<Plan, number> = { free: 0, pro: 490, scale: 4900 };
+const PLAN_AYLIK_TL: Record<Plan, number> = {
+  free: Number(PLANLAR.free.fiyat.replace(/[^\d]/g, "")) || 0,
+  pro: Number(PLANLAR.pro.fiyat.replace(/[^\d]/g, "")) || 0,
+  scale: 4900,
+};
 
 /** İki gün-anahtarı (YYYY-MM-DD) arası fark yerine son N gün etiketi üret. */
 function sonGunler(n: number): string[] {

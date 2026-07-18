@@ -110,7 +110,7 @@ export function roiHesap(botDagilim: Record<string, number>, specterAylikTl: num
   };
 }
 
-/** Plan fiyat dizesinden aylık TL çıkarır ("₺490/ay" → 490, "₺0" → 0, "Özel" → 0). */
+/** Plan fiyat dizesinden aylık TL çıkarır ("₺990/ay" → 990, "₺0" → 0, "Özel" → 0). */
 export function fiyatTl(fiyat: string): number {
   const m = fiyat.replace(/\./g, "").match(/(\d+)/);
   return m ? Number(m[1]) : 0;
