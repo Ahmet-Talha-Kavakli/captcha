@@ -266,6 +266,19 @@ async function main() {
   check("Tor IP → PoW dayatılır (CPU maliyeti, bot ekonomik caydırma)",
     !!torPow.pow && torPow.pow.hedefBit > 0);
 
+  // 18) KURAL MOTORU KAPSAMI — site sahibinin yazdığı kurallar enforcement'a
+  // yansımalı: farklı alanlar (asn/path/score) + block vs challenge ayrımı.
+  // simulate endpoint'i GERÇEK rule-engine mantığını çalıştırır (mock değil).
+  await fetch(`${BASE}/api/rules`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: jar }, body: JSON.stringify({ siteId: site.id, name: "kötü ASN", field: "asn", op: "contains", value: "AS999", action: "block" }) });
+  await fetch(`${BASE}/api/rules`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: jar }, body: JSON.stringify({ siteId: site.id, name: "admin koru", field: "path", op: "contains", value: "/admin", action: "challenge" }) });
+  const simEt = async (ctx) => (await (await fetch(`${BASE}/api/rules/simulate`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: jar }, body: JSON.stringify({ siteId: site.id, ...ctx }) })).json());
+  const rAsn = await simEt({ asn: "AS99900 EvilCorp", score: 0.9, path: "/" });
+  check("Kural: ASN eşleşmesi → block", rAsn.action === "block");
+  const rPath = await simEt({ asn: "AS100 Good", score: 0.9, path: "/admin/panel" });
+  check("Kural: path eşleşmesi → challenge (block'tan ayrı aksiyon)", rPath.action === "challenge");
+  const rTemiz = await simEt({ asn: "AS100 Good", score: 0.9, path: "/" });
+  check("Kural: eşleşmeyen temiz istek → allow", rTemiz.action === "allow");
+
   console.log(`\n=== ${pass} geçti, ${fail} başarısız ===\n`);
   process.exit(fail ? 1 : 0);
 }
