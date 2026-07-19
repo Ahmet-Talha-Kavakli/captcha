@@ -10,6 +10,7 @@ import { UcanBaykus } from "@/components/site/UcanBaykus";
 import { ParallaxKatman } from "@/components/site/Parallax";
 import { AkisDiyagram, MimariSema } from "@/components/site/illustrasyonlar";
 import { MarkaLogo, GUVEN_MARKALARI } from "@/components/site/marka-logolari";
+import { PLATFORM_LOGO } from "@/components/site/platform-logolari";
 import { Faq, SORULAR } from "@/components/site/Faq";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { MARKA } from "@/lib/marka";
@@ -704,18 +705,9 @@ function Guven({ t }: { t: T }) {
 /* ============================================================ ENTEGRASYONLAR */
 function Entegrasyonlar({ t }: { t: T }) {
   const araclar = [
-    { ad: "WordPress", ikon: Globe },
-    { ad: "Shopify", ikon: Server },
-    { ad: "Next.js", ikon: Code2 },
-    { ad: "Cloudflare", ikon: Globe },
-    { ad: "Slack", ikon: Zap },
-    { ad: "Webhook", ikon: GitBranch },
-    { ad: "React", ikon: Code2 },
-    { ad: "Nginx", ikon: Server },
-    { ad: "Zapier", ikon: Zap },
-    { ad: "PHP / Laravel", ikon: Code2 },
-    { ad: "Python", ikon: Code2 },
-    { ad: "cURL / REST", ikon: Server },
+    "WordPress", "Shopify", "Next.js", "Cloudflare",
+    "Slack", "Webhook", "React", "Nginx",
+    "Zapier", "PHP / Laravel", "Python", "cURL / REST",
   ];
   return (
     <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
@@ -750,17 +742,20 @@ function Entegrasyonlar({ t }: { t: T }) {
           </Reveal>
           <Reveal delay={1}>
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-              {araclar.map((a) => (
-                <div
-                  key={a.ad}
-                  className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-veylify-100 bg-white p-3 text-center transition hover:-translate-y-0.5 hover:border-veylify-200 hover:shadow-[0_16px_40px_-24px_rgba(79,70,229,0.3)]"
-                >
-                  <span className="grid size-9 place-items-center rounded-lg glass-ikon text-veylify-600">
-                    <a.ikon className="size-[18px]" />
-                  </span>
-                  <span className="text-[11.5px] font-semibold text-slate-600">{a.ad}</span>
-                </div>
-              ))}
+              {araclar.map((ad) => {
+                const Logo = PLATFORM_LOGO[ad];
+                return (
+                  <div
+                    key={ad}
+                    className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-veylify-100 bg-white p-3 text-center transition hover:-translate-y-0.5 hover:border-veylify-200 hover:shadow-[0_16px_40px_-24px_rgba(79,70,229,0.3)]"
+                  >
+                    <span className="glass-ikon grid size-9 place-items-center rounded-lg">
+                      {Logo ? <Logo className="size-[18px]" /> : null}
+                    </span>
+                    <span className="text-[11.5px] font-semibold text-slate-600">{ad}</span>
+                  </div>
+                );
+              })}
             </div>
           </Reveal>
         </div>
