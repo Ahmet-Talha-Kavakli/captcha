@@ -8,6 +8,7 @@ export const fr: Record<string, string> = {
   "nav.demo": "Démo en direct",
   "nav.giris": "Connexion",
   "nav.basla": "Commencer gratuitement",
+  "nav.panel": "Tableau de bord",
 
   // --- Hero ---
   "hero.rozet": "La protection anti-bots de l'ère de l'IA",

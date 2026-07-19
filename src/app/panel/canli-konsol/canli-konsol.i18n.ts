@@ -214,6 +214,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kk.m.benzersizIp": "Eindeutige IPs",
     "kk.m.ip": "IPs",
 
+    "kk.gorsel.kararDagilim": "Urteilsverteilung",
+    "kk.gorsel.sinifDagilim": "Verteilung der Bot-Klassen",
+    "kk.gorsel.olayTrend": "Trend der Ereignisrate",
+
     "kk.filtreler": "Filter",
     "kk.araPlaceholder": "IP, Pfad oder ASN suchen…",
     "kk.aramaLabel": "Ereignisse durchsuchen",
@@ -297,6 +301,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kk.m.benzersizIp": "IP uniques",
     "kk.m.ip": "IP",
 
+    "kk.gorsel.kararDagilim": "Répartition des verdicts",
+    "kk.gorsel.sinifDagilim": "Répartition des classes de bots",
+    "kk.gorsel.olayTrend": "Tendance du débit d'événements",
+
     "kk.filtreler": "Filtres",
     "kk.araPlaceholder": "Rechercher IP, chemin ou ASN…",
     "kk.aramaLabel": "Rechercher dans les événements",
@@ -379,6 +387,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kk.m.izinVerilen": "Permitidos",
     "kk.m.benzersizIp": "IP únicas",
     "kk.m.ip": "IP",
+
+    "kk.gorsel.kararDagilim": "Distribución de veredictos",
+    "kk.gorsel.sinifDagilim": "Distribución de clases de bot",
+    "kk.gorsel.olayTrend": "Tendencia de la tasa de eventos",
 
     "kk.filtreler": "Filtros",
     "kk.araPlaceholder": "Buscar IP, ruta o ASN…",

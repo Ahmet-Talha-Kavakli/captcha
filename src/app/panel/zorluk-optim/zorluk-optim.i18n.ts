@@ -440,6 +440,24 @@ const sozluk: Record<Dil, Record<string, string>> = {
       "Fordert mit hoher Schwelle ein breites Verdachtsband heraus. Bot-Erfassung ist hoch, menschliche Reibung steigt.",
     "pol.acik.agresif":
       "Null Toleranz: behandelt das breiteste Band als nahezu direkte Blockierung. Stoppt die meisten Bots, ermüdet die meisten Menschen.",
+
+    "gorsel.dagilimBaslik": "Verteilung der Schwierigkeitsstufen",
+    "gorsel.politika": "Richtlinien",
+    "gorsel.dengeBaslik": "Erfolgs-/Reibungs-Balance",
+    "gorsel.denge": "Balance",
+    "gorsel.yakalama": "Bot-Erfassung",
+    "gorsel.surtunme": "Menschliche Reibung",
+    "gorsel.adaptifBaslik": "Adaptive Kurve · nach Schwelle",
+    "gorsel.adaptifNot": "Steigt die Bot-Schwelle, nimmt die Erfassung zu — aber auch die menschliche Reibung. Das Optimum liegt dort, wo die beiden Kurven am weitesten auseinandergehen.",
+    "dagilim.dusuk": "Niedrige Schwierigkeit",
+    "dagilim.orta": "Mittlere Schwierigkeit",
+    "dagilim.yuksek": "Hohe Schwierigkeit",
+    "radar.baslik": "Optimierungsprofil",
+    "radar.botYakalama": "Bot-Erfassung",
+    "radar.insanDostu": "Menschenfreundlich",
+    "radar.donusum": "Konversionsschutz",
+    "radar.kapsama": "Abdeckung",
+    "radar.netSkor": "Nettowert",
   },
 
   fr: {
@@ -563,6 +581,24 @@ const sozluk: Record<Dil, Record<string, string>> = {
       "Défie une large bande suspecte avec un seuil élevé. La capture de bots est élevée, la friction humaine augmente.",
     "pol.acik.agresif":
       "Tolérance zéro : traite la bande la plus large comme un blocage quasi direct. Arrête le plus de bots, fatigue le plus d'humains.",
+
+    "gorsel.dagilimBaslik": "Distribution des niveaux de difficulté",
+    "gorsel.politika": "politiques",
+    "gorsel.dengeBaslik": "Équilibre réussite / friction",
+    "gorsel.denge": "équilibre",
+    "gorsel.yakalama": "Capture de bots",
+    "gorsel.surtunme": "Friction humaine",
+    "gorsel.adaptifBaslik": "Courbe adaptative · par seuil",
+    "gorsel.adaptifNot": "À mesure que le seuil de bot augmente, la capture croît — mais la friction humaine aussi. L'optimum se situe là où les deux courbes divergent le plus.",
+    "dagilim.dusuk": "Faible difficulté",
+    "dagilim.orta": "Difficulté moyenne",
+    "dagilim.yuksek": "Difficulté élevée",
+    "radar.baslik": "Profil d'optimisation",
+    "radar.botYakalama": "Capture de bots",
+    "radar.insanDostu": "Convivial pour l'humain",
+    "radar.donusum": "Protection de la conversion",
+    "radar.kapsama": "Couverture",
+    "radar.netSkor": "Score net",
   },
 
   es: {
@@ -686,6 +722,24 @@ const sozluk: Record<Dil, Record<string, string>> = {
       "Desafía una amplia banda sospechosa con un umbral alto. La captura de bots es alta, la fricción humana aumenta.",
     "pol.acik.agresif":
       "Tolerancia cero: trata la banda más amplia como un bloqueo casi directo. Detiene más bots, cansa a más humanos.",
+
+    "gorsel.dagilimBaslik": "Distribución de niveles de dificultad",
+    "gorsel.politika": "políticas",
+    "gorsel.dengeBaslik": "Equilibrio éxito / fricción",
+    "gorsel.denge": "equilibrio",
+    "gorsel.yakalama": "Captura de bots",
+    "gorsel.surtunme": "Fricción humana",
+    "gorsel.adaptifBaslik": "Curva adaptativa · por umbral",
+    "gorsel.adaptifNot": "A medida que sube el umbral de bot, la captura aumenta — pero también la fricción humana. El óptimo está donde las dos curvas más se separan.",
+    "dagilim.dusuk": "Dificultad baja",
+    "dagilim.orta": "Dificultad media",
+    "dagilim.yuksek": "Dificultad alta",
+    "radar.baslik": "Perfil de optimización",
+    "radar.botYakalama": "Captura de bots",
+    "radar.insanDostu": "Amigable con humanos",
+    "radar.donusum": "Protección de conversión",
+    "radar.kapsama": "Cobertura",
+    "radar.netSkor": "Puntuación neta",
   },
 };
 

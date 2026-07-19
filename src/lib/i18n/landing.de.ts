@@ -7,6 +7,7 @@ export const de: Record<string, string> = {
   "nav.demo": "Live-Demo",
   "nav.giris": "Anmelden",
   "nav.basla": "Kostenlos starten",
+  "nav.panel": "Dashboard",
   "hero.rozet": "Bot-Schutz für das KI-Zeitalter",
   "hero.baslik1": "KI-Bots knacken jedes CAPTCHA.",
   "hero.baslik2": "die Schicht, die sie nicht überwinden.",

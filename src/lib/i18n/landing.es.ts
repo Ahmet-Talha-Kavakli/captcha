@@ -8,6 +8,7 @@ export const es: Record<string, string> = {
   "nav.demo": "Demo en vivo",
   "nav.giris": "Iniciar sesión",
   "nav.basla": "Empieza gratis",
+  "nav.panel": "Panel",
 
   // --- Hero ---
   "hero.rozet": "Protección contra bots para la era de la IA",
@@ -203,6 +204,15 @@ export const es: Record<string, string> = {
   "ortak.evet": "sí",
   "ortak.hayir": "no",
   "mock.canliKarar": "Flujo de decisiones en vivo",
+  "mock.yanit": "Respuesta",
+  "mock.dogrulandi": "Verificado",
+  "mock.korumaKatmani": "Capa de protección Veylify",
+  "mock.navKomuta": "Centro de comando",
+  "mock.navAjanlar": "Agentes de IA",
+  "mock.navKurallar": "Reglas",
+  "mock.navCografi": "Riesgo geográfico",
+  "mock.navImza": "Firma",
+  "mock.navAvlar": "Búsquedas guardadas",
   "mock.canli": "en vivo",
   "mock.insan": "Humano",
   "mock.aiAjan": "Agente IA",

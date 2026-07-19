@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, MoreHorizontal, Copy, Check, Search } from "lucide-react";
 import { useState, useRef, useEffect, createContext, useContext, useCallback } from "react";
 import { useOdakTuzak } from "@/lib/a11y/odak-tuzak";
+import { usePanelDil } from "@/lib/i18n/istemci";
 
 /* ------------------------------------------------------------------ Panel */
 export function Panel({
@@ -151,12 +152,13 @@ export function Badge({
  * Bot kararlarını (izin/doğrula/engelle/işaretle) ikonlu renkli hap olarak gösterir.
  * "gerçek veri" hissi verir — düz metin yerine anlamlı, tutarlı görsel dil. */
 export function VerdictRozet({ verdict, boyut = "md" }: { verdict: string; boyut?: "sm" | "md" }) {
+  const { ceviri: t } = usePanelDil();
   const v = verdict.toLowerCase();
   const harita: Record<string, { ad: string; ikon: React.ReactNode; sinif: string; nokta: string }> = {
-    allowed:    { ad: "İzin verildi", ikon: <IconCheck />, sinif: "bg-ok-soft text-green-700 ring-green-200", nokta: "bg-ok" },
-    challenged: { ad: "Doğrulandı",  ikon: <IconShield />, sinif: "bg-warn-soft text-amber-700 ring-amber-200", nokta: "bg-warn" },
-    blocked:    { ad: "Engellendi",  ikon: <IconBan />, sinif: "bg-danger-soft text-red-700 ring-red-200", nokta: "bg-danger2" },
-    flagged:    { ad: "İşaretlendi", ikon: <IconFlag />, sinif: "bg-blue-50 text-blue-700 ring-blue-200", nokta: "bg-blue-500" },
+    allowed:    { ad: t("verdict.allowed"), ikon: <IconCheck />, sinif: "bg-ok-soft text-green-700 ring-green-200", nokta: "bg-ok" },
+    challenged: { ad: t("verdict.challenged"),  ikon: <IconShield />, sinif: "bg-warn-soft text-amber-700 ring-amber-200", nokta: "bg-warn" },
+    blocked:    { ad: t("verdict.blocked"),  ikon: <IconBan />, sinif: "bg-danger-soft text-red-700 ring-red-200", nokta: "bg-danger2" },
+    flagged:    { ad: t("verdict.flagged"), ikon: <IconFlag />, sinif: "bg-blue-50 text-blue-700 ring-blue-200", nokta: "bg-blue-500" },
   };
   const m = harita[v] ?? { ad: verdict, ikon: <IconDot />, sinif: "bg-slate-100 text-slate-600 ring-slate-200", nokta: "bg-slate-400" };
   return (
@@ -283,6 +285,7 @@ export function Modal({
   children: React.ReactNode;
   genislik?: string;
 }) {
+  const { ceviri: t } = usePanelDil();
   useScrollKilit(acik);
   // Erişilebilir başlık/açıklama için kararlı id'ler (aria-labelledby/-describedby).
   const baslikId = useRef(`modal-baslik-${Math.random().toString(36).slice(2, 9)}`).current;
@@ -321,7 +324,7 @@ export function Modal({
             role="dialog"
             aria-modal="true"
             aria-labelledby={baslik ? baslikId : undefined}
-            aria-label={baslik ? undefined : "İletişim kutusu"}
+            aria-label={baslik ? undefined : t("kit.diyalog")}
             aria-describedby={aciklama ? aciklamaId : undefined}
           >
             {baslik && (
@@ -330,7 +333,7 @@ export function Modal({
                   <h2 id={baslikId} className="text-lg font-semibold text-slate-ink">{baslik}</h2>
                   {aciklama && <p id={aciklamaId} className="mt-0.5 text-sm text-slate-muted">{aciklama}</p>}
                 </div>
-                <button onClick={kapat} aria-label="Kapat" className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
+                <button onClick={kapat} aria-label={t("kit.kapat")} className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink">
                   <X className="size-5" />
                 </button>
               </div>
@@ -344,10 +347,11 @@ export function Modal({
 }
 
 export function Alan({ etiket, opsiyonel, children }: { etiket: string; opsiyonel?: boolean; children: React.ReactNode }) {
+  const { ceviri: t } = usePanelDil();
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-slate-ink">
-        {etiket} {opsiyonel && <span className="text-slate-faint">(opsiyonel)</span>}
+        {etiket} {opsiyonel && <span className="text-slate-faint">({t("kit.opsiyonel")})</span>}
       </span>
       {children}
     </label>
@@ -379,12 +383,13 @@ export function SettingRow2({
   onerilen?: boolean;
   children?: React.ReactNode;
 }) {
+  const { ceviri: t } = usePanelDil();
   return (
     <div className="flex items-start justify-between gap-4 border-b border-line py-4 first:pt-0 last:border-0 last:pb-0">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[15px] font-medium text-slate-ink">{baslik}</span>
-          {onerilen && <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-600">Önerilen</span>}
+          {onerilen && <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-600">{t("kit.onerilen")}</span>}
         </div>
         {aciklama && <p className="mt-1 text-[13px] leading-relaxed text-slate-muted">{aciklama}</p>}
       </div>
@@ -403,11 +408,11 @@ export function Tablo<T extends { id: string }>({
   kolonlar,
   veri,
   onSatir,
-  bosMesaj = "Kayıt yok.",
+  bosMesaj,
   sayfaBoyu,
   sayfaBoyuSecenekleri = [15, 30, 50, 100],
   ara,
-  araPlaceholder = "Ara…",
+  araPlaceholder,
 }: {
   kolonlar: Kolon<T>[];
   veri: T[];
@@ -421,6 +426,10 @@ export function Tablo<T extends { id: string }>({
   ara?: (satir: T) => string;
   araPlaceholder?: string;
 }) {
+  const { ceviri: t } = usePanelDil();
+  // Varsayılan metinler i18n'den (verilmezse). Prop verilirse o kullanılır.
+  const bosMesajMetin = bosMesaj ?? t("kit.kayitYok");
+  const araPlaceholderMetin = araPlaceholder ?? t("kit.ara");
   const [sayfa, setSayfa] = useState(0);
   const [boyut, setBoyut] = useState(sayfaBoyu ?? 15);
   const [sorgu, setSorgu] = useState("");
@@ -442,8 +451,8 @@ export function Tablo<T extends { id: string }>({
             <input
               value={sorgu}
               onChange={(e) => { setSorgu(e.target.value); setSayfa(0); }}
-              placeholder={araPlaceholder}
-              aria-label="Tabloda ara"
+              placeholder={araPlaceholderMetin}
+              aria-label={t("kit.tablodaAra")}
               className="h-10 w-full rounded-2xl border border-line-strong bg-surface pl-9 pr-3 text-sm text-slate-ink outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100 placeholder:text-slate-faint"
             />
           </div>
@@ -464,7 +473,7 @@ export function Tablo<T extends { id: string }>({
             {gorunen.length === 0 ? (
               <tr>
                 <td colSpan={kolonlar.length} className="px-5 py-12 text-center text-sm text-slate-faint">
-                  {bosMesaj}
+                  {bosMesajMetin}
                 </td>
               </tr>
             ) : (
@@ -508,11 +517,11 @@ export function Tablo<T extends { id: string }>({
               {filtreli.length === 0 ? 0 : s * boyut + 1}–{Math.min((s + 1) * boyut, filtreli.length)} / {filtreli.length}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="text-slate-faint">Göster:</span>
+              <span className="text-slate-faint">{t("kit.goster")}</span>
               <select
                 value={boyut}
                 onChange={(e) => { setBoyut(Number(e.target.value)); setSayfa(0); }}
-                aria-label="Sayfa başına kayıt"
+                aria-label={t("kit.sayfaBasina")}
                 className="rounded-lg border border-line-strong bg-surface px-2 py-1 text-[13px] font-medium text-slate-ink outline-none transition focus:border-brand-400"
               >
                 {sayfaBoyuSecenekleri.map((n) => <option key={n} value={n}>{n}</option>)}
@@ -522,13 +531,13 @@ export function Tablo<T extends { id: string }>({
           {toplamSayfa > 1 && (
             <div className="flex items-center gap-1">
               <button onClick={() => setSayfa(Math.max(0, s - 1))} disabled={s === 0} className="rounded-lg px-2.5 py-1.5 transition hover:bg-canvas disabled:opacity-40">
-                ← Önceki
+                ← {t("kit.onceki")}
               </button>
               <span className="num px-2 font-medium text-slate-ink">
                 {s + 1} / {toplamSayfa}
               </span>
               <button onClick={() => setSayfa(Math.min(toplamSayfa - 1, s + 1))} disabled={s >= toplamSayfa - 1} className="rounded-lg px-2.5 py-1.5 transition hover:bg-canvas disabled:opacity-40">
-                Sonraki →
+                {t("kit.sonraki")} →
               </button>
             </div>
           )}
@@ -595,6 +604,7 @@ export function ToastSaglayici({ children }: { children: React.ReactNode }) {
 
 /* ------------------------------------------------------------------ SatirMenu */
 export function SatirMenu({ aksiyonlar }: { aksiyonlar: { ad: string; onClick: () => void; tehlike?: boolean }[] }) {
+  const { ceviri: t } = usePanelDil();
   const [acik, setAcik] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -606,7 +616,7 @@ export function SatirMenu({ aksiyonlar }: { aksiyonlar: { ad: string; onClick: (
     <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
       <button
         onClick={() => setAcik((v) => !v)}
-        aria-label="Satır işlemleri"
+        aria-label={t("kit.satirIslemleri")}
         aria-haspopup="menu"
         aria-expanded={acik}
         className="rounded-lg p-1.5 text-slate-faint transition hover:bg-canvas hover:text-slate-ink"
@@ -719,12 +729,13 @@ export function KodBlok({
   className?: string;
   maxH?: string;
 }) {
+  const { ceviri: t } = usePanelDil();
   const { goster } = useToast();
   const [kopyalandi, setKopyalandi] = useState(false);
   function kopyala() {
     navigator.clipboard.writeText(kod);
     setKopyalandi(true);
-    goster({ tip: "basari", baslik: "Kod kopyalandı" });
+    goster({ tip: "basari", baslik: t("kit.kodKopyalandi") });
     setTimeout(() => setKopyalandi(false), 1600);
   }
   return (
@@ -744,7 +755,7 @@ export function KodBlok({
           className="flex items-center gap-1.5 rounded-lg bg-white/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-slate-300 transition hover:bg-white/[0.12] hover:text-white"
         >
           {kopyalandi ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
-          {kopyalandi ? "Kopyalandı" : "Kopyala"}
+          {kopyalandi ? t("kit.kopyalandi") : t("kit.kopyala")}
         </button>
       </div>
       <pre className={cn("overflow-auto p-4 text-[12.5px] leading-relaxed", maxH)}>

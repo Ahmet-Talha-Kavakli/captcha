@@ -11,6 +11,7 @@
 import { motion } from "framer-motion";
 import { useId, useMemo, useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/cn";
+import { usePanelDil } from "@/lib/i18n/istemci";
 
 /* Ortak grafik palet sabitleri — CSS token'ına bağlı, böylece koyu temada da
    doğru (sabit hex değil). SVG stroke/fill bu değişkenleri okuyabilir. */
@@ -20,18 +21,19 @@ const TABAN_YAZI = "#6b6a63"; // slate-muted
 
 /* ------------------------------------------------------- Koruma Skoru donut gauge */
 export function KorumaSkoru({ skor, boyut = 176 }: { skor: number; boyut?: number }) {
+  const { ceviri: t } = usePanelDil();
   const guvenli = Number.isFinite(skor) ? Math.max(0, Math.min(100, skor)) : 0;
   const r = 42;
   const cevre = 2 * Math.PI * r;
   const dolu = (guvenli / 100) * cevre;
   const renk = guvenli >= 85 ? "#16a34a" : guvenli >= 65 ? "#2f6fed" : guvenli >= 45 ? "#d97706" : "#dc2626";
-  const etiket = guvenli >= 85 ? "Güçlü" : guvenli >= 65 ? "İyi" : guvenli >= 45 ? "Orta" : "Zayıf";
+  const etiket = guvenli >= 85 ? t("grafik.skor.guclu") : guvenli >= 65 ? t("grafik.skor.iyi") : guvenli >= 45 ? t("grafik.skor.orta") : t("grafik.skor.zayif");
   return (
     <div
       className="relative grid place-items-center"
       style={{ width: boyut, height: boyut }}
       role="img"
-      aria-label={`Koruma skoru ${guvenli}, ${etiket}`}
+      aria-label={t("grafik.aria.korumaSkoru").replace("{skor}", String(guvenli)).replace("{etiket}", etiket)}
     >
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
         {/* zemin halkası — ince, nötr */}
@@ -113,6 +115,7 @@ export function TrendGrafik({
   seriEtiketleri?: string[];
 }) {
   void gradId; // imza korunuyor
+  const { ceviri: t } = usePanelDil();
   const uid = useId().replace(/:/g, "");
   const kapRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -280,7 +283,7 @@ export function TrendGrafik({
           style={{ height: yukseklik }}
           preserveAspectRatio="none"
           role="img"
-          aria-label="Zaman içindeki trend grafiği"
+          aria-label={t("grafik.aria.trend")}
         >
           <defs>
             {seriRenkleri.map((c, si) => (
@@ -458,7 +461,7 @@ export function TrendGrafik({
       {veriYok && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <span className="rounded-full border border-line bg-surface/80 px-3 py-1 text-[11px] font-medium text-slate-faint backdrop-blur-sm">
-            Henüz veri yok
+            {t("grafik.veriYok")}
           </span>
         </div>
       )}
@@ -519,19 +522,20 @@ export function StackBar({
   data: { label: string; insan: number; bot: number }[];
   yukseklik?: number;
 }) {
+  const { ceviri: t } = usePanelDil();
   if (!data.length) {
     return (
       <div
         className="grid place-items-center rounded-xl border border-dashed border-line text-[12px] text-slate-faint"
         style={{ height: yukseklik }}
       >
-        Henüz veri yok
+        {t("grafik.veriYok")}
       </div>
     );
   }
   const max = Math.max(...data.map((d) => d.insan + d.bot), 1);
   return (
-    <div className="flex items-end gap-1.5" style={{ height: yukseklik }} role="img" aria-label="Günlük insan/bot dağılımı">
+    <div className="flex items-end gap-1.5" style={{ height: yukseklik }} role="img" aria-label={t("grafik.aria.insanBot")}>
       {data.map((d, i) => {
         const toplam = d.insan + d.bot;
         const h = (toplam / max) * 100;
@@ -554,12 +558,12 @@ export function StackBar({
               <div className="mb-0.5 font-medium text-slate-muted">{d.label}</div>
               <div className="flex items-center gap-1.5">
                 <span className="size-2 rounded-full" style={{ background: "#2f6fed" }} />
-                <span className="text-slate-muted">İnsan</span>
+                <span className="text-slate-muted">{t("grafik.insan")}</span>
                 <span className="ml-3 font-semibold tabular-nums text-slate-ink">{d.insan.toLocaleString("tr-TR")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="size-2 rounded-full" style={{ background: "#dc2626" }} />
-                <span className="text-slate-muted">Bot</span>
+                <span className="text-slate-muted">{t("grafik.bot")}</span>
                 <span className="ml-3 font-semibold tabular-nums text-slate-ink">{d.bot.toLocaleString("tr-TR")}</span>
               </div>
             </div>
@@ -622,6 +626,7 @@ export function MiniSpark({ tohum, renk = "#2f6fed", yukseklik = 40 }: { tohum: 
 
 /* ------------------------------------------------------- Donut segment (Material halka) */
 export function DonutDagilim({ segmentler, merkezEtiket = "olay" }: { segmentler: { etiket: string; deger: number; renk: string }[]; merkezEtiket?: string }) {
+  const { ceviri: t } = usePanelDil();
   const gercekToplam = segmentler.reduce((a, s) => a + s.deger, 0);
   const bosDurum = segmentler.length === 0 || gercekToplam === 0;
   const toplam = gercekToplam || 1;
@@ -642,7 +647,7 @@ export function DonutDagilim({ segmentler, merkezEtiket = "olay" }: { segmentler
   });
 
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-4" role="img" aria-label="Dağılım halka grafiği">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-4" role="img" aria-label={t("grafik.aria.dagilim")}>
       <div className="relative size-40 shrink-0">
         <svg viewBox="0 0 100 100" className="size-full -rotate-90">
           {/* zemin halkası */}
@@ -692,10 +697,11 @@ export function DonutDagilim({ segmentler, merkezEtiket = "olay" }: { segmentler
 
 /* ------------------------------------------------------- Dünya coğrafya bar (ince, yuvarlak uçlu) */
 export function CografyaBar({ ulkeler }: { ulkeler: { kod: string; ad: string; deger: number }[] }) {
+  const { ceviri: t } = usePanelDil();
   if (!ulkeler.length) {
     return (
       <div className="grid h-24 place-items-center rounded-xl border border-dashed border-line text-[12px] text-slate-faint">
-        Henüz veri yok
+        {t("grafik.veriYok")}
       </div>
     );
   }

@@ -305,6 +305,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.toast.anahtarDonduruldu": "Key rotated",
     "gel.toast.anahtarDonduruldu.aciklama": "The old key is now invalid.",
     "gel.toast.anahtarIptal": "Key revoked",
+    "gel.toast.anahtarIptalEdilemedi": "Couldn't revoke key. Please try again.",
     "gel.toast.kopyalandi": "Copied",
 
     "gel.wh.aciklama": "Deliver Veylify events to your server via HMAC-signed POST requests. Failed deliveries are retried with exponential backoff.",
@@ -345,6 +346,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.wh.toast.olusturuldu": "Webhook created",
     "gel.wh.toast.olusmadi": "Couldn't create webhook",
     "gel.wh.toast.silindi": "Webhook deleted",
+    "gel.wh.toast.silinemedi": "Couldn't delete webhook. Please try again.",
+    "gel.wh.toast.testBasarisiz": "Couldn't send test event. Please try again.",
+    "gel.wh.toast.guncellenemedi": "Couldn't update webhook status.",
     "gel.wh.toast.testGonderildi": "Test sent — {n}",
     "gel.wh.toast.baglantiYok": "no connection",
 
@@ -499,6 +503,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.toast.anahtarDonduruldu": "Schlüssel rotiert",
     "gel.toast.anahtarDonduruldu.aciklama": "Der alte Schlüssel ist jetzt ungültig.",
     "gel.toast.anahtarIptal": "Schlüssel widerrufen",
+    "gel.toast.anahtarIptalEdilemedi": "Schlüssel konnte nicht widerrufen werden. Bitte versuchen Sie es erneut.",
     "gel.toast.kopyalandi": "Kopiert",
 
     "gel.wh.aciklama": "Liefern Sie Veylify-Ereignisse per HMAC-signierten POST-Anfragen an Ihren Server. Fehlgeschlagene Zustellungen werden mit exponentiellem Backoff wiederholt.",
@@ -539,6 +544,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.wh.toast.olusturuldu": "Webhook erstellt",
     "gel.wh.toast.olusmadi": "Webhook konnte nicht erstellt werden",
     "gel.wh.toast.silindi": "Webhook gelöscht",
+    "gel.wh.toast.silinemedi": "Webhook konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "gel.wh.toast.testBasarisiz": "Testereignis konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+    "gel.wh.toast.guncellenemedi": "Webhook-Status konnte nicht aktualisiert werden.",
     "gel.wh.toast.testGonderildi": "Test gesendet — {n}",
     "gel.wh.toast.baglantiYok": "keine Verbindung",
 
@@ -693,6 +701,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.toast.anahtarDonduruldu": "Clé renouvelée",
     "gel.toast.anahtarDonduruldu.aciklama": "L'ancienne clé est désormais invalide.",
     "gel.toast.anahtarIptal": "Clé révoquée",
+    "gel.toast.anahtarIptalEdilemedi": "La clé n'a pas pu être révoquée. Veuillez réessayer.",
     "gel.toast.kopyalandi": "Copié",
 
     "gel.wh.aciklama": "Livrez les événements Veylify à votre serveur via des requêtes POST signées HMAC. Les livraisons échouées sont réessayées avec un backoff exponentiel.",
@@ -733,6 +742,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.wh.toast.olusturuldu": "Webhook créé",
     "gel.wh.toast.olusmadi": "Impossible de créer le webhook",
     "gel.wh.toast.silindi": "Webhook supprimé",
+    "gel.wh.toast.silinemedi": "Le webhook n'a pas pu être supprimé. Veuillez réessayer.",
+    "gel.wh.toast.testBasarisiz": "L'événement de test n'a pas pu être envoyé. Veuillez réessayer.",
+    "gel.wh.toast.guncellenemedi": "Le statut du webhook n'a pas pu être mis à jour.",
     "gel.wh.toast.testGonderildi": "Test envoyé — {n}",
     "gel.wh.toast.baglantiYok": "aucune connexion",
 
@@ -887,6 +899,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.toast.anahtarDonduruldu": "Clave rotada",
     "gel.toast.anahtarDonduruldu.aciklama": "La clave anterior ya no es válida.",
     "gel.toast.anahtarIptal": "Clave revocada",
+    "gel.toast.anahtarIptalEdilemedi": "No se pudo revocar la clave. Inténtalo de nuevo.",
     "gel.toast.kopyalandi": "Copiado",
 
     "gel.wh.aciklama": "Entrega eventos de Veylify a tu servidor mediante solicitudes POST firmadas con HMAC. Las entregas fallidas se reintentan con retroceso exponencial.",
@@ -927,6 +940,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "gel.wh.toast.olusturuldu": "Webhook creado",
     "gel.wh.toast.olusmadi": "No se pudo crear el webhook",
     "gel.wh.toast.silindi": "Webhook eliminado",
+    "gel.wh.toast.silinemedi": "No se pudo eliminar el webhook. Inténtalo de nuevo.",
+    "gel.wh.toast.testBasarisiz": "No se pudo enviar el evento de prueba. Inténtalo de nuevo.",
+    "gel.wh.toast.guncellenemedi": "No se pudo actualizar el estado del webhook.",
     "gel.wh.toast.testGonderildi": "Prueba enviada — {n}",
     "gel.wh.toast.baglantiYok": "sin conexión",
 

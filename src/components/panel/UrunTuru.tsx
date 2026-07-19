@@ -25,6 +25,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, X, Check, Sparkles, PartyPopper } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePanelDil } from "@/lib/i18n/istemci";
 
 const TUR_ANAHTAR = "specter_tur_tamam";
 const TUR_EVENT = "specter-tur-baslat";
@@ -42,63 +43,66 @@ interface TurAdim {
   cta?: { ad: string; href: string };
 }
 
-const ADIMLAR: TurAdim[] = [
-  {
-    anahtar: "hosgeldin",
-    baslik: "Veylify'a hoş geldin",
-    metin: "60 saniyede paneli tanıyalım. Botlara ve AI ajanlarına karşı savunmanı buradan yöneteceksin. Hazırsan başlayalım.",
-    merkez: true,
-  },
-  {
-    anahtar: "genel",
-    baslik: "Genel Bakış & menü",
-    metin: "Soldaki menüden tüm modüllere erişirsin. Bu logo seni her zaman Genel Bakış'a — savunmanın özet ekranına — geri getirir.",
-    sec: 'aside a[href="/panel"]',
-  },
-  {
-    anahtar: "trafik",
-    baslik: "Canlı Trafik",
-    metin: "Her doğrulama isteği burada gerçek zamanlı akar: insan mı, bot mu, hangi ülkeden ve hangi kararla. Saldırıyı anında görürsün.",
-    sec: 'aside a[href="/panel/trafik"]',
-  },
-  {
-    anahtar: "ai",
-    baslik: "AI Ajan İstihbaratı",
-    metin: "Veylify'ın ana vaadi: GPTBot, Claude, Perplexity gibi AI botlarını tanı ve her biri için izin ver / doğrula / engelle politikası belirle.",
-    sec: 'aside a[href="/panel/ai-ajanlar"]',
-  },
-  {
-    anahtar: "kurallar",
-    baslik: "Kurallar",
-    metin: "Bot trafiğini önceliğe göre yönet: kural motorunda engelle, doğrulamaya zorla veya izin ver. Hazır şablonlarla saniyede başlarsın.",
-    sec: 'aside a[href="/panel/kurallar"]',
-  },
-  {
-    anahtar: "kurulum",
-    baslik: "Kurulum Sihirbazı",
-    metin: "En hızlı yol: adım adım kurulum sihirbazı. Site ekle, alan adını doğrula, kopyala-yapıştır entegrasyon kodunu al ve API anahtarını oluştur — hepsi tek ekranda, ilerlemen canlı işaretlenir.",
-    sec: 'aside a[href="/panel/onboarding"]',
-  },
-  {
-    anahtar: "gelistirici",
-    baslik: "Geliştirici & API anahtarları",
-    metin: "Sunucu tarafı doğrulama için gizli API anahtarını (sk_live_…) buradan üretirsin. Anahtarı yalnızca sunucuda tut; SDK ve /api/v1/siteverify örnekleri hazır.",
-    sec: 'aside a[href="/panel/gelistirici"]',
-  },
-  {
-    anahtar: "komut",
-    baslik: "Komut paleti",
-    metin: "İstediğin an ⌘K (Windows'ta Ctrl+K) ile komut paletini aç; her modüle, her eyleme klavyeden saniyede ulaş. Bu turu da oradan (\"Ürün turunu başlat\") istediğin an yeniden açabilirsin.",
-    merkez: true,
-  },
-  {
-    anahtar: "bitis",
-    baslik: "Hazırsın! 🎉",
-    metin: "Paneli tanıdın. Şimdi kurulum sihirbazından ilk siteni oluşturarak korumayı canlıya al — turu istediğin zaman komut paletinden yeniden başlatabilirsin.",
-    merkez: true,
-    cta: { ad: "Kuruluma başla", href: "/panel/onboarding" },
-  },
-];
+/** Adımları çeviri yardımcısıyla üretir (metinler i18n'den gelir). */
+function adimlariUret(t: (anahtar: string) => string): TurAdim[] {
+  return [
+    {
+      anahtar: "hosgeldin",
+      baslik: t("tur.hosgeldin.baslik"),
+      metin: t("tur.hosgeldin.metin"),
+      merkez: true,
+    },
+    {
+      anahtar: "genel",
+      baslik: t("tur.genel.baslik"),
+      metin: t("tur.genel.metin"),
+      sec: 'aside a[href="/panel"]',
+    },
+    {
+      anahtar: "trafik",
+      baslik: t("tur.trafik.baslik"),
+      metin: t("tur.trafik.metin"),
+      sec: 'aside a[href="/panel/trafik"]',
+    },
+    {
+      anahtar: "ai",
+      baslik: t("tur.ai.baslik"),
+      metin: t("tur.ai.metin"),
+      sec: 'aside a[href="/panel/ai-ajanlar"]',
+    },
+    {
+      anahtar: "kurallar",
+      baslik: t("tur.kurallar.baslik"),
+      metin: t("tur.kurallar.metin"),
+      sec: 'aside a[href="/panel/kurallar"]',
+    },
+    {
+      anahtar: "kurulum",
+      baslik: t("tur.kurulum.baslik"),
+      metin: t("tur.kurulum.metin"),
+      sec: 'aside a[href="/panel/onboarding"]',
+    },
+    {
+      anahtar: "gelistirici",
+      baslik: t("tur.gelistirici.baslik"),
+      metin: t("tur.gelistirici.metin"),
+      sec: 'aside a[href="/panel/gelistirici"]',
+    },
+    {
+      anahtar: "komut",
+      baslik: t("tur.komut.baslik"),
+      metin: t("tur.komut.metin"),
+      merkez: true,
+    },
+    {
+      anahtar: "bitis",
+      baslik: t("tur.bitis.baslik"),
+      metin: t("tur.bitis.metin"),
+      merkez: true,
+      cta: { ad: t("tur.bitis.cta"), href: "/panel/onboarding" },
+    },
+  ];
+}
 
 /** Hedef dikdörtgeni (viewport koordinatları) + görünürlük. */
 interface HedefKutu {
@@ -109,6 +113,9 @@ interface HedefKutu {
 }
 
 export function UrunTuru() {
+  // i18n: cookie'den etkin dili al + çeviri yardımcısı (koşulsuz hook).
+  const { ceviri: t } = usePanelDil();
+  const ADIMLAR = useMemo(() => adimlariUret(t), [t]);
   const [aktif, setAktif] = useState(false);
   const [idx, setIdx] = useState(0);
   const [hedef, setHedef] = useState<HedefKutu | null>(null);
@@ -267,7 +274,7 @@ export function UrunTuru() {
     return (
       <div
         role="dialog"
-        aria-label="Panel turu daveti"
+        aria-label={t("tur.davet.rol")}
         className={cn(
           "fixed bottom-5 right-5 z-[240] w-[min(92vw,340px)] rounded-3xl border border-line bg-surface p-4 shadow-lift",
           !azalt && "animate-fade-up",
@@ -278,28 +285,28 @@ export function UrunTuru() {
             <Sparkles className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <h3 className="text-[15px] font-bold text-slate-ink">Paneli tanıtayım mı?</h3>
+            <h3 className="text-[15px] font-bold text-slate-ink">{t("tur.davet.baslik")}</h3>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-muted">
-              60 saniyede modülleri gezelim — botlara ve AI ajanlarına karşı savunmanı nasıl yöneteceğini göstereyim.
+              {t("tur.davet.metin")}
             </p>
             <div className="mt-3 flex items-center gap-2">
               <button
                 onClick={davettenBasla}
                 className="flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-ink-800"
               >
-                Turu başlat <ArrowRight className="size-3.5" />
+                {t("tur.davet.basla")} <ArrowRight className="size-3.5" />
               </button>
               <button
                 onClick={daveteKapat}
                 className="rounded-full px-3 py-2 text-[13px] font-medium text-slate-muted transition hover:text-slate-ink"
               >
-                Şimdi değil
+                {t("tur.davet.sonra")}
               </button>
             </div>
           </div>
           <button
             onClick={daveteKapat}
-            aria-label="Kapat"
+            aria-label={t("ortak.kapat")}
             className="grid size-7 shrink-0 place-items-center rounded-lg text-slate-faint transition hover:bg-canvas hover:text-slate-ink"
           >
             <X className="size-4" />
@@ -318,7 +325,7 @@ export function UrunTuru() {
       ref={overlayRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Ürün turu — ${adim.baslik}`}
+      aria-label={`${t("tur.diyalog.ad")} — ${adim.baslik}`}
       className="fixed inset-0 z-[250]"
     >
       {/* Karartılmış overlay + spotlight deliği (SVG mask). Hedef yoksa düz karartma. */}
@@ -353,12 +360,12 @@ export function UrunTuru() {
         {/* üst: rozet + kapat */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-700">
-            <Sparkles className="size-3.5" /> Ürün turu
+            <Sparkles className="size-3.5" /> {t("tur.rozet")}
           </span>
           <button
             ref={kapatBtnRef}
             onClick={() => bitir(true)}
-            aria-label="Turu kapat"
+            aria-label={t("tur.kapat")}
             className="grid size-7 place-items-center rounded-lg text-slate-faint transition hover:bg-canvas hover:text-slate-ink"
           >
             <X className="size-4" />
@@ -413,7 +420,7 @@ export function UrunTuru() {
             onClick={() => bitir(true)}
             className="rounded-full px-3 py-2 text-[13px] font-medium text-slate-muted transition hover:text-slate-ink"
           >
-            {sonMu ? "Kapat" : "Atla"}
+            {sonMu ? t("tur.sonKapat") : t("tur.atla")}
           </button>
           <div className="flex items-center gap-2">
             {!ilkMi && (
@@ -421,7 +428,7 @@ export function UrunTuru() {
                 onClick={geri}
                 className="flex items-center gap-1.5 rounded-full border border-line-strong px-3.5 py-2 text-[13px] font-medium text-slate-ink transition hover:bg-canvas"
               >
-                <ArrowLeft className="size-3.5" /> Geri
+                <ArrowLeft className="size-3.5" /> {t("tur.geri")}
               </button>
             )}
             <button
@@ -430,11 +437,11 @@ export function UrunTuru() {
             >
               {sonMu ? (
                 <>
-                  Bitir <Check className="size-3.5" />
+                  {t("tur.bitir")} <Check className="size-3.5" />
                 </>
               ) : (
                 <>
-                  İleri <ArrowRight className="size-3.5" />
+                  {t("tur.ileri")} <ArrowRight className="size-3.5" />
                 </>
               )}
             </button>

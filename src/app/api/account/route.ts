@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentUser, endSession } from "@/lib/auth";
-import { Users, Audit } from "@/lib/db/db";
+import { Users, Audit, blobFlush } from "@/lib/db/db";
 import { DESTEKLENEN_DILLER } from "@/lib/i18n/panel";
 
 /** Geçerli avatar renkleri (istemci paletiyle eşleşir). */
@@ -55,6 +55,10 @@ export async function PATCH(req: Request) {
   const guncel = Users.updateProfile(user.id, patch);
   if (!guncel) return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
   Audit.log(user.id, guncel.name, "hesap.guncelle", guncel.email, patch);
+  // KRİTİK: Supabase'e SENKRON yaz. Aksi halde write-behind (fire-and-forget)
+  // serverless'te response sonrası tamamlanmadan instance ölebilir → dil (locale)
+  // değişimi kaybolur, sonraki istek eski dili okur. blobFlush garantiler.
+  await blobFlush();
 
   return NextResponse.json({
     user: {
@@ -79,6 +83,7 @@ export async function DELETE(req: Request) {
   }
 
   Users.remove(user.id);
+  await blobFlush(); // hesap silmeyi Supabase'e SENKRON yaz (write-behind kaybını önle)
   await endSession();
   return NextResponse.json({ ok: true });
 }
