@@ -17,6 +17,7 @@
  */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 const DILLER = ["tr", "en", "de", "fr", "es"] as const;
 type Dil = (typeof DILLER)[number];
@@ -69,7 +70,8 @@ function tarayiciDili(req: NextRequest): Dil | null {
   return null;
 }
 
-export function middleware(req: NextRequest) {
+/** Landing otomatik dil seçimi — cookie yazar, yönlendirmez. */
+function dilMiddleware(req: NextRequest) {
   const res = NextResponse.next();
 
   // Kullanıcı zaten bir dil seçtiyse (geçerli cookie) dokunma.
@@ -93,11 +95,30 @@ export function middleware(req: NextRequest) {
 }
 
 /**
- * Yalnızca landing/pazarlama rotalarında çalış. Panel, API, statik dosyalar,
- * auth ve Next dahilî yolları hariç tut (panel kendi dilini yönetir).
+ * Clerk yalnızca açıkça etkinken (VEYLIFY_CLERK=1) devreye girer — bu durumda
+ * `clerkMiddleware` OTURUM + OAuth (Google) callback'lerini işler VE içinde
+ * dil middleware'imizi çağırır (ikisi birlikte). Clerk kapalıysa yalnız dil
+ * middleware çalışır (kendi cookie-auth formumuz kullanılır). Bu ayrım kritik:
+ * clerkMiddleware olmadan canlıda Clerk oturumları/Google girişi kırılır.
+ */
+const clerkAktif =
+  process.env.VEYLIFY_CLERK === "1" &&
+  /^pk_(test|live)_/.test(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() ?? "");
+
+export default clerkAktif
+  ? clerkMiddleware((_auth, req) => dilMiddleware(req))
+  : dilMiddleware;
+
+/**
+ * Matcher — Clerk'in ÖNERDİĞİ desen (statik dosya + Next dahilîleri hariç,
+ * API + Clerk rotaları DAHİL). Clerk OAuth/oturum callback'lerinin
+ * middleware'den geçmesi ŞART; eski dar matcher bunları hariç tuttuğu için
+ * canlıda Google girişi kırılıyordu. Dil middleware'i kendi içinde cookie
+ * kontrolüyle sınırlanır (panel/api'de zararsız çalışır — sadece cookie yazar).
  */
 export const config = {
   matcher: [
-    "/((?!panel|api|login|signup|demo-giris|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:webp|png|jpg|jpeg|svg|ico|css|js|woff2?)).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };
