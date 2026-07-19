@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { SCHEMA_VERSION, type Database } from "./schema";
+import { supabaseAktif, blobYukle, blobKaydet } from "./supabase-blob";
 import type {
   User,
   BildirimTercihleri,
@@ -56,7 +57,56 @@ const DB_PATH = path.join(process.cwd(), "data", "specter.json");
 let cache: Database | null = null;
 let cacheMtime = 0;
 
+// SUPABASE MODU: state tek jsonb blob'unda tutulur (Vercel read-only fs
+// sorununu çözer). SERVERLESS GERÇEĞİ: her istek farklı bir instance'a
+// düşebilir; bir instance'ın belleğindeki cache diğerini bağlamaz. Bu yüzden
+// `blobHazirla()` cache'i KISA TTL ile Supabase'den TAZELER — yani her isteğin
+// başında (currentUser vb.) son yazılmış state okunur. Yazmalar hem cache'i
+// hem Supabase'i günceller (blobKaydet await edilir → tutarlılık).
+let blobSonYukleme = 0;
+const BLOB_TTL_MS = 1500; // aynı istek içindeki tekrar çağrılarda gereksiz fetch'i eler
+let blobYuklemeSozu: Promise<void> | null = null;
+
+/**
+ * Supabase modunda cache'i Supabase'deki son state ile tazeler (TTL'li).
+ * currentUser / panel / API route gibi giriş noktaları erişimden önce bunu
+ * await eder → böylece senkron `load()` GÜNCEL cache bulur (serverless'ta
+ * başka instance'ın yazdığı session/kullanıcı burada da görünür).
+ */
+export async function blobHazirla(zorla = false): Promise<void> {
+  if (!supabaseAktif) return;
+  const simdi = Date.now();
+  if (!zorla && cache && simdi - blobSonYukleme < BLOB_TTL_MS) return;
+  if (blobYuklemeSozu) return blobYuklemeSozu;
+  blobYuklemeSozu = (async () => {
+    try {
+      const uzak = await blobYukle();
+      if (uzak && uzak._version === SCHEMA_VERSION) {
+        cache = uzak;
+      } else if (!cache) {
+        // Supabase'de yok/eski VE bellek boş → seed üret + Supabase'e yaz.
+        cache = buildSeed(Date.now());
+        await blobKaydet(cache);
+      }
+      cacheMtime = Date.now();
+      blobSonYukleme = simdi;
+    } finally {
+      blobYuklemeSozu = null;
+    }
+  })();
+  return blobYuklemeSozu;
+}
+
 function load(): Database {
+  // SUPABASE MODU: cache boot'ta blobHazirla() ile dolar. Henüz dolmadıysa
+  // (nadir yarış) geçici seed döner; sonraki istekte gerçek veri gelir.
+  if (supabaseAktif) {
+    if (cache) return cache;
+    cache = buildSeed(Date.now());
+    cacheMtime = Date.now();
+    return cache;
+  }
+  // DOSYA MODU (yerel geliştirme).
   try {
     if (fs.existsSync(DB_PATH)) {
       const stat = fs.statSync(DB_PATH);
@@ -80,6 +130,15 @@ function load(): Database {
 
 function flushNow(): void {
   if (!cache) return;
+  // SUPABASE MODU: write-behind (fire-and-forget). Senkron API'yi bloke etmez.
+  // KRİTİK yazmalar (session/kullanıcı) için ayrıca `blobFlush()` await edilir
+  // (aşağıda) → sonraki okuma eski veri almaz.
+  if (supabaseAktif) {
+    cacheMtime = Date.now();
+    void blobKaydet(cache);
+    return;
+  }
+  // DOSYA MODU.
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   fs.writeFileSync(DB_PATH, JSON.stringify(cache), "utf8");
   try {
@@ -87,6 +146,17 @@ function flushNow(): void {
   } catch {
     /* yok say */
   }
+}
+
+/**
+ * KRİTİK yazma sonrası Supabase'e SENKRON (await'li) yazar. Senkron `persist()`
+ * write-behind yaptığı için, oturum açma/kayıt gibi hemen ardından okunacak
+ * mutasyonlarda bu çağrılır → yazma Supabase'e ulaşmadan sonraki istek eski
+ * state okuyamaz. Supabase kapalıysa no-op (dosya modu zaten senkrondur).
+ */
+export async function blobFlush(): Promise<void> {
+  if (!supabaseAktif || !cache) return;
+  await blobKaydet(cache);
 }
 
 // Yazma sayacı: her persist artırır. Türetilmiş önbellek invalidation'ı

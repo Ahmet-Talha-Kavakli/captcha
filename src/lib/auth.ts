@@ -11,13 +11,17 @@
 
 import { cookies, headers } from "next/headers";
 import { auth as clerkAuth, currentUser as clerkCurrentUser } from "@clerk/nextjs/server";
-import { Sessions, Users } from "./db/db";
+import { Sessions, Users, blobHazirla, blobFlush } from "./db/db";
 import type { User } from "./db/schema";
 
 export const SESSION_COOKIE = "specter_session";
 
 /** Mevcut istekteki kullanıcıyı çözer (yoksa null). Önce Clerk, sonra cookie. */
 export async function currentUser(): Promise<User | null> {
+  // Supabase modunda state'i TAZE yükle (zorla) — auth kritik; başka instance'ın
+  // (login) yazdığı session/kullanıcı bu istekte kesin görünsün. TTL küçük
+  // olduğundan aynı istekteki tekrar çağrılar yine cache'ten döner.
+  await blobHazirla(true);
   // 1) Clerk oturumu var mı?
   try {
     const { userId } = await clerkAuth();
@@ -49,6 +53,7 @@ export async function currentUser(): Promise<User | null> {
 
 /** Oturum açar: session üretir + cookie yazar. */
 export async function startSession(userId: string): Promise<void> {
+  await blobHazirla(); // cache Supabase'den yüklü olsun (session seed'e yazılmasın)
   const token = Sessions.create(userId);
   const store = await cookies();
   // Secure yalnızca gerçekten HTTPS üzerinden gelen istekte set edilir;
@@ -65,6 +70,8 @@ export async function startSession(userId: string): Promise<void> {
     maxAge: 7 * 24 * 60 * 60,
   });
   Users.touch(userId);
+  // Session'ı Supabase'e SENKRON yaz → sonraki istek (panel) onu kesin görür.
+  await blobFlush();
 }
 
 /** Oturumu kapatır. */
