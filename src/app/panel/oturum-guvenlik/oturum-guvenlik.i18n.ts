@@ -45,6 +45,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.ozet.aktifOturum": "Aktif oturum",
     "og.ozet.verilenToken": "Verilen token (30g)",
     "og.ozet.replayEngellendi": "Replay engellendi",
+    "og.ozet.replayTahmini": "tahmini",
 
     // --- Güvenlik duruşu paneli ---
     "og.durus.baslik": "Güvenlik duruşu skoru",
@@ -82,6 +83,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.oturum.buCihaz": "Bu cihaz",
     "og.oturum.sonlandirildi": "Sonlandırıldı",
     "og.oturum.sonlandir": "Oturumu sonlandır",
+    "og.oturum.temsili": "Temsili liste — demo",
+    "og.oturum.temsiliTip": "Bu hesapta çoklu-cihaz oturum deposu bağlı değil; sonlandırma gerçek bir oturumu iptal etmez.",
     "og.oturum.simdi": "Şimdi",
 
     // --- Risk etiketleri (enum → etiket) ---
@@ -195,6 +198,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.ozet.aktifOturum": "Active sessions",
     "og.ozet.verilenToken": "Issued tokens (30d)",
     "og.ozet.replayEngellendi": "Replay blocked",
+    "og.ozet.replayTahmini": "estimated",
 
     "og.durus.baslik": "Security posture score",
     "og.durus.seviye.guclu": "Strong",
@@ -229,6 +233,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.oturum.buCihaz": "This device",
     "og.oturum.sonlandirildi": "Terminated",
     "og.oturum.sonlandir": "Terminate session",
+    "og.oturum.temsili": "Representative list — demo",
+    "og.oturum.temsiliTip": "This account has no multi-device session store; terminating does not revoke a real session.",
     "og.oturum.simdi": "Now",
 
     "og.risk.dusuk": "Low risk",
@@ -333,6 +339,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.ozet.aktifOturum": "Aktive Sitzungen",
     "og.ozet.verilenToken": "Ausgestellte Token (30 T)",
     "og.ozet.replayEngellendi": "Replay blockiert",
+    "og.ozet.replayTahmini": "geschätzt",
 
     "og.durus.baslik": "Sicherheitslage-Score",
     "og.durus.seviye.guclu": "Stark",
@@ -367,6 +374,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.oturum.buCihaz": "Dieses Gerät",
     "og.oturum.sonlandirildi": "Beendet",
     "og.oturum.sonlandir": "Sitzung beenden",
+    "og.oturum.temsili": "Repräsentative Liste — Demo",
+    "og.oturum.temsiliTip": "Dieses Konto hat keinen Multi-Geräte-Sitzungsspeicher; das Beenden widerruft keine echte Sitzung.",
     "og.oturum.simdi": "Jetzt",
 
     "og.risk.dusuk": "Geringes Risiko",
@@ -471,6 +480,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.ozet.aktifOturum": "Sessions actives",
     "og.ozet.verilenToken": "Tokens émis (30 j)",
     "og.ozet.replayEngellendi": "Replay bloqué",
+    "og.ozet.replayTahmini": "estimé",
 
     "og.durus.baslik": "Score de posture de sécurité",
     "og.durus.seviye.guclu": "Forte",
@@ -505,6 +515,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.oturum.buCihaz": "Cet appareil",
     "og.oturum.sonlandirildi": "Terminée",
     "og.oturum.sonlandir": "Terminer la session",
+    "og.oturum.temsili": "Liste représentative — démo",
+    "og.oturum.temsiliTip": "Ce compte n\u2019a pas de magasin de sessions multi-appareils ; terminer ne révoque pas une session réelle.",
     "og.oturum.simdi": "Maintenant",
 
     "og.risk.dusuk": "Risque faible",
@@ -609,6 +621,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.ozet.aktifOturum": "Sesiones activas",
     "og.ozet.verilenToken": "Tokens emitidos (30 d)",
     "og.ozet.replayEngellendi": "Replay bloqueado",
+    "og.ozet.replayTahmini": "estimado",
 
     "og.durus.baslik": "Puntaje de postura de seguridad",
     "og.durus.seviye.guclu": "Fuerte",
@@ -643,6 +656,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "og.oturum.buCihaz": "Este dispositivo",
     "og.oturum.sonlandirildi": "Terminada",
     "og.oturum.sonlandir": "Terminar sesión",
+    "og.oturum.temsili": "Lista representativa — demo",
+    "og.oturum.temsiliTip": "Esta cuenta no tiene un almacén de sesiones multidispositivo; terminar no revoca una sesión real.",
     "og.oturum.simdi": "Ahora",
 
     "og.risk.dusuk": "Riesgo bajo",

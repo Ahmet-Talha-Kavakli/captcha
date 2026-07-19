@@ -49,3 +49,6 @@ next-env.d.ts
 /public/pazarlama-eski-yedek/
 /public/deneme/
 .DS_Store
+
+# Denetim/geliştirme ekran görüntüleri (yerel)
+docs/denetim/

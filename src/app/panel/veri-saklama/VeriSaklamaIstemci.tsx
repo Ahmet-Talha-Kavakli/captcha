@@ -404,7 +404,12 @@ export function VeriSaklamaIstemci({
         baslik={t("vs.pol.baslik")}
         sagUst={<Button variant="outline" size="sm" onClick={politikalariSifirla}><RotateCcw className="size-4" /> {t("vs.pol.varsayilanaDon")}</Button>}
       >
-        <p className="mb-4 text-[13px] text-slate-muted">{t("vs.pol.aciklama")}</p>
+        <p className="mb-3 text-[13px] text-slate-muted">{t("vs.pol.aciklama")}</p>
+        {/* Politika değişiklikleri bu demo hesabında tarayıcıda saklanır; gerçek silme sunucuda koşar. */}
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-warn-soft px-3.5 py-2.5 text-[12.5px] text-amber-800">
+          <Info className="mt-0.5 size-3.5 shrink-0" />
+          <span>{t("vs.pol.yerelUyari")}</span>
+        </div>
         <div className="space-y-3">
           {kategoriSatirlari.map(({ kat, pol, iz, etkilenen, durum }) => (
             <div key={kat.key} className="rounded-2xl border border-line bg-surface p-4">
@@ -544,6 +549,11 @@ export function VeriSaklamaIstemci({
 
       {/* 3. DSR — veri konusu talepleri */}
       <Panel baslik={t("vs.dsr.baslik")}>
+        {/* Dürüstlük uyarısı: DSR kuyruğu bu demo hesabında yalnızca tarayıcıda tutulur. */}
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-warn-soft px-3.5 py-2.5 text-[12.5px] text-amber-800">
+          <Info className="mt-0.5 size-3.5 shrink-0" />
+          <span>{t("vs.dsr.yerelUyari")}</span>
+        </div>
         <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
           {/* Talep formu */}
           <form onSubmit={talepGonder} className="rounded-2xl border border-line bg-canvas/30 p-4">

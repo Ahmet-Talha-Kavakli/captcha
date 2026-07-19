@@ -256,7 +256,7 @@ export function OturumGuvenlikIstemci(p: Props) {
       kapaliKaydet(yeni.filter((o) => !o.aktif).map((o) => o.id));
       return yeni;
     });
-    goster({ tip: "basari", baslik: t("og.toast.tekSonlandir") });
+    goster({ tip: "bilgi", baslik: t("og.toast.tekSonlandir"), aciklama: t("og.oturum.temsiliTip") });
   }
   function tumDigerleriniSonlandir() {
     setOturumlar((eski) => {
@@ -264,7 +264,7 @@ export function OturumGuvenlikIstemci(p: Props) {
       kapaliKaydet(yeni.filter((o) => !o.aktif).map((o) => o.id));
       return yeni;
     });
-    goster({ tip: "basari", baslik: t("og.toast.tumSonlandir") });
+    goster({ tip: "bilgi", baslik: t("og.toast.tumSonlandir"), aciklama: t("og.oturum.temsiliTip") });
   }
 
   // Token yapısı kod bloğu — yorumlar çeviriyle üretilir; teknik terimler sabit.
@@ -303,7 +303,7 @@ sig = HMAC_SHA256(secretKey, base64url(payload))
         <StatKart sayi={`%${durus.skor}`} etiket={t("og.ozet.durusSkor")} ikon={<ShieldCheck className="size-5" />} tone={durus.skor >= 80 ? "ok" : durus.skor >= 45 ? "warn" : "danger"} />
         <StatKart sayi={aktifOturumlar.length} etiket={t("og.ozet.aktifOturum")} ikon={<Monitor className="size-5" />} tone="brand" />
         <StatKart sayi={yd.verilen.toLocaleString("tr-TR")} etiket={t("og.ozet.verilenToken")} ikon={<KeyRound className="size-5" />} />
-        <StatKart sayi={yd.replayEngellenen.toLocaleString("tr-TR")} etiket={t("og.ozet.replayEngellendi")} ikon={<Ban className="size-5" />} tone="ok" />
+        <StatKart sayi={yd.replayEngellenen.toLocaleString("tr-TR")} etiket={`${t("og.ozet.replayEngellendi")} (${t("og.ozet.replayTahmini")})`} ikon={<Ban className="size-5" />} tone="ok" />
       </div>
 
       {/* ===================== Görsel özet: dağılım + gauge + anomali ısı-matris ===================== */}
@@ -412,11 +412,16 @@ sig = HMAC_SHA256(secretKey, base64url(payload))
       <Panel
         baslik={t("og.oturum.baslik")}
         sagUst={
-          aktifOturumlar.length > 1 && (
-            <Button variant="outline" size="sm" onClick={tumDigerleriniSonlandir}>
-              <RefreshCw className="size-4" /> {t("og.oturum.tumDigerleri")}
-            </Button>
-          )
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-warn-soft px-2 py-0.5 text-[11px] font-medium text-amber-700">
+              <Info className="size-3" /> {t("og.oturum.temsili")}
+            </span>
+            {aktifOturumlar.length > 1 && (
+              <Button variant="outline" size="sm" onClick={tumDigerleriniSonlandir}>
+                <RefreshCw className="size-4" /> {t("og.oturum.tumDigerleri")}
+              </Button>
+            )}
+          </div>
         }
         padding={false}
       >

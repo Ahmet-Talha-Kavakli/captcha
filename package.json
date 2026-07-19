@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync:widget": "node scripts/sync-widget.mjs",
+    "predev": "node scripts/sync-widget.mjs",
     "dev": "NODE_OPTIONS=--max-http-header-size=65536 next dev -H 127.0.0.1 -p 3033",
+    "prebuild": "node scripts/sync-widget.mjs",
     "build": "next build",
     "start": "NODE_OPTIONS=--max-http-header-size=65536 next start -H 127.0.0.1 -p 3033",
     "lint": "eslint",

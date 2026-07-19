@@ -85,6 +85,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kr.pgSimBasarisiz": "Simülasyon başarısız oldu. Lütfen tekrar deneyin.",
 
     // Yeni kural modalı
+    "kr.proaktifKuralAdi": "Topluluk IOC engelle — {deger}",
+    "kr.proaktifKuralAciklama": "Topluluk istihbaratından proaktif olarak eklenen engelleme kuralı.",
     "kr.modalBaslik": "Yeni kural oluştur",
     "kr.modalAciklama": "Koşul karşılandığında seçilen aksiyon uygulanır.",
     "kr.alanKuralAdi": "Kural adı",
@@ -216,6 +218,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kr.toastSilindi": "Rule deleted",
     "kr.toastOlusturuldu": "Rule created",
 
+    "kr.proaktifKuralAdi": "Block community IOC — {deger}",
+    "kr.proaktifKuralAciklama": "Blocking rule added proactively from community intelligence.",
     "kr.modalBaslik": "Create new rule",
     "kr.modalAciklama": "The selected action is applied when the condition is met.",
     "kr.alanKuralAdi": "Rule name",
@@ -341,6 +345,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kr.toastSilindi": "Regel gelöscht",
     "kr.toastOlusturuldu": "Regel erstellt",
 
+    "kr.proaktifKuralAdi": "Community-IOC blockieren — {deger}",
+    "kr.proaktifKuralAciklama": "Blockierregel, proaktiv aus der Community-Intelligenz hinzugefügt.",
     "kr.modalBaslik": "Neue Regel erstellen",
     "kr.modalAciklama": "Die gewählte Aktion wird angewendet, wenn die Bedingung erfüllt ist.",
     "kr.alanKuralAdi": "Regelname",
@@ -466,6 +472,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kr.toastSilindi": "Règle supprimée",
     "kr.toastOlusturuldu": "Règle créée",
 
+    "kr.proaktifKuralAdi": "Bloquer l'IOC communautaire — {deger}",
+    "kr.proaktifKuralAciklama": "Règle de blocage ajoutée de manière proactive depuis l'intelligence communautaire.",
     "kr.modalBaslik": "Créer une nouvelle règle",
     "kr.modalAciklama": "L'action choisie est appliquée lorsque la condition est remplie.",
     "kr.alanKuralAdi": "Nom de la règle",
@@ -591,6 +599,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "kr.toastSilindi": "Regla eliminada",
     "kr.toastOlusturuldu": "Regla creada",
 
+    "kr.proaktifKuralAdi": "Bloquear IOC de la comunidad — {deger}",
+    "kr.proaktifKuralAciklama": "Regla de bloqueo añadida proactivamente desde la inteligencia comunitaria.",
     "kr.modalBaslik": "Crear nueva regla",
     "kr.modalAciklama": "La acción seleccionada se aplica cuando se cumple la condición.",
     "kr.alanKuralAdi": "Nombre de la regla",

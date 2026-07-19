@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Smartphone, Monitor, Trash2, KeyRound, ShieldCheck, Lock, Copy, Check,
-  QrCode, Globe, Terminal, MessageSquare, X, AlertCircle,
+  QrCode, Globe, Terminal, MessageSquare, X, AlertCircle, Info,
 } from "lucide-react";
 import {
   Panel, SettingRow2, Alan, Girdi, Modal, Badge, DurumRozeti, NotKutusu, Tablo, Ulke,
@@ -41,13 +41,18 @@ const BAGLI_UYGULAMALAR: BagliUygulama[] = [
   { id: "google", ad: "Google Workspace", aciklama: "SSO ile tek tıkla giriş", kapsam: "openid · email", baglandi: "5 ay önce", ikon: <Globe className="size-5" /> },
 ];
 
-/* 2FA yedek kodları — deterministik değil, kurulumda üretilir. */
+/* 2FA yedek kodları — kriptografik güçlü rastgelelik (crypto.getRandomValues).
+ * Math.random() öngörülebilir olabildiği için yedek kod üretimine uygun değildir. */
 function yedekKodUret(): string[] {
+  // Karışıklık yaratan karakterler (0/O, 1/I/L) hariç güvenli alfabe.
+  const ALFABE = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   const kodlar: string[] = [];
   for (let i = 0; i < 10; i++) {
-    const a = Math.random().toString(36).slice(2, 6);
-    const b = Math.random().toString(36).slice(2, 6);
-    kodlar.push(`${a}-${b}`.toUpperCase());
+    const buf = new Uint32Array(8);
+    crypto.getRandomValues(buf);
+    // Modulo yanlılığını en aza indirmek için 32-bit havuzdan seçim.
+    const karakterler = Array.from(buf, (n) => ALFABE[n % ALFABE.length]);
+    kodlar.push(`${karakterler.slice(0, 4).join("")}-${karakterler.slice(4, 8).join("")}`);
   }
   return kodlar;
 }
@@ -72,7 +77,8 @@ export function GuvenlikIstemci({
   const [silModal, setSilModal] = useState(false);
   const [silOnay, setSilOnay] = useState("");
   const [siliniyor, setSiliniyor] = useState(false);
-  const [oturumlar, setOturumlar] = useState(OTURUMLAR);
+  // Temsili demo listesi — sonlandırma salt-gösterim olduğu için state değişmez.
+  const oturumlar = OTURUMLAR;
 
   const sifreYasi = useMemo(() => {
     if (!passwordChangedAt) return "bilinmiyor";
@@ -99,14 +105,23 @@ export function GuvenlikIstemci({
     }
   }
 
-  /* --------------------------------------------------- oturumlar */
+  /* --------------------------------------------------- oturumlar
+   * Bu hesapta çoklu-cihaz oturum deposu / revocation ucu bağlı DEĞİL. Aşağıdaki
+   * liste temsilidir; "sonlandır" gerçek bir oturumu iptal etmez. Kullanıcıyı
+   * yanıltmamak için state'i değiştirmiyor, salt-gösterim olduğunu bildiriyoruz. */
   function tumOturumlariKapat() {
-    setOturumlar((p) => p.filter((o) => o.aktif));
-    goster({ tip: "basari", baslik: "Diğer tüm oturumlar sonlandırıldı" });
+    goster({
+      tip: "bilgi",
+      baslik: "Oturum yönetimi salt-gösterimdir",
+      aciklama: "Bu demo hesabında çoklu-cihaz oturum deposu bağlı değil; gerçek bir oturum sonlandırılmadı.",
+    });
   }
-  function oturumKapat(id: string) {
-    setOturumlar((p) => p.filter((x) => x.id !== id));
-    goster({ tip: "basari", baslik: "Oturum sonlandırıldı" });
+  function oturumKapat(_id: string) {
+    goster({
+      tip: "bilgi",
+      baslik: "Oturum yönetimi salt-gösterimdir",
+      aciklama: "Bu demo hesabında çoklu-cihaz oturum deposu bağlı değil; gerçek bir oturum sonlandırılmadı.",
+    });
   }
 
   /* --------------------------------------------------- hesap sil */
@@ -202,7 +217,12 @@ export function GuvenlikIstemci({
       {/* ---------------- Aktif oturumlar ---------------- */}
       <Panel
         baslik="Aktif oturumlar"
-        sagUst={oturumlar.length > 1 && <Button variant="ghost" size="sm" onClick={tumOturumlariKapat}>Diğerlerini kapat</Button>}
+        sagUst={
+          <div className="flex items-center gap-2">
+            <TemsiliRozet />
+            {oturumlar.length > 1 && <Button variant="ghost" size="sm" onClick={tumOturumlariKapat}>Diğerlerini kapat</Button>}
+          </div>
+        }
         padding={false}
       >
         <div className="divide-y divide-line">
@@ -238,7 +258,10 @@ export function GuvenlikIstemci({
       {/* ---------------- Oturum açma geçmişi ---------------- */}
       <div>
         <div className="mb-3 flex items-center justify-between px-1">
-          <h3 className="text-[15px] font-semibold text-slate-ink">Oturum açma geçmişi</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-[15px] font-semibold text-slate-ink">Oturum açma geçmişi</h3>
+            <TemsiliRozet />
+          </div>
           {basarisizGiris > 0 && (
             <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-amber-700">
               <AlertCircle className="size-4" /> Son dönemde {basarisizGiris} başarısız deneme
@@ -249,7 +272,7 @@ export function GuvenlikIstemci({
       </div>
 
       {/* ---------------- Bağlı uygulamalar / OAuth ---------------- */}
-      <Panel baslik="Bağlı uygulamalar" padding={false}>
+      <Panel baslik="Bağlı uygulamalar" sagUst={<TemsiliRozet />} padding={false}>
         <div className="divide-y divide-line">
           {BAGLI_UYGULAMALAR.map((u) => (
             <BagliUygulamaSatir key={u.id} u={u} />
@@ -299,6 +322,17 @@ export function GuvenlikIstemci({
   );
 }
 
+/* ------------------------------------------------------------------ Temsili veri rozeti
+ * Bu hesapta canlı oturum/audit-log deposu bağlı değil; aşağıdaki liste demo
+ * amaçlıdır. Kullanıcı bunun canlı veri OLMADIĞINI net görmeli. */
+function TemsiliRozet({ metin }: { metin?: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-warn-soft px-2 py-0.5 text-[11px] font-medium text-amber-700">
+      <Info className="size-3" /> {metin ?? "Temsili veri — demo"}
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------------ Özet kart */
 function OzetKart({
   ikon, etiket, deger, ton,
@@ -328,8 +362,6 @@ function OzetKart({
 /* ------------------------------------------------------------------ Bağlı uygulama satırı */
 function BagliUygulamaSatir({ u }: { u: BagliUygulama }) {
   const { goster } = useToast();
-  const [bagli, setBagli] = useState(true);
-  if (!bagli) return null;
   return (
     <div className="flex items-center justify-between px-6 py-4">
       <div className="flex items-center gap-3">
@@ -347,7 +379,11 @@ function BagliUygulamaSatir({ u }: { u: BagliUygulama }) {
         variant="ghost"
         size="sm"
         className="text-danger2 hover:bg-danger-soft"
-        onClick={() => { setBagli(false); goster({ tip: "basari", baslik: `${u.ad} erişimi kaldırıldı` }); }}
+        onClick={() => goster({
+          tip: "bilgi",
+          baslik: "OAuth yönetimi salt-gösterimdir",
+          aciklama: `Bu demo hesabında bağlı uygulama deposu bağlı değil; ${u.ad} erişimi gerçekte kaldırılmadı.`,
+        })}
       >
         Erişimi kaldır
       </Button>

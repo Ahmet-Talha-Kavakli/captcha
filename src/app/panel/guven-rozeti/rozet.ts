@@ -133,27 +133,27 @@ export function rozetIstatistik(events: BotEvent[], siteCount: number): RozetVer
 
 /* ------------------------------------------------------------------ SVG rozeti */
 
-/** Tema paleti — açık/koyu. Marka rengi Specter cyan. */
+/** Tema paleti — açık/koyu. Marka rengi Veylify indigo-violet (#4f46e5). */
 function temaPalet(tema: RozetTema) {
   if (tema === "koyu") {
     return {
-      bg: "#0b1120",
-      cizgi: "#1e293b",
-      metin: "#f1f5f9",
-      soluk: "#94a3b8",
-      marka: "#22d3ee",
-      vurgu: "#67e8f9",
-      gozZemin: "#04222b",
+      bg: "#0f0e26",
+      cizgi: "#2e2a5e",
+      metin: "#eef1fb",
+      soluk: "#a5b4fc",
+      marka: "#818cf8",
+      vurgu: "#6366f1",
+      gozZemin: "#1e1b4b",
     };
   }
   return {
     bg: "#ffffff",
-    cizgi: "#e2e8f0",
-    metin: "#0f172a",
-    soluk: "#64748b",
-    marka: "#06b6d4",
-    vurgu: "#0891b2",
-    gozZemin: "#083344",
+    cizgi: "#e0e0f0",
+    metin: "#1e1b4b",
+    soluk: "#6b7280",
+    marka: "#4f46e5",
+    vurgu: "#6366f1",
+    gozZemin: "#1e1b4b",
   };
 }
 
@@ -203,8 +203,8 @@ export function rozetSvg(veri: RozetVeri, tema: RozetTema, vurgu: RozetVurgu = "
   const uid = `sp${veri.guvenSkoru}${veri.rozetSeviye.length}`; // benzersiz gradient id'leri (çoklu rozet çakışmaz)
 
   // Chip zemini: koyu temada hafif parlak, açık temada marka-tonlu.
-  const chipBg = tema === "koyu" ? "#0e1a2e" : "#ecfeff";
-  const chipCizgi = tema === "koyu" ? "#1e3a4a" : "#a5f3fc";
+  const chipBg = tema === "koyu" ? "#1a1740" : "#eef2ff";
+  const chipCizgi = tema === "koyu" ? "#3b3785" : "#c7d2fe";
 
   // Hayalet gövdesi + parlayan gözler (SpecterMark ile birebir yol), chip içinde.
   const hayalet = `

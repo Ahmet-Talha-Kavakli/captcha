@@ -125,10 +125,11 @@ export function VeriIstemci({ kapsam }: { kapsam: Kapsam }) {
                 <span className="flex items-center gap-1.5"><Check className="size-3.5" /> {onizleme.entegrasyon} entegrasyon</span>
               </div>
               <div className="mt-3 flex items-center gap-2 text-[12px] text-amber-700">
-                <AlertTriangle className="size-3.5" /> Geri yükleme mevcut yapılandırmanın üzerine yazabilir. Devam etmeden önce dışa aktarmanı öneririz.
+                <AlertTriangle className="size-3.5" /> Yedek doğrulandı; içeriği yukarıda önizlendi. Gerçek geri yükleme (mevcut yapılandırmanın üzerine yazma) henüz devrede değil.
               </div>
-              <Button variant="danger" size="sm" className="mt-3" onClick={() => goster({ tip: "bilgi", baslik: "Geri yükleme onaylandı", aciklama: "Yedek işleme alındı." })}>
-                <ShieldCheck className="size-4" /> Geri yüklemeyi onayla
+              {/* Sunucu-tarafı restore ucu yok: dürüstçe devre-dışı "Yakında". Yanlış onay verilmez. */}
+              <Button variant="danger" size="sm" className="mt-3" disabled title="Gerçek geri yükleme yakında">
+                <ShieldCheck className="size-4" /> Geri yüklemeyi onayla (Yakında)
               </Button>
             </NotKutusu>
           </div>

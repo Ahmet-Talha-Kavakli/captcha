@@ -208,6 +208,12 @@ export function UptimeIstemci({
         }
       />
 
+      {/* ---- Dürüstlük notu: sayfadaki değerler temsili (canlı probing yok) ---- */}
+      <div className="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-warn-soft/40 px-5 py-3.5 text-[13px] text-amber-800">
+        <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+        <span>{t("up.temsiliNot")}</span>
+      </div>
+
       {/* ---- 1. ÜST ÖZET ---- */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatKart

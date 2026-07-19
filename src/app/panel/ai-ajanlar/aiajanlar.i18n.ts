@@ -156,6 +156,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ai.robots.not": "robots.txt yalnızca kurallara uyan AI'ları etkiler. Veylify, robots'u yok sayan botları verify/passive akışında gerçekten yakalar ve engeller.",
     "ai.seri.baslik": "AI trafiği zaman serisi",
     "ai.seri.aciklama": "Eğitim taraması ile canlı/arama getirmesinin son 14 günlük seyri.",
+    "ai.seri.tahminiRozet": "Tahmini dağılım",
+    "ai.seri.tahminiNot":
+      "Günlük değerler ölçülmüş değil: toplam istek sayısı 14 güne düzgün dağıtılmış bir TAHMİNDİR. Ajan başına zaman-damgalı olay verisi biriktikçe gerçek histogramla değişecektir.",
     "ai.seri.egitim": "Model eğitimi",
     "ai.seri.getirme": "Canlı & arama",
 
@@ -293,6 +296,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ai.robots.not": "robots.txt only affects compliant AI. Veylify actually catches and blocks bots that ignore robots via the verify/passive flow.",
     "ai.seri.baslik": "AI traffic time series",
     "ai.seri.aciklama": "Training crawls vs. live/search fetches over the last 14 days.",
+    "ai.seri.tahminiRozet": "Estimated distribution",
+    "ai.seri.tahminiNot":
+      "Daily values are not measured: they are an ESTIMATE spreading the total request count evenly across 14 days. This switches to a real histogram as per-agent timestamped event data accumulates.",
     "ai.seri.egitim": "Model training",
     "ai.seri.getirme": "Live & search",
 
@@ -428,6 +434,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ai.robots.not": "robots.txt betrifft nur konforme KI. Veylify fängt Bots, die robots ignorieren, tatsächlich ab.",
     "ai.seri.baslik": "KI-Traffic-Zeitreihe",
     "ai.seri.aciklama": "Trainings-Crawls vs. Live-/Such-Abrufe der letzten 14 Tage.",
+    "ai.seri.tahminiRozet": "Geschätzte Verteilung",
+    "ai.seri.tahminiNot":
+      "Tageswerte sind nicht gemessen: Sie sind eine SCHÄTZUNG, die die Gesamtzahl der Anfragen gleichmäßig über 14 Tage verteilt. Dies wird durch ein echtes Histogramm ersetzt, sobald zeitgestempelte Ereignisdaten pro Agent vorliegen.",
     "ai.seri.egitim": "Modelltraining",
     "ai.seri.getirme": "Live & Suche",
 
@@ -563,6 +572,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ai.robots.not": "robots.txt n'affecte que l'IA conforme. Veylify capture réellement les bots qui l'ignorent.",
     "ai.seri.baslik": "Série temporelle du trafic IA",
     "ai.seri.aciklama": "Explorations d'entraînement vs. récupérations en direct/recherche sur 14 jours.",
+    "ai.seri.tahminiRozet": "Distribution estimée",
+    "ai.seri.tahminiNot":
+      "Les valeurs quotidiennes ne sont pas mesurées : il s'agit d'une ESTIMATION répartissant le nombre total de requêtes uniformément sur 14 jours. Elle bascule vers un histogramme réel à mesure que les données d'événements horodatées par agent s'accumulent.",
     "ai.seri.egitim": "Entraînement de modèle",
     "ai.seri.getirme": "Direct & recherche",
 
@@ -698,6 +710,9 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "ai.robots.not": "robots.txt solo afecta a la IA conforme. Veylify realmente atrapa a los bots que lo ignoran.",
     "ai.seri.baslik": "Serie temporal de tráfico de IA",
     "ai.seri.aciklama": "Rastreos de entrenamiento vs. recuperaciones en vivo/búsqueda en 14 días.",
+    "ai.seri.tahminiRozet": "Distribución estimada",
+    "ai.seri.tahminiNot":
+      "Los valores diarios no están medidos: son una ESTIMACIÓN que distribuye el total de solicitudes uniformemente en 14 días. Cambia a un histograma real a medida que se acumulan datos de eventos con marca de tiempo por agente.",
     "ai.seri.egitim": "Entrenamiento de modelo",
     "ai.seri.getirme": "En vivo y búsqueda",
 

@@ -22,8 +22,11 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     // Özet kartları
     "pz.statHazirPaket": "Hazır paket",
-    "pz.statToplamKurulum": "Toplam kurulum",
-    "pz.statOrtPuan": "Ortalama puan",
+    "pz.statToplamKurulum": "Toplam kurulum (örnek)",
+    "pz.statOrtPuan": "Ortalama puan (örnek)",
+    "pz.ornekRozet": "örnek",
+    "pz.ornekNot":
+      "Kurulum ve puan sayıları örnek/temsili sosyal-kanıt değerleridir — gerçek topluluk metriği değildir.",
     "pz.statSektor": "Sektör",
 
     // Filtre
@@ -148,8 +151,11 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "pz.tanitimAciklama": "Pick a pack that fits your industry and install it in one click — start with a proven protection setup in minutes.",
 
     "pz.statHazirPaket": "Ready-made packs",
-    "pz.statToplamKurulum": "Total installs",
-    "pz.statOrtPuan": "Average rating",
+    "pz.statToplamKurulum": "Total installs (sample)",
+    "pz.statOrtPuan": "Average rating (sample)",
+    "pz.ornekRozet": "sample",
+    "pz.ornekNot":
+      "Install counts and ratings are sample/representative social-proof values — not real community metrics.",
     "pz.statSektor": "Industries",
 
     "pz.araPlaceholder": "Search packs…",
@@ -265,8 +271,11 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "pz.tanitimAciklama": "Wählen Sie ein Paket, das zu Ihrer Branche passt, und installieren Sie es mit einem Klick — starten Sie in Minuten mit einer bewährten Schutzkonfiguration.",
 
     "pz.statHazirPaket": "Fertige Pakete",
-    "pz.statToplamKurulum": "Installationen gesamt",
-    "pz.statOrtPuan": "Durchschnittsbewertung",
+    "pz.statToplamKurulum": "Installationen gesamt (Beispiel)",
+    "pz.statOrtPuan": "Durchschnittsbewertung (Beispiel)",
+    "pz.ornekRozet": "Beispiel",
+    "pz.ornekNot":
+      "Installationszahlen und Bewertungen sind beispielhafte/repräsentative Social-Proof-Werte — keine echten Community-Metriken.",
     "pz.statSektor": "Branchen",
 
     "pz.araPlaceholder": "Pakete suchen…",
@@ -382,8 +391,11 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "pz.tanitimAciklama": "Choisissez un pack adapté à votre secteur et installez-le en un clic — démarrez en quelques minutes avec une configuration de protection éprouvée.",
 
     "pz.statHazirPaket": "Packs prêts à l'emploi",
-    "pz.statToplamKurulum": "Installations totales",
-    "pz.statOrtPuan": "Note moyenne",
+    "pz.statToplamKurulum": "Installations totales (exemple)",
+    "pz.statOrtPuan": "Note moyenne (exemple)",
+    "pz.ornekRozet": "exemple",
+    "pz.ornekNot":
+      "Les nombres d'installations et les notes sont des valeurs de preuve sociale à titre d'exemple/représentatives — pas des métriques réelles de la communauté.",
     "pz.statSektor": "Secteurs",
 
     "pz.araPlaceholder": "Rechercher des packs…",
@@ -499,8 +511,11 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "pz.tanitimAciklama": "Elige un paquete que se ajuste a tu sector e instálalo con un clic — empieza en minutos con una configuración de protección probada.",
 
     "pz.statHazirPaket": "Paquetes listos",
-    "pz.statToplamKurulum": "Instalaciones totales",
-    "pz.statOrtPuan": "Puntuación media",
+    "pz.statToplamKurulum": "Instalaciones totales (ejemplo)",
+    "pz.statOrtPuan": "Puntuación media (ejemplo)",
+    "pz.ornekRozet": "ejemplo",
+    "pz.ornekNot":
+      "Los recuentos de instalaciones y las puntuaciones son valores de prueba social de ejemplo/representativos — no son métricas reales de la comunidad.",
     "pz.statSektor": "Sectores",
 
     "pz.araPlaceholder": "Buscar paquetes…",

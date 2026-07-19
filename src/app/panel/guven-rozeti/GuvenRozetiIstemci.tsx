@@ -299,19 +299,27 @@ export function GuvenRozetiIstemci({
             {/* 14 günlük gösterim/tıklama trendi (çift seri) */}
             <div className="mt-5">
               <div className="mb-2 flex items-center justify-between">
-                <div className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">
-                  {t("gr.analitik.trendBaslik")}
+                <div className="flex items-center gap-2">
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-slate-faint">
+                    {t("gr.analitik.trendBaslik")}
+                  </div>
+                  {/* Gösterim/tıklama için henüz gerçek telemetri kaynağı yok —
+                      güven skorundan türetilmiş TAHMİNİ projeksiyon olduğu açıkça
+                      belirtilir (yanıltıcı "ölçülmüş veri" izlenimini önler). */}
+                  <span className="rounded-full border border-amber-300/40 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700">
+                    {t("gr.analitik.trendTahmini")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-[11px]">
                   <span className="inline-flex items-center gap-1.5 text-slate-muted"><span className="size-2 rounded-full bg-brand-600" /> {t("gr.analitik.gosterim")}</span>
-                  <span className="inline-flex items-center gap-1.5 text-slate-muted"><span className="size-2 rounded-full bg-[#06b6d4]" /> {t("gr.analitik.tiklama")}</span>
+                  <span className="inline-flex items-center gap-1.5 text-slate-muted"><span className="size-2 rounded-full bg-veylify-400" /> {t("gr.analitik.tiklama")}</span>
                 </div>
               </div>
               <TrendGrafik
                 noktalar={trend.gosterim}
                 yukseklik={150}
                 seriler={[trend.gosterim, trend.tiklama]}
-                renkler={["#2f6fed", "#06b6d4"]}
+                renkler={["#4f46e5", "#818cf8"]}
                 seriEtiketleri={[t("gr.analitik.gosterim"), t("gr.analitik.tiklama")]}
               />
             </div>

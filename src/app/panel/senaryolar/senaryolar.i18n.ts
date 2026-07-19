@@ -57,7 +57,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
     // drawer
     "drawer.problem": "Problem",
     "drawer.cozum": "Veylify çözümü",
-    "drawer.beklenenEtki": "Beklenen etki",
+    "drawer.beklenenEtki": "Beklenen etki (temsili)",
+    "drawer.beklenenEtkiNot":
+      "Bu rakamlar senin sitenin ölçümü değil: benzer kurulumlara dayalı TEMSİLİ referans değerlerdir. Gerçek etki kural uygulandıktan sonra Analitik'te görünür.",
+    "kart.temsili": "temsili",
     "drawer.neOlur": "Uygulandığında ne olur",
     "drawer.eklenecekKurallar": "Eklenecek kurallar ({n})",
     "drawer.hedefAjanlar": "Hedeflenen AI ajanları ({n})",
@@ -264,7 +267,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "drawer.problem": "Problem",
     "drawer.cozum": "Veylify solution",
-    "drawer.beklenenEtki": "Expected impact",
+    "drawer.beklenenEtki": "Expected impact (representative)",
+    "drawer.beklenenEtkiNot":
+      "These figures are not measured on your site: they are REPRESENTATIVE benchmark values based on similar setups. Actual impact appears in Analytics once the rule is applied.",
+    "kart.temsili": "representative",
     "drawer.neOlur": "What happens when applied",
     "drawer.eklenecekKurallar": "Rules to be added ({n})",
     "drawer.hedefAjanlar": "Targeted AI agents ({n})",
@@ -465,7 +471,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "drawer.problem": "Problem",
     "drawer.cozum": "Veylify-Lösung",
-    "drawer.beklenenEtki": "Erwartete Wirkung",
+    "drawer.beklenenEtki": "Erwartete Wirkung (repräsentativ)",
+    "drawer.beklenenEtkiNot":
+      "Diese Zahlen werden nicht auf Ihrer Website gemessen: Es handelt sich um REPRÄSENTATIVE Benchmark-Werte auf Basis ähnlicher Setups. Die tatsächliche Wirkung erscheint in den Analytics, sobald die Regel angewendet wurde.",
+    "kart.temsili": "repräsentativ",
     "drawer.neOlur": "Was passiert bei Anwendung",
     "drawer.eklenecekKurallar": "Hinzuzufügende Regeln ({n})",
     "drawer.hedefAjanlar": "Anvisierte KI-Agenten ({n})",
@@ -666,7 +675,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "drawer.problem": "Problème",
     "drawer.cozum": "Solution Veylify",
-    "drawer.beklenenEtki": "Impact attendu",
+    "drawer.beklenenEtki": "Impact attendu (représentatif)",
+    "drawer.beklenenEtkiNot":
+      "Ces chiffres ne sont pas mesurés sur votre site : ce sont des valeurs de référence REPRÉSENTATIVES basées sur des configurations similaires. L'impact réel apparaît dans Analytics une fois la règle appliquée.",
+    "kart.temsili": "représentatif",
     "drawer.neOlur": "Ce qui se passe une fois appliqué",
     "drawer.eklenecekKurallar": "Règles à ajouter ({n})",
     "drawer.hedefAjanlar": "Agents IA ciblés ({n})",
@@ -867,7 +879,10 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "drawer.problem": "Problema",
     "drawer.cozum": "Solución de Veylify",
-    "drawer.beklenenEtki": "Impacto esperado",
+    "drawer.beklenenEtki": "Impacto esperado (representativo)",
+    "drawer.beklenenEtkiNot":
+      "Estas cifras no se miden en tu sitio: son valores de referencia REPRESENTATIVOS basados en configuraciones similares. El impacto real aparece en Analítica una vez aplicada la regla.",
+    "kart.temsili": "representativo",
     "drawer.neOlur": "Qué ocurre al aplicar",
     "drawer.eklenecekKurallar": "Reglas a añadir ({n})",
     "drawer.hedefAjanlar": "Agentes de IA objetivo ({n})",

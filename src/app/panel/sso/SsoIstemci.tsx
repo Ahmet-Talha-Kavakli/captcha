@@ -307,8 +307,10 @@ export function SsoIstemci({
     return { sso: 0, mfa, parola: aktifler.length - mfa };
   }, [uyeler, config.zorunlu]);
 
-  // Oturum aktivite trendi — üye sayısı + hazırlık tohumundan deterministik
-  // 14 günlük seri (istemci-tarafı, sabit; rastgelelik yok → hidrasyon güvenli).
+  // Oturum aktivite trendi — TAHMİNİ seri. Gerçek oturum kaydı henüz akmadığı
+  // için aktif üye sayısından deterministik türetilir (14 gün, istemci-tarafı,
+  // rastgelelik yok → hidrasyon güvenli). UI'da "Tahmini" olarak açıkça etiketlenir;
+  // IdP bağlanıp oturumlar aktıkça gerçek veriyle değişecektir.
   const oturumTrend = useMemo(() => {
     const taban = Math.max(2, aktifUye) * (config.zorunlu ? 3 : 2);
     const oranlar: number[] = [];
@@ -504,7 +506,11 @@ ${t("sso.spkod.oidc.yanit")}
 
       {/* ---------------------------------------------- görsel pano: oturum trendi + sağlayıcı gauge + giriş yöntemi */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <Panel baslik={t("sso.pano.oturumBaslik")} className="lg:col-span-2">
+        <Panel
+          baslik={t("sso.pano.oturumBaslik")}
+          className="lg:col-span-2"
+          sagUst={<Badge ton="sari"><Info className="size-3" /> {t("sso.pano.tahminiRozet")}</Badge>}
+        >
           <p className="mb-2 flex items-center gap-1.5 text-[13px] text-slate-muted">
             <Network className="size-4 text-brand-600" />
             {t("sso.pano.oturumAciklama")}
@@ -515,6 +521,10 @@ ${t("sso.spkod.oidc.yanit")}
             renk="#2f6fed"
             yukseklik={210}
           />
+          <p className="mt-2 flex items-start gap-1.5 text-[11.5px] leading-snug text-slate-faint">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            {t("sso.pano.oturumTahminiNot")}
+          </p>
         </Panel>
 
         <Panel baslik={t("sso.pano.saglayiciBaslik")}>

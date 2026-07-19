@@ -205,7 +205,10 @@ export function AiAjanlarIstemci({
     [veri],
   );
 
-  /* AI trafiği zaman serisi — 14g eğitim vs canlı/arama. Tohum: gerçek toplamlar. */
+  /* AI trafiği zaman serisi — 14g eğitim vs canlı/arama.
+   * DÜRÜSTLÜK: Ajan başına zaman-damgalı olay verisi elimizde OLMADIĞI için günlük
+   * kırılım GERÇEK değil TAHMİNDİR: gerçek toplam istek sayısı deterministik bir
+   * dalgayla 14 güne yayılır. UI'da "Tahmini dağılım" olarak açıkça etiketlenir. */
   const seriler = useMemo(() => {
     const egitimTop = veri.filter((v) => v.kategori === "model_egitimi").reduce((s, v) => s + v.istat.toplam, 0);
     const getirmeTop = veri.filter((v) => v.kategori !== "model_egitimi").reduce((s, v) => s + v.istat.toplam, 0);
@@ -400,7 +403,15 @@ export function AiAjanlarIstemci({
       {/* AI trafiği zaman serisi (çoklu seri) */}
       {varTrafik && (
         <motion.div initial={{ y: 10 }} animate={{ y: 0 }}>
-          <Panel baslik={t("ai.seri.baslik")} sagUst={<Activity className="size-4 text-brand-600" />}>
+          <Panel
+            baslik={t("ai.seri.baslik")}
+            sagUst={
+              <div className="flex items-center gap-2">
+                <Badge ton="sari"><Info className="size-3" /> {t("ai.seri.tahminiRozet")}</Badge>
+                <Activity className="size-4 text-brand-600" />
+              </div>
+            }
+          >
             <p className="-mt-1 mb-2 text-[12.5px] text-slate-muted">{t("ai.seri.aciklama")}</p>
             <div className="mb-3 flex flex-wrap items-center gap-4 text-[12px]">
               <span className="flex items-center gap-1.5 text-slate-muted"><span className="size-2.5 rounded-full" style={{ background: "#dc2626" }} /> {t("ai.seri.egitim")}</span>
@@ -413,6 +424,9 @@ export function AiAjanlarIstemci({
               seriEtiketleri={[t("ai.seri.egitim"), t("ai.seri.getirme")]}
               yukseklik={200}
             />
+            <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-snug text-slate-faint">
+              <Info className="mt-0.5 size-3.5 shrink-0" /> {t("ai.seri.tahminiNot")}
+            </p>
           </Panel>
         </motion.div>
       )}

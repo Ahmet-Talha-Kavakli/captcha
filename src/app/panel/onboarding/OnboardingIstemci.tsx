@@ -23,9 +23,11 @@ import {
   CheckCircle2, Circle, Rocket, ArrowRight, ChevronRight, ChevronDown,
   Clock, RefreshCw, PartyPopper, Sparkles, Server, TerminalSquare,
   Check, ArrowUpRight, ListChecks, Hourglass,
+  Gift, PlayCircle, BookOpen, FlaskConical, FileText, LifeBuoy,
 } from "lucide-react";
 import { Panel, Badge, KodBlok, useToast } from "@/components/panel/kit";
 import { Button } from "@/components/ui/Button";
+import { WidgetOnizleme } from "@/components/panel/WidgetOnizleme";
 import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { obCeviri } from "./onboarding.i18n";
@@ -390,6 +392,9 @@ export function OnboardingIstemci({ durum, siteKey, siteAd, siteId, dil }: Props
         </div>
       </motion.div>
 
+      {/* hızlı başlangıç özet şeridi — yalnızca hiç adım tamamlanmamışsa (sıfır-durum) */}
+      {tamamSayi === 0 && <HizliBaslangic t={t} />}
+
       {/* kutlama ekranı */}
       {bittiHepsi && (
         <div className="relative overflow-hidden rounded-[28px] border border-green-200 bg-gradient-to-br from-ok-soft/60 via-surface to-brand-50/40 p-6 lg:p-8">
@@ -473,11 +478,122 @@ export function OnboardingIstemci({ durum, siteKey, siteAd, siteId, dil }: Props
             sureEtiket={sureEtiket}
           />
 
-          {/* adım 3 & 4 → çerçeveye özel entegrasyon rehberi */}
+          {/* adım 3 & 4 → çerçeveye özel entegrasyon rehberi + canlı widget testi */}
           {(secili.no === 3 || secili.no === 4) && (
-            <EntegrasyonRehberi siteKey={siteKey} t={t} />
+            <>
+              <EntegrasyonRehberi siteKey={siteKey} t={t} />
+              <CanliTest siteKey={siteKey} t={t} />
+            </>
           )}
         </div>
+      </div>
+
+      {/* her zaman görünür: yardım & kaynak bağlantıları */}
+      <YardimBolumu t={t} />
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- HizliBaslangic
+ * Sıfır-durum motivasyon şeridi: "3 adımda korumaya başla" — 3 mini kart. Yalnızca
+ * hiç adım tamamlanmamışken gösterilir (ilk kez giren kullanıcı için yön). */
+function HizliBaslangic({ t }: { t: (k: string) => string }) {
+  const kartlar = [
+    { ikon: <Globe className="size-5" />, no: 1, baslik: t("hizli.1.baslik"), desc: t("hizli.1.desc") },
+    { ikon: <Code2 className="size-5" />, no: 2, baslik: t("hizli.2.baslik"), desc: t("hizli.2.desc") },
+    { ikon: <Zap className="size-5" />, no: 3, baslik: t("hizli.3.baslik"), desc: t("hizli.3.desc") },
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="rounded-[24px] border border-brand-100 bg-gradient-to-br from-brand-50/60 via-surface to-surface p-5 lg:p-6"
+    >
+      <div className="flex items-center gap-2">
+        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-600 text-white shadow-card"><Rocket className="size-4" /></span>
+        <div>
+          <h3 className="text-[15px] font-bold text-slate-ink">{t("hizli.baslik")}</h3>
+          <p className="text-[12.5px] text-slate-muted">{t("hizli.aciklama")}</p>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {kartlar.map((k, i) => (
+          <div key={k.no} className="relative flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">{k.ikon}</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="num text-[10.5px] font-bold text-slate-faint">{t("stepper.adim").replace("{n}", String(k.no))}</span>
+              </div>
+              <div className="text-[13.5px] font-semibold text-slate-ink">{k.baslik}</div>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-slate-muted">{k.desc}</p>
+            </div>
+            {/* oklar (son karttan sonra yok) */}
+            {i < kartlar.length - 1 && (
+              <ArrowRight className="absolute -right-2.5 top-1/2 hidden size-4 -translate-y-1/2 text-brand-300 sm:block" />
+            )}
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+/* --------------------------------------------------------------- CanliTest
+ * Kullanıcının kurduğu widget'ı GERÇEKTEN test edebileceği canlı bölüm. Gerçek
+ * /api/v1/challenge + /api/v1/verify çağrılır (WidgetOnizleme). Kullanıcı
+ * kurulumun uçtan uca çalıştığını gözüyle görür. */
+function CanliTest({ siteKey, t }: { siteKey: string; t: (k: string) => string }) {
+  return (
+    <Panel baslik={t("test.baslik")}>
+      <p className="text-[13.5px] leading-relaxed text-slate-muted">{t("test.aciklama")}</p>
+      <div className="mt-5 flex flex-col items-center gap-4 lg:flex-row lg:items-start lg:gap-6">
+        <div className="shrink-0">
+          <WidgetOnizleme siteKey={siteKey} />
+        </div>
+        <div className="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50/50 px-3.5 py-3">
+          <PlayCircle className="mt-0.5 size-4 shrink-0 text-brand-600" />
+          <p className="text-[12.5px] leading-relaxed text-brand-900">{t("test.ipucu")}</p>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+/* --------------------------------------------------------------- YardimBolumu
+ * Her zaman görünür kaynak/yardım bağlantıları: Öğrenme Merkezi, API Test Alanı,
+ * Dokümanlar. Kullanıcı takıldığında hızlı çıkış noktaları. */
+function YardimBolumu({ t }: { t: (k: string) => string }) {
+  const kaynaklar = [
+    { href: "/panel/ogrenme", ikon: <BookOpen className="size-4" />, baslik: t("yardim.ogrenme.baslik"), desc: t("yardim.ogrenme.desc") },
+    { href: "/panel/test-alani", ikon: <FlaskConical className="size-4" />, baslik: t("yardim.test.baslik"), desc: t("yardim.test.desc") },
+    { href: "/panel/gelistirici", ikon: <FileText className="size-4" />, baslik: t("yardim.dok.baslik"), desc: t("yardim.dok.desc") },
+  ];
+  return (
+    <div className="rounded-[24px] border border-line bg-surface p-5 lg:p-6">
+      <div className="flex items-center gap-2">
+        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-canvas text-slate-muted"><LifeBuoy className="size-4" /></span>
+        <div>
+          <h3 className="text-[15px] font-bold text-slate-ink">{t("yardim.baslik")}</h3>
+          <p className="text-[12.5px] text-slate-muted">{t("yardim.aciklama")}</p>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {kaynaklar.map((k) => (
+          <Link
+            key={k.href}
+            href={k.href}
+            className="group flex items-start gap-3 rounded-2xl border border-line bg-canvas/40 p-4 transition hover:border-line-strong hover:bg-canvas"
+          >
+            <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">{k.ikon}</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 text-[13.5px] font-semibold text-slate-ink group-hover:text-brand-700">
+                {k.baslik} <ArrowUpRight className="size-3.5 shrink-0 text-slate-faint transition group-hover:translate-x-0.5" />
+              </div>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-slate-muted">{k.desc}</p>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -527,6 +643,15 @@ function AdimDetay({
       </div>
 
       <p className="mt-4 text-[13.5px] leading-relaxed text-slate-muted">{t(`${adim.i18n}.aciklama`)}</p>
+
+      {/* "ne kazanırsın" mikro-sonuç kutusu — bu adımı tamamlayınca ne elde edilir */}
+      <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-brand-100 bg-brand-50/40 px-4 py-3">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand-600/10 text-brand-600"><Gift className="size-4" /></span>
+        <div className="min-w-0">
+          <div className="text-[10.5px] font-bold uppercase tracking-wide text-brand-600">{t("kazanim.etiket")}</div>
+          <p className="mt-0.5 text-[13px] leading-relaxed text-brand-900">{t(`${adim.i18n}.kazanim`)}</p>
+        </div>
+      </div>
 
       {/* nasıl yapılır (genişletilebilir) */}
       <button

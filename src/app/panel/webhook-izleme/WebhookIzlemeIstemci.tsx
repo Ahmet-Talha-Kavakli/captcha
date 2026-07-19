@@ -159,6 +159,7 @@ export function WebhookIzlemeIstemci({
   );
 
   // Manuel yeniden deneme (istemci simülasyonu — gerçek motor sunucudadır).
+  // Gerçek bir retry ucu yok; bu yüzden toast dürüstçe "demo/simülasyon" der.
   function yenidenDene(url: string, dlq = false) {
     goster({
       tip: "bilgi",
@@ -166,6 +167,9 @@ export function WebhookIzlemeIstemci({
       aciklama: t("wm.toast.aciklama").replace("{url}", url),
     });
   }
+
+  /** Bir teslimat kaydı temsili mi (id öneki whd_t_ → sunucudaki temsili geçmiş). */
+  const temsiliKayit = (id: string) => id.startsWith("whd_t_");
 
   const saglikliSayi = [...istatistikler.values()].filter((s) => s.saglik === "saglikli").length;
   const bozukSayi = [...istatistikler.values()].filter((s) => s.saglik === "bozuk").length;
@@ -491,6 +495,11 @@ export function WebhookIzlemeIstemci({
                             )}
                           </span>
                           <span className="font-mono text-[12px] text-slate-ink">{d.event}</span>
+                          {temsiliKayit(d.id) && (
+                            <span className="rounded bg-canvas px-1 py-0.5 text-[9.5px] font-medium uppercase tracking-wide text-slate-faint" title={t("wm.temsiliRozetTip")}>
+                              {t("wm.temsiliRozet")}
+                            </span>
+                          )}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -562,6 +571,11 @@ export function WebhookIzlemeIstemci({
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[12px] font-medium text-slate-ink">{sonKayit.event}</span>
                         <Badge ton="kirmizi">{t("wm.dlq.denemeTukendi").replace("{n}", String(denemeSayisi))}</Badge>
+                        {temsiliKayit(sonKayit.id) && (
+                          <span className="rounded bg-canvas px-1.5 py-0.5 text-[9.5px] font-medium uppercase tracking-wide text-slate-faint" title={t("wm.temsiliRozetTip")}>
+                            {t("wm.temsiliRozet")}
+                          </span>
+                        )}
                       </div>
                       <p className="mt-1 max-w-[280px] truncate font-mono text-[11px] text-slate-muted" title={ucNokta.url}>{ucNokta.url}</p>
                     </div>

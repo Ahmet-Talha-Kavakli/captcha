@@ -20,6 +20,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "up.metaTitle": "Uptime & SLA İzleme — Veylify",
     "up.aciklama":
       "Veylify platform servislerinin SLA uyumu, hata bütçesi, gecikme yüzdelikleri, uptime ve olay geçmişi. Salt-okunur SRE konsolu — tüm ekip görebilir.",
+    "up.temsiliNot":
+      "Temsili platform durumu: bu sayfadaki servis kataloğu, uptime şeritleri ve olay geçmişi canlı probing'den GELMEZ — deterministik temsili değerlerdir. Gerçek zamanlı sağlık izleme yakında bağlanacak.",
     "up.servisRozet": "servis",
     "up.hepsiCalisiyor": "Tüm sistemler çalışıyor",
     "up.kismiBozulma": "Kısmi bozulma",
@@ -192,6 +194,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "up.metaTitle": "Uptime & SLA Monitoring — Veylify",
     "up.aciklama":
       "SLA compliance, error budget, latency percentiles, uptime and incident history for Veylify platform services. Read-only SRE console — visible to the whole team.",
+    "up.temsiliNot":
+      "Representative platform status: the service catalog, uptime bars and incident history on this page do NOT come from live probing — they are deterministic representative values. Real-time health monitoring will be connected soon.",
     "up.servisRozet": "services",
     "up.hepsiCalisiyor": "All systems operational",
     "up.kismiBozulma": "Partial degradation",
@@ -347,6 +351,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "up.metaTitle": "Uptime- & SLA-Überwachung — Veylify",
     "up.aciklama":
       "SLA-Einhaltung, Fehlerbudget, Latenzperzentile, Uptime und Vorfallverlauf der Veylify-Plattformdienste. Schreibgeschützte SRE-Konsole — für das gesamte Team sichtbar.",
+    "up.temsiliNot":
+      "Repräsentativer Plattformstatus: Servicekatalog, Uptime-Balken und Vorfallverlauf auf dieser Seite stammen NICHT aus Live-Probing — es sind deterministische, repräsentative Werte. Echtzeit-Überwachung wird bald angebunden.",
     "up.servisRozet": "Dienste",
     "up.hepsiCalisiyor": "Alle Systeme betriebsbereit",
     "up.kismiBozulma": "Teilweise Beeinträchtigung",
@@ -502,6 +508,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "up.metaTitle": "Surveillance de la disponibilité et du SLA — Veylify",
     "up.aciklama":
       "Conformité au SLA, budget d'erreur, percentiles de latence, disponibilité et historique des incidents des services de la plateforme Veylify. Console SRE en lecture seule — visible par toute l'équipe.",
+    "up.temsiliNot":
+      "Statut de plateforme représentatif : le catalogue de services, les barres de disponibilité et l'historique des incidents de cette page ne proviennent PAS d'un sondage en direct — ce sont des valeurs représentatives déterministes. La surveillance en temps réel sera bientôt connectée.",
     "up.servisRozet": "services",
     "up.hepsiCalisiyor": "Tous les systèmes opérationnels",
     "up.kismiBozulma": "Dégradation partielle",
@@ -657,6 +665,8 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "up.metaTitle": "Monitorización de disponibilidad y SLA — Veylify",
     "up.aciklama":
       "Cumplimiento del SLA, presupuesto de error, percentiles de latencia, disponibilidad e historial de incidentes de los servicios de la plataforma Veylify. Consola SRE de solo lectura — visible para todo el equipo.",
+    "up.temsiliNot":
+      "Estado de plataforma representativo: el catálogo de servicios, las barras de disponibilidad y el historial de incidentes de esta página NO provienen de sondeo en vivo — son valores representativos deterministas. La monitorización en tiempo real se conectará pronto.",
     "up.servisRozet": "servicios",
     "up.hepsiCalisiyor": "Todos los sistemas operativos",
     "up.kismiBozulma": "Degradación parcial",

@@ -24,6 +24,7 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
 import {
   Share2, ShieldCheck, Network, Radar, Lock, Info, Check, X,
   Globe, Fingerprint, Server, ArrowRight, Sparkles, Award,
@@ -278,13 +279,15 @@ export function ToplulukIstemci({ dil, katkilar, kullaniciAdi }: { dil: Dil; kat
     goster({ tip: "basari", baslik: t("toast.tumuBaslik"), aciklama: t("toast.tumuAciklama").replace("{n}", String(katkilar.length)) });
   }
 
-  function proaktifEngelle(deger: string) {
-    // Gerçek kural yazımı Kurallar modülünde; burada niyet + geri bildirim.
-    goster({
-      tip: "basari",
-      baslik: t("toast.engelleBaslik"),
-      aciklama: t("toast.engelleAciklama").replace("{deger}", deger),
-    });
+  /**
+   * Proaktif engelleme = gerçek kural yazımı. Kural motoru Kurallar modülündedir;
+   * bu yüzden IOC'yi (tür:değer) query param olarak taşıyıp Kurallar sayfasında
+   * "engelle" kuralı ön-dolgusuyla açtırırız. Sessiz no-op değil — gerçek yere götürür.
+   */
+  function engelleHref(tur: IocTur, deger: string): string {
+    // IOC türü → kural alanı eşlemesi (fingerprint için ua alanı en yakın).
+    const alan = tur === "ip" ? "ip" : tur === "asn" ? "asn" : "ua";
+    return `/panel/kurallar?ekle=${encodeURIComponent(`${alan}:${deger}`)}`;
   }
 
   const kademeRenk =
@@ -598,9 +601,9 @@ export function ToplulukIstemci({ dil, katkilar, kullaniciAdi }: { dil: Dil; kat
               <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[11px] text-slate-faint">
                 <span>{t("besleme.ilkGorulme").replace("{tarih}", tarihStr(h.topluluk.kureselIlkGorulme, dil))}</span>
                 {!h.sendeVar && (
-                  <button onClick={() => proaktifEngelle(h.deger)} className="flex items-center gap-1 font-medium text-brand-700 transition hover:text-brand-800">
+                  <Link href={engelleHref(h.tur, h.deger)} className="flex items-center gap-1 font-medium text-brand-700 transition hover:text-brand-800">
                     <PlusCircle className="size-3.5" /> {t("besleme.engelle")}
-                  </button>
+                  </Link>
                 )}
               </div>
             </div>

@@ -328,6 +328,7 @@ export function EntegrasyonSaglikIstemci({
             <div className="min-w-0">
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-faint">
                 <Timer className="size-3.5" /> {t("es.filo.gecikmeBaslik")}
+                <Badge ton="gri"><span className="text-[9px]">{t("es.tahminiRozet")}</span></Badge>
               </div>
               <Histogram
                 yukseklik={104}
@@ -472,7 +473,7 @@ export function EntegrasyonSaglikIstemci({
                     />
                     <Metrik
                       etiket={t("es.metrik.gecikme")}
-                      deger={`${tahminiGecikme(s)} ms`}
+                      deger={`~${tahminiGecikme(s)} ms`}
                       ton={tahminiGecikme(s) < 300 ? "ok" : tahminiGecikme(s) > 700 ? "danger" : undefined}
                     />
                     <Metrik etiket={t("es.metrik.gonderilen")} deger={s.gonderilen.toLocaleString(dil)} />
@@ -482,6 +483,7 @@ export function EntegrasyonSaglikIstemci({
                   <div className="rounded-lg border border-line bg-canvas/40 px-3 py-2">
                     <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-faint">
                       <Timer className="size-3" /> {t("es.metrik.gecikmeTrend")}
+                      <Badge ton="gri"><span className="text-[9px]">{t("es.tahminiRozet")}</span></Badge>
                     </div>
                     <TrendGrafik
                       noktalar={gecikmeTrend(s)}

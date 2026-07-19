@@ -69,6 +69,34 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rehber.anahtarGoruntule": "Anahtarları görüntüle",
     "rehber.ogrenmeMerkezi": "Öğrenme Merkezi",
 
+    // canlı widget testi
+    "test.baslik": "Widget'ını canlı test et",
+    "test.aciklama": "Aşağıdaki widget, tam da site ziyaretçilerinin göreceği gerçek doğrulama kutusudur — senin gerçek site anahtarınla çalışır. Beliren kodu çöz; kurulumun uçtan uca çalıştığını gözünle gör.",
+    "test.ipucu": "Bu kutu gerçek /api/v1/challenge ve /api/v1/verify uç noktalarını çağırır. Çalışıyorsa entegrasyonun hazır demektir.",
+
+    // "ne kazanırsın" mikro-sonuç kutusu
+    "kazanim.etiket": "Bunu tamamlayınca",
+
+    // hızlı başlangıç şeridi (sıfır-durum)
+    "hizli.baslik": "3 adımda korumaya başla",
+    "hizli.aciklama": "İlk gerçek doğrulaman dakikalar uzağında. Şu üç adımı sırayla tamamla:",
+    "hizli.1.baslik": "Site ekle",
+    "hizli.1.desc": "Uygulamanı ekle, anahtar çiftini al.",
+    "hizli.2.baslik": "Kodu göm",
+    "hizli.2.desc": "3 satır kodla widget'ı sitene yerleştir.",
+    "hizli.3.baslik": "Trafiği izle",
+    "hizli.3.desc": "İlk bot kararlarını canlı akışta gör.",
+
+    // yardım bölümü (her zaman görünür)
+    "yardim.baslik": "Yardıma mı ihtiyacın var?",
+    "yardim.aciklama": "Takıldığın yerde bu kaynaklar imdadına yetişir.",
+    "yardim.ogrenme.baslik": "Öğrenme Merkezi",
+    "yardim.ogrenme.desc": "Adım adım kılavuzlar ve kavramlar.",
+    "yardim.test.baslik": "API Test Alanı",
+    "yardim.test.desc": "Uç noktaları anahtarınla canlı dene.",
+    "yardim.dok.baslik": "Dokümanlar",
+    "yardim.dok.desc": "Tüm API referansı ve örnekler.",
+
     // ---- adımlar ----
     "adim.siteVar.ad": "Site oluştur",
     "adim.siteVar.ozet": "Korunacak uygulamanı ekle",
@@ -77,6 +105,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.siteVar.nasil1": "Siteler ekranına git ve “Yeni site” de.",
     "adim.siteVar.nasil2": "Uygulamanın adını ve alan adını gir (test için localhost da eklenebilir).",
     "adim.siteVar.nasil3": "Oluştur’a bas — anahtar çiftin anında hazır olur.",
+    "adim.siteVar.kazanim": "Korumanı yöneteceğin merkez ve gerçek site/gizli anahtar çiftin hazır olur.",
 
     "adim.dogrulandi.ad": "Alan adını doğrula",
     "adim.dogrulandi.ozet": "Sahipliği DNS ile kanıtla",
@@ -85,6 +114,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.dogrulandi.nasil1": "Site detayında gösterilen veylify-verify=… TXT değerini kopyala.",
     "adim.dogrulandi.nasil2": "DNS sağlayıcında kök alan adına bir TXT kaydı olarak ekle.",
     "adim.dogrulandi.nasil3": "Yayılma birkaç dakika sürebilir; sonra “Doğrula”ya bas.",
+    "adim.dogrulandi.kazanim": "Sahiplik kanıtlanır ve koruman canlıya alınmaya hazır hâle gelir.",
 
     "adim.entegre.ad": "Widget'ı entegre et",
     "adim.entegre.ozet": "3 satır kodla korumayı göm",
@@ -93,6 +123,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegre.nasil1": "Aşağıdan çerçeveni seç (HTML, React, Vue, Next.js, WordPress).",
     "adim.entegre.nasil2": "İstemci kodunu siteKey’in gömülü haliyle kopyala ve projene ekle.",
     "adim.entegre.nasil3": "Backend framework’ün için sunucu doğrulama örneğini de uygula.",
+    "adim.entegre.kazanim": "Sitendeki formlar botlara karşı gerçek zamanlı korunmaya başlar.",
 
     "adim.trafik.ad": "İlk doğrulaman / trafik",
     "adim.trafik.ozet": "Gerçek trafiği gör",
@@ -101,6 +132,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.trafik.nasil1": "Entegrasyondan sonra sitenizi bir kez ziyaret edin.",
     "adim.trafik.nasil2": "Canlı Trafik ekranında ilk doğrulama olayını görün.",
     "adim.trafik.nasil3": "Buraya dönüp “Durumu doğrula”ya basın; adım tamamlanır.",
+    "adim.trafik.kazanim": "Canlı panonda gerçek bot/insan kararlarını akış hâlinde görürsün.",
 
     "adim.kural.ad": "Kural / AI politikası",
     "adim.kural.ozet": "İlk kuralını tanımla",
@@ -109,6 +141,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.kural.nasil1": "Kural Motoru’nda hazır bir şablonu tek tıkla ekle.",
     "adim.kural.nasil2": "Veya AI Ajan İstihbaratı ekranından ajan politikası belirle.",
     "adim.kural.nasil3": "Kural kaydedildiğinde bu adım otomatik yeşile döner.",
+    "adim.kural.kazanim": "Trafiğe kendi güvenlik politikanı uygular; istenmeyeni otomatik durdurursun.",
 
     "adim.entegrasyon.ad": "Entegrasyon bağla",
     "adim.entegrasyon.ozet": "Slack / webhook uyarıları",
@@ -117,6 +150,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegrasyon.nasil1": "Entegrasyonlar ekranında kanal türünü seç (Slack, webhook…).",
     "adim.entegrasyon.nasil2": "Hedef URL’i yapıştır ve abone olacağın olayları işaretle.",
     "adim.entegrasyon.nasil3": "En az bir aktif entegrasyon bu adımı tamamlar.",
+    "adim.entegrasyon.kazanim": "Kritik olaylardan Slack/webhook ile anında haberdar olursun.",
 
     "adim.ekip.ad": "Ekip davet et",
     "adim.ekip.ozet": "Ekip arkadaşını çağır",
@@ -125,6 +159,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.ekip.nasil1": "Ekip ekranında “Davet et” de.",
     "adim.ekip.nasil2": "E-posta ve rol (yönetici, analist…) seç.",
     "adim.ekip.nasil3": "Davet gönderildiğinde bu adım tamamlanır.",
+    "adim.ekip.kazanim": "Olayları ekipçe çözer, denetim izini ve rolleri paylaşırsın.",
 
     // toast
     "toast.baslik": "Durum yeniden okundu",
@@ -179,6 +214,30 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rehber.anahtarGoruntule": "View keys",
     "rehber.ogrenmeMerkezi": "Learning Center",
 
+    "test.baslik": "Test your widget live",
+    "test.aciklama": "The widget below is the exact verification box your site visitors will see — it runs with your real site key. Solve the code that appears and watch your setup work end to end.",
+    "test.ipucu": "This box calls the real /api/v1/challenge and /api/v1/verify endpoints. If it works, your integration is ready.",
+
+    "kazanim.etiket": "When you finish this",
+
+    "hizli.baslik": "Get protected in 3 steps",
+    "hizli.aciklama": "Your first real verification is minutes away. Complete these three steps in order:",
+    "hizli.1.baslik": "Add a site",
+    "hizli.1.desc": "Add your app and get your key pair.",
+    "hizli.2.baslik": "Embed the code",
+    "hizli.2.desc": "Place the widget with 3 lines of code.",
+    "hizli.3.baslik": "Watch traffic",
+    "hizli.3.desc": "See your first bot verdicts in the live stream.",
+
+    "yardim.baslik": "Need a hand?",
+    "yardim.aciklama": "These resources have your back whenever you get stuck.",
+    "yardim.ogrenme.baslik": "Learning Center",
+    "yardim.ogrenme.desc": "Step-by-step guides and concepts.",
+    "yardim.test.baslik": "API Playground",
+    "yardim.test.desc": "Try the endpoints live with your key.",
+    "yardim.dok.baslik": "Docs",
+    "yardim.dok.desc": "Full API reference and examples.",
+
     "adim.siteVar.ad": "Create a site",
     "adim.siteVar.ozet": "Add the app you want to protect",
     "adim.siteVar.aciklama": "Veylify gives you a unique site key (siteKey) and secret key (secretKey) pair. The site key is used on the client, the secret key only on the server.",
@@ -186,6 +245,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.siteVar.nasil1": "Go to the Sites screen and click “New site”.",
     "adim.siteVar.nasil2": "Enter your app's name and domain (localhost can be added for testing too).",
     "adim.siteVar.nasil3": "Click Create — your key pair is ready instantly.",
+    "adim.siteVar.kazanim": "You get the hub to manage protection plus your real site/secret key pair.",
 
     "adim.dogrulandi.ad": "Verify your domain",
     "adim.dogrulandi.ozet": "Prove ownership via DNS",
@@ -194,6 +254,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.dogrulandi.nasil1": "Copy the veylify-verify=… TXT value shown in the site details.",
     "adim.dogrulandi.nasil2": "Add it as a TXT record on the root domain at your DNS provider.",
     "adim.dogrulandi.nasil3": "Propagation may take a few minutes; then click “Verify”.",
+    "adim.dogrulandi.kazanim": "Ownership is proven and your protection becomes ready to go live.",
 
     "adim.entegre.ad": "Integrate the widget",
     "adim.entegre.ozet": "Embed protection in 3 lines of code",
@@ -202,6 +263,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegre.nasil1": "Pick your framework below (HTML, React, Vue, Next.js, WordPress).",
     "adim.entegre.nasil2": "Copy the client code with your siteKey embedded and add it to your project.",
     "adim.entegre.nasil3": "Also apply the server verification example for your backend framework.",
+    "adim.entegre.kazanim": "Your site's forms start getting real-time protection against bots.",
 
     "adim.trafik.ad": "Your first verification / traffic",
     "adim.trafik.ozet": "See real traffic",
@@ -210,6 +272,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.trafik.nasil1": "After integration, visit your site once.",
     "adim.trafik.nasil2": "See the first verification event in the Live Traffic screen.",
     "adim.trafik.nasil3": "Come back here and click “Verify status”; the step completes.",
+    "adim.trafik.kazanim": "You see real bot/human verdicts streaming on your live dashboard.",
 
     "adim.kural.ad": "Rule / AI policy",
     "adim.kural.ozet": "Define your first rule",
@@ -218,6 +281,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.kural.nasil1": "Add a ready template in the Rule Engine with one click.",
     "adim.kural.nasil2": "Or set an agent policy from the AI Agent Intelligence screen.",
     "adim.kural.nasil3": "This step turns green automatically when the rule is saved.",
+    "adim.kural.kazanim": "You enforce your own security policy on traffic and auto-stop the unwanted.",
 
     "adim.entegrasyon.ad": "Connect an integration",
     "adim.entegrasyon.ozet": "Slack / webhook alerts",
@@ -226,6 +290,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegrasyon.nasil1": "On the Integrations screen, pick the channel type (Slack, webhook…).",
     "adim.entegrasyon.nasil2": "Paste the target URL and check the events you'll subscribe to.",
     "adim.entegrasyon.nasil3": "At least one active integration completes this step.",
+    "adim.entegrasyon.kazanim": "You get notified of critical events instantly via Slack/webhook.",
 
     "adim.ekip.ad": "Invite your team",
     "adim.ekip.ozet": "Call in your teammates",
@@ -234,6 +299,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.ekip.nasil1": "Click “Invite” on the Team screen.",
     "adim.ekip.nasil2": "Choose an email and role (admin, analyst…).",
     "adim.ekip.nasil3": "This step completes once the invite is sent.",
+    "adim.ekip.kazanim": "You solve incidents as a team and share the audit trail and roles.",
 
     "toast.baslik": "Status re-read",
     "toast.aciklama": "Steps were updated according to your real account state.",
@@ -287,6 +353,30 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rehber.anahtarGoruntule": "Schlüssel anzeigen",
     "rehber.ogrenmeMerkezi": "Lernzentrum",
 
+    "test.baslik": "Teste dein Widget live",
+    "test.aciklama": "Das Widget unten ist genau die Verifizierungsbox, die deine Besucher sehen — es läuft mit deinem echten Site-Key. Löse den erscheinenden Code und sieh deine Einrichtung von Anfang bis Ende arbeiten.",
+    "test.ipucu": "Diese Box ruft die echten Endpunkte /api/v1/challenge und /api/v1/verify auf. Wenn sie funktioniert, ist deine Integration bereit.",
+
+    "kazanim.etiket": "Wenn du das abschließt",
+
+    "hizli.baslik": "In 3 Schritten geschützt",
+    "hizli.aciklama": "Deine erste echte Verifizierung ist nur Minuten entfernt. Erledige diese drei Schritte der Reihe nach:",
+    "hizli.1.baslik": "Website hinzufügen",
+    "hizli.1.desc": "Füge deine App hinzu und erhalte dein Schlüsselpaar.",
+    "hizli.2.baslik": "Code einbetten",
+    "hizli.2.desc": "Platziere das Widget mit 3 Codezeilen.",
+    "hizli.3.baslik": "Traffic beobachten",
+    "hizli.3.desc": "Sieh deine ersten Bot-Urteile im Live-Stream.",
+
+    "yardim.baslik": "Brauchst du Hilfe?",
+    "yardim.aciklama": "Diese Ressourcen helfen dir, wann immer du feststeckst.",
+    "yardim.ogrenme.baslik": "Lernzentrum",
+    "yardim.ogrenme.desc": "Schritt-für-Schritt-Anleitungen und Konzepte.",
+    "yardim.test.baslik": "API-Spielwiese",
+    "yardim.test.desc": "Teste die Endpunkte live mit deinem Schlüssel.",
+    "yardim.dok.baslik": "Dokumentation",
+    "yardim.dok.desc": "Vollständige API-Referenz und Beispiele.",
+
     "adim.siteVar.ad": "Website erstellen",
     "adim.siteVar.ozet": "Füge die zu schützende App hinzu",
     "adim.siteVar.aciklama": "Veylify gibt dir ein eindeutiges Paar aus Site-Key (siteKey) und Geheimschlüssel (secretKey). Der Site-Key wird auf dem Client verwendet, der Geheimschlüssel nur auf dem Server.",
@@ -294,6 +384,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.siteVar.nasil1": "Gehe zum Websites-Bildschirm und klicke auf „Neue Website“.",
     "adim.siteVar.nasil2": "Gib Name und Domain deiner App ein (für Tests kann auch localhost hinzugefügt werden).",
     "adim.siteVar.nasil3": "Klicke auf Erstellen — dein Schlüsselpaar ist sofort bereit.",
+    "adim.siteVar.kazanim": "Du erhältst die Zentrale zur Verwaltung des Schutzes plus dein echtes Site-/Geheimschlüssel-Paar.",
 
     "adim.dogrulandi.ad": "Domain verifizieren",
     "adim.dogrulandi.ozet": "Eigentum per DNS nachweisen",
@@ -302,6 +393,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.dogrulandi.nasil1": "Kopiere den in den Website-Details angezeigten TXT-Wert veylify-verify=….",
     "adim.dogrulandi.nasil2": "Füge ihn bei deinem DNS-Anbieter als TXT-Eintrag auf der Root-Domain hinzu.",
     "adim.dogrulandi.nasil3": "Die Verbreitung kann einige Minuten dauern; klicke dann auf „Verifizieren“.",
+    "adim.dogrulandi.kazanim": "Das Eigentum ist nachgewiesen und dein Schutz ist bereit, live zu gehen.",
 
     "adim.entegre.ad": "Widget integrieren",
     "adim.entegre.ozet": "Schutz in 3 Codezeilen einbetten",
@@ -310,6 +402,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegre.nasil1": "Wähle unten dein Framework (HTML, React, Vue, Next.js, WordPress).",
     "adim.entegre.nasil2": "Kopiere den Client-Code mit eingebettetem siteKey und füge ihn deinem Projekt hinzu.",
     "adim.entegre.nasil3": "Wende auch das Server-Verifizierungsbeispiel für dein Backend-Framework an.",
+    "adim.entegre.kazanim": "Die Formulare deiner Website erhalten Echtzeitschutz gegen Bots.",
 
     "adim.trafik.ad": "Deine erste Verifizierung / Traffic",
     "adim.trafik.ozet": "Echten Traffic sehen",
@@ -318,6 +411,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.trafik.nasil1": "Besuche deine Website nach der Integration einmal.",
     "adim.trafik.nasil2": "Sieh das erste Verifizierungsereignis im Live-Traffic-Bildschirm.",
     "adim.trafik.nasil3": "Komm hierher zurück und klicke auf „Status prüfen“; der Schritt wird abgeschlossen.",
+    "adim.trafik.kazanim": "Du siehst echte Bot-/Mensch-Urteile im Live-Stream deines Dashboards.",
 
     "adim.kural.ad": "Regel / KI-Richtlinie",
     "adim.kural.ozet": "Definiere deine erste Regel",
@@ -326,6 +420,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.kural.nasil1": "Füge im Regel-Engine mit einem Klick eine fertige Vorlage hinzu.",
     "adim.kural.nasil2": "Oder lege eine Agenten-Richtlinie im Bildschirm KI-Agenten-Intelligenz fest.",
     "adim.kural.nasil3": "Dieser Schritt wird automatisch grün, sobald die Regel gespeichert ist.",
+    "adim.kural.kazanim": "Du erzwingst deine eigene Sicherheitsrichtlinie und stoppst Unerwünschtes automatisch.",
 
     "adim.entegrasyon.ad": "Integration verbinden",
     "adim.entegrasyon.ozet": "Slack- / Webhook-Warnungen",
@@ -334,6 +429,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegrasyon.nasil1": "Wähle im Integrationen-Bildschirm den Kanaltyp (Slack, Webhook…).",
     "adim.entegrasyon.nasil2": "Füge die Ziel-URL ein und markiere die Ereignisse, die du abonnieren willst.",
     "adim.entegrasyon.nasil3": "Mindestens eine aktive Integration schließt diesen Schritt ab.",
+    "adim.entegrasyon.kazanim": "Du wirst über kritische Ereignisse sofort per Slack/Webhook benachrichtigt.",
 
     "adim.ekip.ad": "Team einladen",
     "adim.ekip.ozet": "Hol deine Teamkollegen dazu",
@@ -342,6 +438,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.ekip.nasil1": "Klicke im Team-Bildschirm auf „Einladen“.",
     "adim.ekip.nasil2": "Wähle eine E-Mail und Rolle (Admin, Analyst…).",
     "adim.ekip.nasil3": "Dieser Schritt wird abgeschlossen, sobald die Einladung gesendet ist.",
+    "adim.ekip.kazanim": "Du löst Vorfälle im Team und teilst Audit-Trail und Rollen.",
 
     "toast.baslik": "Status neu gelesen",
     "toast.aciklama": "Die Schritte wurden nach dem echten Zustand deines Kontos aktualisiert.",
@@ -395,6 +492,30 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rehber.anahtarGoruntule": "Voir les clés",
     "rehber.ogrenmeMerkezi": "Centre d'apprentissage",
 
+    "test.baslik": "Testez votre widget en direct",
+    "test.aciklama": "Le widget ci-dessous est exactement la boîte de vérification que verront vos visiteurs — il fonctionne avec votre vraie clé de site. Résolvez le code qui apparaît et voyez votre configuration fonctionner de bout en bout.",
+    "test.ipucu": "Cette boîte appelle les vrais points de terminaison /api/v1/challenge et /api/v1/verify. Si elle fonctionne, votre intégration est prête.",
+
+    "kazanim.etiket": "Une fois cette étape terminée",
+
+    "hizli.baslik": "Protégez-vous en 3 étapes",
+    "hizli.aciklama": "Votre première vraie vérification est à quelques minutes. Complétez ces trois étapes dans l'ordre :",
+    "hizli.1.baslik": "Ajouter un site",
+    "hizli.1.desc": "Ajoutez votre app et obtenez votre paire de clés.",
+    "hizli.2.baslik": "Intégrer le code",
+    "hizli.2.desc": "Placez le widget en 3 lignes de code.",
+    "hizli.3.baslik": "Observer le trafic",
+    "hizli.3.desc": "Voyez vos premiers verdicts de bots en direct.",
+
+    "yardim.baslik": "Besoin d'aide ?",
+    "yardim.aciklama": "Ces ressources vous soutiennent chaque fois que vous êtes bloqué.",
+    "yardim.ogrenme.baslik": "Centre d'apprentissage",
+    "yardim.ogrenme.desc": "Guides pas à pas et concepts.",
+    "yardim.test.baslik": "Bac à sable API",
+    "yardim.test.desc": "Testez les points de terminaison en direct avec votre clé.",
+    "yardim.dok.baslik": "Documentation",
+    "yardim.dok.desc": "Référence API complète et exemples.",
+
     "adim.siteVar.ad": "Créer un site",
     "adim.siteVar.ozet": "Ajoutez l'application à protéger",
     "adim.siteVar.aciklama": "Veylify vous donne une paire unique de clé de site (siteKey) et de clé secrète (secretKey). La clé de site s'utilise côté client, la clé secrète uniquement côté serveur.",
@@ -402,6 +523,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.siteVar.nasil1": "Allez à l'écran Sites et cliquez sur « Nouveau site ».",
     "adim.siteVar.nasil2": "Saisissez le nom et le domaine de votre application (localhost peut aussi être ajouté pour les tests).",
     "adim.siteVar.nasil3": "Cliquez sur Créer — votre paire de clés est prête instantanément.",
+    "adim.siteVar.kazanim": "Vous obtenez le centre de gestion de la protection et votre vraie paire de clés site/secrète.",
 
     "adim.dogrulandi.ad": "Vérifier votre domaine",
     "adim.dogrulandi.ozet": "Prouvez la propriété via DNS",
@@ -410,6 +532,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.dogrulandi.nasil1": "Copiez la valeur TXT veylify-verify=… affichée dans les détails du site.",
     "adim.dogrulandi.nasil2": "Ajoutez-la comme enregistrement TXT sur le domaine racine chez votre fournisseur DNS.",
     "adim.dogrulandi.nasil3": "La propagation peut prendre quelques minutes ; cliquez ensuite sur « Vérifier ».",
+    "adim.dogrulandi.kazanim": "La propriété est prouvée et votre protection est prête à être activée.",
 
     "adim.entegre.ad": "Intégrer le widget",
     "adim.entegre.ozet": "Intégrez la protection en 3 lignes de code",
@@ -418,6 +541,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegre.nasil1": "Choisissez votre framework ci-dessous (HTML, React, Vue, Next.js, WordPress).",
     "adim.entegre.nasil2": "Copiez le code client avec votre siteKey intégré et ajoutez-le à votre projet.",
     "adim.entegre.nasil3": "Appliquez aussi l'exemple de vérification serveur pour votre framework backend.",
+    "adim.entegre.kazanim": "Les formulaires de votre site bénéficient d'une protection en temps réel contre les bots.",
 
     "adim.trafik.ad": "Votre première vérification / trafic",
     "adim.trafik.ozet": "Voir le trafic réel",
@@ -426,6 +550,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.trafik.nasil1": "Après l'intégration, visitez votre site une fois.",
     "adim.trafik.nasil2": "Voyez le premier événement de vérification dans l'écran Trafic en direct.",
     "adim.trafik.nasil3": "Revenez ici et cliquez sur « Vérifier le statut » ; l'étape se termine.",
+    "adim.trafik.kazanim": "Vous voyez les verdicts réels bot/humain diffusés sur votre tableau de bord en direct.",
 
     "adim.kural.ad": "Règle / politique IA",
     "adim.kural.ozet": "Définissez votre première règle",
@@ -434,6 +559,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.kural.nasil1": "Ajoutez un modèle prêt dans le Moteur de règles en un clic.",
     "adim.kural.nasil2": "Ou définissez une politique d'agent depuis l'écran Intelligence des agents IA.",
     "adim.kural.nasil3": "Cette étape passe au vert automatiquement une fois la règle enregistrée.",
+    "adim.kural.kazanim": "Vous appliquez votre propre politique de sécurité et bloquez automatiquement les indésirables.",
 
     "adim.entegrasyon.ad": "Connecter une intégration",
     "adim.entegrasyon.ozet": "Alertes Slack / webhook",
@@ -442,6 +568,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegrasyon.nasil1": "Sur l'écran Intégrations, choisissez le type de canal (Slack, webhook…).",
     "adim.entegrasyon.nasil2": "Collez l'URL cible et cochez les événements auxquels vous vous abonnez.",
     "adim.entegrasyon.nasil3": "Au moins une intégration active termine cette étape.",
+    "adim.entegrasyon.kazanim": "Vous êtes notifié des événements critiques instantanément via Slack/webhook.",
 
     "adim.ekip.ad": "Inviter votre équipe",
     "adim.ekip.ozet": "Appelez vos coéquipiers",
@@ -450,6 +577,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.ekip.nasil1": "Cliquez sur « Inviter » sur l'écran Équipe.",
     "adim.ekip.nasil2": "Choisissez un e-mail et un rôle (admin, analyste…).",
     "adim.ekip.nasil3": "Cette étape se termine une fois l'invitation envoyée.",
+    "adim.ekip.kazanim": "Vous résolvez les incidents en équipe et partagez la piste d'audit et les rôles.",
 
     "toast.baslik": "Statut relu",
     "toast.aciklama": "Les étapes ont été mises à jour selon l'état réel de votre compte.",
@@ -503,6 +631,30 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "rehber.anahtarGoruntule": "Ver claves",
     "rehber.ogrenmeMerkezi": "Centro de aprendizaje",
 
+    "test.baslik": "Prueba tu widget en vivo",
+    "test.aciklama": "El widget de abajo es exactamente la caja de verificación que verán tus visitantes — funciona con tu clave de sitio real. Resuelve el código que aparece y observa tu configuración funcionar de principio a fin.",
+    "test.ipucu": "Esta caja llama a los endpoints reales /api/v1/challenge y /api/v1/verify. Si funciona, tu integración está lista.",
+
+    "kazanim.etiket": "Al completar esto",
+
+    "hizli.baslik": "Protégete en 3 pasos",
+    "hizli.aciklama": "Tu primera verificación real está a minutos. Completa estos tres pasos en orden:",
+    "hizli.1.baslik": "Añadir un sitio",
+    "hizli.1.desc": "Añade tu app y obtén tu par de claves.",
+    "hizli.2.baslik": "Incrustar el código",
+    "hizli.2.desc": "Coloca el widget con 3 líneas de código.",
+    "hizli.3.baslik": "Observar tráfico",
+    "hizli.3.desc": "Ve tus primeros veredictos de bots en vivo.",
+
+    "yardim.baslik": "¿Necesitas ayuda?",
+    "yardim.aciklama": "Estos recursos te respaldan siempre que te atasques.",
+    "yardim.ogrenme.baslik": "Centro de aprendizaje",
+    "yardim.ogrenme.desc": "Guías paso a paso y conceptos.",
+    "yardim.test.baslik": "Área de pruebas API",
+    "yardim.test.desc": "Prueba los endpoints en vivo con tu clave.",
+    "yardim.dok.baslik": "Documentación",
+    "yardim.dok.desc": "Referencia API completa y ejemplos.",
+
     "adim.siteVar.ad": "Crear un sitio",
     "adim.siteVar.ozet": "Añade la app que quieres proteger",
     "adim.siteVar.aciklama": "Veylify te da un par único de clave de sitio (siteKey) y clave secreta (secretKey). La clave de sitio se usa en el cliente, la clave secreta solo en el servidor.",
@@ -510,6 +662,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.siteVar.nasil1": "Ve a la pantalla de Sitios y haz clic en «Nuevo sitio».",
     "adim.siteVar.nasil2": "Introduce el nombre y el dominio de tu app (también se puede añadir localhost para pruebas).",
     "adim.siteVar.nasil3": "Haz clic en Crear — tu par de claves está listo al instante.",
+    "adim.siteVar.kazanim": "Obtienes el centro para gestionar la protección y tu par real de clave de sitio/secreta.",
 
     "adim.dogrulandi.ad": "Verificar tu dominio",
     "adim.dogrulandi.ozet": "Demuestra la propiedad vía DNS",
@@ -518,6 +671,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.dogrulandi.nasil1": "Copia el valor TXT veylify-verify=… que se muestra en los detalles del sitio.",
     "adim.dogrulandi.nasil2": "Añádelo como registro TXT en el dominio raíz en tu proveedor de DNS.",
     "adim.dogrulandi.nasil3": "La propagación puede tardar unos minutos; luego haz clic en «Verificar».",
+    "adim.dogrulandi.kazanim": "Se demuestra la propiedad y tu protección queda lista para activarse.",
 
     "adim.entegre.ad": "Integrar el widget",
     "adim.entegre.ozet": "Incrusta la protección en 3 líneas de código",
@@ -526,6 +680,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegre.nasil1": "Elige tu framework abajo (HTML, React, Vue, Next.js, WordPress).",
     "adim.entegre.nasil2": "Copia el código de cliente con tu siteKey incrustado y añádelo a tu proyecto.",
     "adim.entegre.nasil3": "Aplica también el ejemplo de verificación del servidor para tu framework backend.",
+    "adim.entegre.kazanim": "Los formularios de tu sitio empiezan a tener protección en tiempo real contra bots.",
 
     "adim.trafik.ad": "Tu primera verificación / tráfico",
     "adim.trafik.ozet": "Ver tráfico real",
@@ -534,6 +689,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.trafik.nasil1": "Tras la integración, visita tu sitio una vez.",
     "adim.trafik.nasil2": "Ve el primer evento de verificación en la pantalla de Tráfico en vivo.",
     "adim.trafik.nasil3": "Vuelve aquí y haz clic en «Verificar estado»; el paso se completa.",
+    "adim.trafik.kazanim": "Ves veredictos reales de bot/humano transmitidos en tu panel en vivo.",
 
     "adim.kural.ad": "Regla / política de IA",
     "adim.kural.ozet": "Define tu primera regla",
@@ -542,6 +698,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.kural.nasil1": "Añade una plantilla lista en el Motor de reglas con un clic.",
     "adim.kural.nasil2": "O define una política de agente desde la pantalla Inteligencia de agentes IA.",
     "adim.kural.nasil3": "Este paso se pone verde automáticamente cuando se guarda la regla.",
+    "adim.kural.kazanim": "Aplicas tu propia política de seguridad al tráfico y detienes lo no deseado automáticamente.",
 
     "adim.entegrasyon.ad": "Conectar una integración",
     "adim.entegrasyon.ozet": "Alertas de Slack / webhook",
@@ -550,6 +707,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.entegrasyon.nasil1": "En la pantalla de Integraciones, elige el tipo de canal (Slack, webhook…).",
     "adim.entegrasyon.nasil2": "Pega la URL de destino y marca los eventos a los que te suscribes.",
     "adim.entegrasyon.nasil3": "Al menos una integración activa completa este paso.",
+    "adim.entegrasyon.kazanim": "Recibes notificaciones de eventos críticos al instante vía Slack/webhook.",
 
     "adim.ekip.ad": "Invitar a tu equipo",
     "adim.ekip.ozet": "Llama a tus compañeros",
@@ -558,6 +716,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "adim.ekip.nasil1": "Haz clic en «Invitar» en la pantalla de Equipo.",
     "adim.ekip.nasil2": "Elige un correo y un rol (admin, analista…).",
     "adim.ekip.nasil3": "Este paso se completa una vez enviada la invitación.",
+    "adim.ekip.kazanim": "Resuelves incidentes en equipo y compartes el registro de auditoría y los roles.",
 
     "toast.baslik": "Estado releído",
     "toast.aciklama": "Los pasos se actualizaron según el estado real de tu cuenta.",

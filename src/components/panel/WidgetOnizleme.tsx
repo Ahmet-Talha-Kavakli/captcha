@@ -74,10 +74,12 @@ export function WidgetOnizleme({ siteKey }: { siteKey: string }) {
 
   return (
     <div
-      className="w-full max-w-[328px] overflow-hidden rounded-[20px] text-[#e8eef7]"
+      className="w-full max-w-[328px] overflow-hidden rounded-[22px] text-[#eef1fb]"
       style={{
-        background: "radial-gradient(120% 140% at 0% 0%,#16233f 0%,#0c1526 45%,#080d18 100%)",
-        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,.06), 0 20px 60px -18px rgba(0,0,0,.55), 0 0 0 1px rgba(103,232,249,.10)",
+        background: "radial-gradient(130% 150% at 0% 0%,rgba(49,46,129,.85) 0%,rgba(30,27,75,.92) 44%,rgba(15,14,38,.96) 100%)",
+        backdropFilter: "blur(22px) saturate(180%)",
+        WebkitBackdropFilter: "blur(22px) saturate(180%)",
+        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,.10), 0 24px 64px -20px rgba(20,16,60,.72), 0 0 0 1px rgba(129,140,248,.14)",
       }}
     >
       {durum === "basari" ? (
@@ -90,22 +92,22 @@ export function WidgetOnizleme({ siteKey }: { siteKey: string }) {
         <>
           {/* başlık şeridi */}
           <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
-            <span className="flex items-center gap-2 text-[13px] font-semibold text-[#aebfd4]">
+            <span className="flex items-center gap-2 text-[13px] font-semibold text-[#c3c9f2]">
               <SpecterMark size={16} /> İnsan doğrulaması
             </span>
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#5ad1c4]"><Lock className="size-3" /> Şifreli</span>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#a5b4fc]"><Lock className="size-3" /> Şifreli</span>
           </div>
           <div className="relative px-4">
-            <div className="overflow-hidden rounded-xl" style={{ boxShadow: "0 0 0 1px rgba(255,255,255,.07), inset 0 0 30px rgba(0,0,0,.5)" }}>
+            <div className="overflow-hidden rounded-xl" style={{ boxShadow: "0 0 0 1px rgba(129,140,248,.12), inset 0 0 30px rgba(0,0,0,.5)" }}>
               {params && durum !== "yukleniyor" ? (
-                <GhostText text={answer} width={296} height={104} cell={3} color="#cfe9f5" bg="#0a1120" className="w-full" />
+                <GhostText text={answer} decoy="ERISIM RED" width={296} height={112} cell={3} color="#c7d2fe" bg="#0b1020" className="w-full" />
               ) : (
-                <div className="flex h-[104px] items-center justify-center bg-[#0a1120] text-[12px] text-[#5f7189]">
+                <div className="flex h-[112px] items-center justify-center bg-[#0b1020] text-[12px] text-[#6c74a3]">
                   {durum === "hata" ? "Widget yüklenemedi" : "Yükleniyor…"}
                 </div>
               )}
             </div>
-            <button onClick={yukle} aria-label="Yeni kod üret" className="absolute right-6 top-1.5 grid size-7 place-items-center rounded-lg border border-white/10 bg-[#0c1426]/70 text-[#aebfd4] backdrop-blur transition hover:border-cyan-400/40 hover:text-cyan-100">
+            <button onClick={yukle} aria-label="Yeni kod üret" className="absolute right-6 top-1.5 grid size-7 place-items-center rounded-lg border border-white/10 bg-[#1e1b4b]/60 text-[#c3c9f2] backdrop-blur transition hover:border-veylify-400/45 hover:text-white">
               <RefreshCw className="size-3.5" />
             </button>
           </div>
@@ -116,15 +118,15 @@ export function WidgetOnizleme({ siteKey }: { siteKey: string }) {
               onKeyDown={(e) => e.key === "Enter" && dogrula()}
               placeholder="Beliren kodu girin"
               maxLength={6}
-              className="h-11 flex-1 rounded-xl border border-white/10 bg-[#090e1a]/80 px-3.5 text-[16px] font-semibold uppercase tracking-[3px] text-white outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15 placeholder:text-[15px] placeholder:font-medium placeholder:tracking-normal placeholder:text-[#54657f]"
+              className="h-11 flex-1 rounded-xl border border-white/10 bg-[#0f0e26]/55 px-3.5 text-[16px] font-semibold uppercase tracking-[3px] text-white outline-none backdrop-blur transition focus:border-veylify-400 focus:ring-4 focus:ring-veylify-400/20 placeholder:text-[15px] placeholder:font-medium placeholder:tracking-normal placeholder:text-[#6c74a3]"
             />
-            <button onClick={dogrula} className="rounded-xl px-5 text-[14px] font-extrabold text-[#042028] transition hover:brightness-110" style={{ background: "linear-gradient(180deg,#2ee0f5,#06b6d4)", boxShadow: "0 4px 14px -4px rgba(6,182,212,.6)" }}>
+            <button onClick={dogrula} className="rounded-xl px-5 text-[14px] font-bold text-white transition hover:brightness-110" style={{ background: "linear-gradient(180deg,#818cf8,#4f46e5)", border: "1px solid rgba(255,255,255,.16)", boxShadow: "0 6px 18px -6px rgba(79,70,229,.7), 0 1px 0 rgba(255,255,255,.25) inset" }}>
               Doğrula
             </button>
           </div>
-          <div className="flex items-center justify-between px-4 pb-3.5 pt-2.5 text-[11px] text-[#54657f]">
-            <span className="flex items-center gap-1.5 font-bold text-[#8fa8bd]">
-              <span className="size-1.5 rounded-full bg-cyan-400" style={{ boxShadow: "0 0 10px #22d3ee" }} /> {MARKA.koruniyorTr}
+          <div className="flex items-center justify-between px-4 pb-3.5 pt-2.5 text-[11px] text-[#6c74a3]">
+            <span className="flex items-center gap-1.5 font-bold text-[#a5b4fc]">
+              <span className="size-1.5 rounded-full bg-veylify-400" style={{ boxShadow: "0 0 10px #818cf8" }} /> {MARKA.koruniyorTr}
             </span>
             {durum === "hata" && (
               <span className="flex items-center gap-1 font-medium text-red-400"><X className="size-3" /> Yanlış kod</span>

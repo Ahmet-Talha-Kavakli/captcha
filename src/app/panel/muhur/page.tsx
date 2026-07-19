@@ -33,6 +33,15 @@ export default async function MuhurPage() {
   });
   const rozetGorunum = gorunumTrend.reduce((a, v) => a + v, 0);
 
+  // Gerçek engelleme oranı: engellenen / (verilen + engellenen).
+  // Engellenen bir istek asla "issued" (verilen token) sayılmadığı için payda
+  // toplam gelen istek = toplamIstek + engellenen olarak alınır.
+  const toplamGelen = toplamIstek + engellenen;
+  const blokOrani = toplamGelen > 0 ? (engellenen / toplamGelen) * 100 : 0;
+  // Harf notu eşik-tabanlı (blok oranından türetilir).
+  const harfNotu =
+    blokOrani >= 95 ? "A+" : blokOrani >= 85 ? "A" : blokOrani >= 70 ? "B" : "C";
+
   // İlk site için deterministik "üye olma" tarihi (trust page için).
   const ilkSite = sites[0];
 
@@ -50,6 +59,8 @@ export default async function MuhurPage() {
         engellenen={engellenen}
         toplamIstek={toplamIstek}
         dogrulanan={dogrulanan}
+        blokOrani={blokOrani}
+        harfNotu={harfNotu}
         rozetGorunum={rozetGorunum}
         gorunumTrend={gorunumTrend}
         gorunumEtiket={gorunumEtiket}

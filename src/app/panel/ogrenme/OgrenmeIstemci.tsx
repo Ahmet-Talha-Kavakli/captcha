@@ -381,11 +381,15 @@ export function OgrenmeIstemci({ dil }: { dil: Dil }) {
             {VIDEOLAR.map((v) => (
               <div
                 key={v.key}
-                className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition hover:border-brand-300 hover:shadow-card"
+                className="flex flex-col overflow-hidden rounded-3xl border border-line bg-surface"
               >
                 <div className="relative flex aspect-video items-center justify-center bg-gradient-to-br from-ink-900 to-slate-700">
-                  <span className="grid size-12 place-items-center rounded-full bg-white/95 text-ink-900 shadow-lift transition group-hover:scale-110">
+                  <span className="grid size-12 place-items-center rounded-full bg-white/95 text-ink-900 shadow-lift">
                     <Play className="size-5 translate-x-0.5 fill-current" />
+                  </span>
+                  {/* Video henüz çekilmedi: dürüst "Yakında" rozeti (yanıltıcı tıklama vaadi yok). */}
+                  <span className="absolute left-2 top-2 rounded-md bg-white/90 px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-ink-900">
+                    {t("og.video.yakinda")}
                   </span>
                   <span className="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
                     {v.sure}

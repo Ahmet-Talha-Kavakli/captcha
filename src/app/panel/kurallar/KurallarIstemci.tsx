@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, GitBranch, Zap, Lock, Sparkles, Check, ChevronUp, ChevronDown, Bot, BarChart3, ShieldCheck, ShieldAlert, Layers, TrendingUp, Ban, ShieldQuestion, Flag, Globe, Network, Fingerprint, Route } from "lucide-react";
 import { motion } from "framer-motion";
@@ -101,6 +101,31 @@ export function KurallarIstemci({ dil, sites, rules: ilk, plan = "pro" }: { dil:
   const [siteFilter, setSiteFilter] = useState(sites[0]?.id || "all");
 
   const [form, setForm] = useState({ name: "", description: "", field: "score", op: "lt", value: "", action: "challenge", priority: 10 });
+
+  // Topluluk (veya başka modül) "?ekle=<alan>:<deger>" ile gelirse: yeni-kural
+  // modalını o IOC için "engelle" ön-dolgusuyla aç. Böylece proaktif engelleme
+  // gerçek kural yazımına akar (sessiz no-op değil).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ham = new URLSearchParams(window.location.search).get("ekle");
+    if (!ham) return;
+    const ayrac = ham.indexOf(":");
+    const alan = ayrac > 0 ? ham.slice(0, ayrac) : "ip";
+    const deger = ayrac > 0 ? ham.slice(ayrac + 1) : ham;
+    const gecerliAlan = (FIELD_KEYS as readonly string[]).includes(alan) ? alan : "ip";
+    setForm({
+      name: t("kr.proaktifKuralAdi").replace("{deger}", deger),
+      description: t("kr.proaktifKuralAciklama"),
+      field: gecerliAlan,
+      op: "eq",
+      value: deger,
+      action: "block",
+      priority: 5,
+    });
+    setModal(true);
+    // URL'yi temizle (yenilemede modal tekrar açılmasın).
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Alan değişince operatör + değer için makul varsayılan seç (AI alanları eq + ilk seçenek).
   function alanDegistir(field: string) {

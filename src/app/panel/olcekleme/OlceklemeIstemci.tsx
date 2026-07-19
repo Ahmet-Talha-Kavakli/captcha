@@ -300,6 +300,46 @@ export function OlceklemeIstemci({ bolgeler, bolgeMeta, ozet, politika, model, d
 
   const netTasarruf = ozet.netFark < 0;
 
+  /**
+   * Politikayı CSV olarak dışa aktar (client-side Blob indirme). Mevcut bölge
+   * önerilerini satır satır yazar; sunucuya istek yok, çekirdek veriden türetilir.
+   */
+  function politikayiDisaAktar() {
+    const basliklar = [
+      t("csv.bolge"), t("csv.aksiyon"), t("csv.mevcutDugum"), t("csv.oneriliDugum"),
+      t("csv.delta"), t("csv.mevcutHeadroom"), t("csv.oneriliHeadroom"), t("csv.hedefHeadroom"),
+      t("csv.mevcutMaliyet"), t("csv.oneriliMaliyet"), t("csv.netFark"), t("csv.sloRiski"),
+    ];
+    // CSV alanı: virgül/tırnak/yenisatır varsa çift-tırnakla kaçır.
+    const kacir = (h: string | number) => {
+      const s = String(h);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const satirlar = bolgeler.map((b) => [
+      bolgeAd(b.bolge),
+      aksiyonEtiket(b.onerilenAksiyon),
+      b.mevcutDugum,
+      b.oneriliDugum,
+      b.oneriliNodeDelta,
+      Math.round(b.tahminiHeadroom * 100),
+      Math.round(b.oneriliHeadroom * 100),
+      Math.round(b.hedefHeadroom * 100),
+      Math.round(b.mevcutMaliyet),
+      Math.round(b.oneriliMaliyet),
+      Math.round(b.netFark),
+      t(`slo.${b.sloRiski}`),
+    ]);
+    const csv = [basliklar, ...satirlar].map((r) => r.map(kacir).join(",")).join("\n");
+    // Excel'in UTF-8'i doğru açması için BOM ekle.
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `veylify-olcekleme-politikasi-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   // ---- Görsel türetmeler (yalnızca sunum; çekirdek veri değişmez) ----
   // Filo kapasite kullanımı: toplam yük / toplam kapasite (0..100).
   const filoKullanim = useMemo(() => {
@@ -722,7 +762,7 @@ export function OlceklemeIstemci({ bolgeler, bolgeMeta, ozet, politika, model, d
           <p className="max-w-lg text-[12px] text-slate-faint">
             {t("takvim.dipnot")}
           </p>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={politikayiDisaAktar}>
             <Scaling className="size-4" /> {t("takvim.disaAktar")}
           </Button>
         </div>

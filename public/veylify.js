@@ -488,66 +488,71 @@
     /* TEMA — renkler CSS custom property'lerde; koyu varsayılan :host'ta,
        açık tema :host([data-tema=light])'te SADECE property'leri override eder
        (specificity savaşı yok — aynı değişken). data-theme="light" ile açılır.
-       Ghost-font canvas (.cvFrame) property'siz, KOYU sabit kalır (kontrast). */
+       Ghost-font canvas (.cvFrame) property'siz, KOYU sabit kalır (kontrast).
+       MARKA: indigo-violet (#4f46e5 / #6366f1 / #818cf8) — landing/panel/muhur
+       ile birebir tutarlı. Apple-glass: backdrop-filter blur+saturate. */
     ':host{all:initial;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;',
-    '--vy-fg:#e8eef7;--vy-bg:radial-gradient(120% 140% at 0% 0%,#16233f 0%,#0c1526 45%,#080d18 100%);',
-    '--vy-title:#aebfd4;--vy-hint:#7387a0;--vy-foot:#54657f;--vy-inp-bg:rgba(9,14,26,.8);--vy-inp-bd:rgba(255,255,255,.1);--vy-inp-fg:#fff;',
-    '--vy-shadow:0 1px 0 0 rgba(255,255,255,.06) inset,0 20px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(103,232,249,.10)}',
-    ':host([data-tema=light]){--vy-fg:#1a2436;--vy-bg:linear-gradient(120% 140% at 0% 0%,#ffffff 0%,#f4f6fb 60%,#eaeef6 100%);',
-    '--vy-title:#334155;--vy-hint:#64748b;--vy-foot:#64748b;--vy-inp-bg:#ffffff;--vy-inp-bd:rgba(20,40,80,.18);--vy-inp-fg:#1a2436;',
-    '--vy-shadow:0 1px 0 0 rgba(255,255,255,.8) inset,0 12px 40px -14px rgba(20,30,60,.25),0 0 0 1px rgba(20,40,80,.10)}',
+    '--vy-acc:#818cf8;--vy-acc-2:#6366f1;--vy-acc-3:#4f46e5;',
+    '--vy-fg:#eef1fb;--vy-bg:radial-gradient(130% 150% at 0% 0%,rgba(49,46,129,.55) 0%,rgba(30,27,75,.72) 44%,rgba(15,14,38,.86) 100%);',
+    '--vy-title:#c3c9f2;--vy-hint:#8b93c4;--vy-foot:#6c74a3;--vy-inp-bg:rgba(15,14,38,.55);--vy-inp-bd:rgba(255,255,255,.12);--vy-inp-fg:#fff;',
+    '--vy-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 24px 64px -20px rgba(20,16,60,.72),0 0 0 1px rgba(129,140,248,.14)}',
+    ':host([data-tema=light]){--vy-fg:#1e2436;--vy-bg:linear-gradient(130% 150% at 0% 0%,rgba(255,255,255,.86) 0%,rgba(244,243,250,.78) 60%,rgba(238,242,255,.72) 100%);',
+    '--vy-title:#312e81;--vy-hint:#64748b;--vy-foot:#6b7280;--vy-inp-bg:rgba(255,255,255,.7);--vy-inp-bd:rgba(79,70,229,.2);--vy-inp-fg:#1e2436;',
+    '--vy-shadow:0 1px 0 0 rgba(255,255,255,.9) inset,0 16px 44px -16px rgba(49,46,129,.28),0 0 0 1px rgba(79,70,229,.12)}',
     '*{box-sizing:border-box}',
-    /* Yeni nesil "kart": derin uzay gradyanı + ince cam kenar + katmanlı glow */
-    '.box{width:328px;max-width:100%;border-radius:20px;position:relative;color:var(--vy-fg);overflow:hidden;',
-    'background:var(--vy-bg);',
+    /* Yeni nesil "cam kart": indigo gradyan + gerçek backdrop-blur + katmanlı glow */
+    '.box{width:328px;max-width:100%;border-radius:22px;position:relative;color:var(--vy-fg);overflow:hidden;',
+    'background:var(--vy-bg);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);',
     'box-shadow:var(--vy-shadow)}',
-    /* üst ince aydınlık şerit (glossy) */
-    '.box::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(103,232,249,.5),transparent);z-index:2}',
-    '.head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}',
+    /* üst ince aydınlık şerit (glossy cam highlight) */
+    '.box::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(165,180,252,.65),transparent);z-index:2}',
+    /* köşe ışık parlaması (glass sheen) */
+    '.box::after{content:"";position:absolute;top:-40%;left:-20%;width:70%;height:80%;background:radial-gradient(circle at 30% 30%,rgba(129,140,248,.18),transparent 60%);pointer-events:none;z-index:0}',
+    '.head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}',
     '.title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--vy-title);letter-spacing:-.01em}',
-    '.title svg{width:16px;height:16px;filter:drop-shadow(0 0 6px rgba(34,211,238,.5))}',
-    '.secure{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#5ad1c4}',
+    '.title svg{width:16px;height:16px;filter:drop-shadow(0 0 6px rgba(129,140,248,.55))}',
+    '.secure{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#a5b4fc}',
     '.secure .lock{width:11px;height:11px}',
-    '.canvasWrap{position:relative;padding:2px 16px 0}',
-    '.cvFrame{position:relative;border-radius:12px;overflow:hidden;background:#0b1120;box-shadow:0 0 0 1px rgba(255,255,255,.07),inset 0 0 30px rgba(0,0,0,.5)}',
-    '.cvFrame canvas{height:104px;width:100%;display:block}', /* CSP: inline canvas.style yerine */
-    'canvas{width:100%;height:104px;display:block}',
+    '.canvasWrap{position:relative;z-index:1;padding:2px 16px 0}',
+    '.cvFrame{position:relative;border-radius:13px;overflow:hidden;background:#0b1020;box-shadow:0 0 0 1px rgba(129,140,248,.12),inset 0 0 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}',
+    '.cvFrame canvas{height:112px;width:100%;display:block}', /* CSP: inline canvas.style yerine; tek kural */
     /* canvas üstünde hafif tarama-çizgisi dokusu (yeni nesil his) */
-    '.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0px,rgba(255,255,255,.025) 1px,transparent 1px,transparent 3px);border-radius:12px}',
-    '.reload{position:absolute;top:10px;right:26px;background:rgba(12,20,38,.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.09);color:#aebfd4;width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:15px;line-height:1;display:grid;place-items:center;transition:.18s}',
-    '.reload:hover{background:rgba(34,211,238,.16);color:#e8f9ff;border-color:rgba(34,211,238,.4);transform:rotate(-45deg)}',
+    '.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0px,rgba(255,255,255,.025) 1px,transparent 1px,transparent 3px);border-radius:13px}',
+    '.reload{position:absolute;top:10px;right:26px;background:rgba(30,27,75,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);color:#c3c9f2;width:30px;height:30px;border-radius:10px;cursor:pointer;font-size:15px;line-height:1;display:grid;place-items:center;transition:.18s}',
+    '.reload:hover{background:rgba(129,140,248,.2);color:#eef1ff;border-color:rgba(129,140,248,.45);transform:rotate(-45deg)}',
     '.sesBtn{right:62px;font-size:13px}',
-    '.sesBtn:hover{transform:none;background:rgba(34,211,238,.16);color:#e8f9ff;border-color:rgba(34,211,238,.4)}',
-    '.sesBtn.calisiyor{background:rgba(34,211,238,.24);color:#e8f9ff;border-color:rgba(34,211,238,.6)}',
-    '.row{display:flex;gap:9px;padding:13px 16px 6px}',
+    '.sesBtn:hover{transform:none;background:rgba(129,140,248,.2);color:#eef1ff;border-color:rgba(129,140,248,.45)}',
+    '.sesBtn.calisiyor{background:rgba(129,140,248,.28);color:#eef1ff;border-color:rgba(129,140,248,.6)}',
+    '.row{display:flex;gap:9px;padding:13px 16px 6px;position:relative;z-index:1}',
     /* Yön challenge'ı için ok tuş takımı (input yerine görünür) */
-    '.yonPad{display:none;gap:8px;padding:13px 16px 6px}',
+    '.yonPad{display:none;gap:8px;padding:13px 16px 6px;position:relative;z-index:1}',
     '.yonPad.on{display:flex}',
     '.row.gizli{display:none}',
-    '.yonBtn{flex:1;height:44px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(9,14,26,.8);color:#cfe3f2;font-size:19px;font-weight:800;cursor:pointer;transition:.16s;display:grid;place-items:center}',
-    '.yonBtn:hover{border-color:#22d3ee;color:#e8f9ff;background:rgba(34,211,238,.14)}',
-    '.yonBtn.sec{border-color:#22d3ee;background:rgba(34,211,238,.24);color:#e8f9ff;box-shadow:0 0 0 3px rgba(34,211,238,.18)}',
-    'input{flex:1;height:44px;border-radius:11px;border:1px solid var(--vy-inp-bd);background:var(--vy-inp-bg);color:var(--vy-inp-fg);padding:0 14px;font-size:16px;font-weight:600;letter-spacing:3px;text-transform:uppercase;outline:none;transition:.18s}',
-    'input:focus{border-color:#22d3ee;box-shadow:0 0 0 4px rgba(34,211,238,.18)}',
-    'input::placeholder{color:#54657f;letter-spacing:.5px;text-transform:none;font-weight:500}',
-    '.btn{height:44px;padding:0 20px;border-radius:11px;border:none;background:linear-gradient(180deg,#2ee0f5,#06b6d4);color:#042028;font-weight:800;font-size:14px;cursor:pointer;transition:.18s;box-shadow:0 4px 14px -4px rgba(6,182,212,.6)}',
-    '.btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 6px 20px -4px rgba(6,182,212,.7)}',
+    '.yonBtn{flex:1;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(15,14,38,.5);color:#cdd3f5;font-size:19px;font-weight:800;cursor:pointer;transition:.16s;display:grid;place-items:center}',
+    '.yonBtn:hover{border-color:#818cf8;color:#eef1ff;background:rgba(129,140,248,.16)}',
+    '.yonBtn.sec{border-color:#818cf8;background:rgba(129,140,248,.26);color:#eef1ff;box-shadow:0 0 0 3px rgba(129,140,248,.2)}',
+    'input{flex:1;height:44px;border-radius:12px;border:1px solid var(--vy-inp-bd);background:var(--vy-inp-bg);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:var(--vy-inp-fg);padding:0 14px;font-size:16px;font-weight:600;letter-spacing:3px;text-transform:uppercase;outline:none;transition:.18s}',
+    'input:focus{border-color:#818cf8;box-shadow:0 0 0 4px rgba(129,140,248,.2)}',
+    'input::placeholder{color:#6c74a3;letter-spacing:.5px;text-transform:none;font-weight:500}',
+    /* Apple-glass buton: indigo gradyan + iç highlight + yumuşak dış glow */
+    '.btn{position:relative;height:44px;padding:0 20px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,#818cf8,#4f46e5);color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:.18s;box-shadow:0 6px 18px -6px rgba(79,70,229,.7),0 1px 0 rgba(255,255,255,.25) inset}',
+    '.btn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 10px 26px -6px rgba(79,70,229,.8),0 1px 0 rgba(255,255,255,.3) inset}',
     '.btn:active{transform:translateY(0)}',
     '.btn:disabled{opacity:.45;cursor:default;filter:none;transform:none;box-shadow:none}',
-    '.foot{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 13px;font-size:11px;color:var(--vy-foot)}',
-    '.brand{display:flex;align-items:center;gap:6px;font-weight:700;color:#8fa8bd}',
+    '.foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:10px 16px 13px;font-size:11px;color:var(--vy-foot)}',
+    '.brand{display:flex;align-items:center;gap:6px;font-weight:700;color:#a5b4fc}',
     '.brand a{color:inherit;text-decoration:none}',
-    '.dot{width:7px;height:7px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee;animation:pl 1.8s ease-in-out infinite}',
+    '.dot{width:7px;height:7px;border-radius:50%;background:#818cf8;box-shadow:0 0 10px #818cf8;animation:pl 1.8s ease-in-out infinite}',
     '@keyframes pl{0%,100%{opacity:1}50%{opacity:.35}}',
     '.links{display:flex;gap:10px}',
-    '.links a{color:#54657f;text-decoration:none}.links a:hover{color:#8fa8bd}',
-    '.state{display:none;padding:30px 18px;text-align:center;flex-direction:column;align-items:center;gap:10px}',
+    '.links a{color:var(--vy-foot);text-decoration:none}.links a:hover{color:#a5b4fc}',
+    '.state{display:none;padding:30px 18px;text-align:center;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:1}',
     '.state.on{display:flex}',
     '.check{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.28),rgba(16,185,129,.08));color:#34d399;display:grid;place-items:center;font-size:26px;box-shadow:0 0 0 1px rgba(52,211,153,.3),0 0 24px -4px rgba(52,211,153,.5);animation:pop .35s cubic-bezier(.2,1.4,.4,1)}',
     '@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}',
-    '.spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(34,211,238,.16);border-top-color:#22d3ee;animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}',
+    '.spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(129,140,248,.18);border-top-color:#818cf8;animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}',
     '.xmark{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(220,38,38,.26),rgba(220,38,38,.08));color:#f87171;display:grid;place-items:center;font-size:26px;box-shadow:0 0 0 1px rgba(248,113,113,.3)}',
-    '.msg{font-size:15px;font-weight:600;color:#e8eef7;letter-spacing:-.01em}',
+    '.msg{font-size:15px;font-weight:600;color:var(--vy-fg);letter-spacing:-.01em}',
     '.hint{font-size:12.5px;color:var(--vy-hint)}',
     /* CSP-UYUMLU gizleme sınıfları — inline style yerine (katı style-src 'self'
        olan müşteri sitelerinde inline style CSP ihlali yapıyordu). */
@@ -787,7 +792,7 @@
     var sesBtn = h("button", { class: "reload sesBtn", type: "button", title: T.audio, "aria-label": T.audioLabel }, ["🔊"]);
 
     // başlık şeridi: ghost ikonu + "İnsan doğrulaması" + uçtan uca şifreli rozeti
-    var ghostSvg = svg('<svg viewBox="0 0 32 32" fill="none"><defs><linearGradient id="wg" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#67e8f9"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs><path d="M16 3c-5.5 0-9.5 4.2-9.5 10.2V27c0 1.1 1.3 1.7 2.2 1l1.6-1.3c.5-.4 1.2-.4 1.7 0l1.8 1.4c.5.4 1.2.4 1.7 0l1.8-1.4c.5-.4 1.2-.4 1.7 0l1.6 1.3c.9.7 2.2.1 2.2-1V13.2C25.5 7.2 21.5 3 16 3Z" fill="url(#wg)"/><circle cx="12" cy="14" r="2" fill="#04222b"/><circle cx="20" cy="14" r="2" fill="#04222b"/></svg>');
+    var ghostSvg = svg('<svg viewBox="0 0 32 32" fill="none"><defs><linearGradient id="wg" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#a5b4fc"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><path d="M16 3c-5.5 0-9.5 4.2-9.5 10.2V27c0 1.1 1.3 1.7 2.2 1l1.6-1.3c.5-.4 1.2-.4 1.7 0l1.8 1.4c.5.4 1.2.4 1.7 0l1.8-1.4c.5-.4 1.2-.4 1.7 0l1.6 1.3c.9.7 2.2.1 2.2-1V13.2C25.5 7.2 21.5 3 16 3Z" fill="url(#wg)"/><circle cx="12" cy="14" r="2" fill="#1e1b4b"/><circle cx="20" cy="14" r="2" fill="#1e1b4b"/></svg>');
     var lockSvg = svg('<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>');
     var head = h("div", { class: "head" }, [
       h("div", { class: "title" }, [ghostSvg, T.title]),
@@ -906,7 +911,7 @@
       var p = state.params;
       applyType(p.type);
       var ratio = Math.min(window.devicePixelRatio || 1, 2);
-      var cssW = 296, cssH = 104;
+      var cssW = 296, cssH = 112;
       canvas.width = cssW * ratio; canvas.height = cssH * ratio;
       // Görsel yükseklik CSS'te (.cvFrame canvas) — inline canvas.style CSP ihlaliydi.
       var ctx = canvas.getContext("2d");

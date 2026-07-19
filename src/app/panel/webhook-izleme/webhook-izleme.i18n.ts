@@ -124,9 +124,13 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "wm.not.metin": "Uç nokta yönetimi (oluşturma / silme / gerçek test teslimatı) <b>Geliştirici</b> modülünden yapılır. Buradaki \"Test teslimatı\", \"Yeniden dene\" ve \"Manuel yeniden dene\" eylemleri bu izleme konsolunda teslimat motorunu tetikleyen birer <b>simülasyondur</b>; gerçek teslimat kayıtları teslimat motoru çalıştıkça birikir.",
 
     // --- Yeniden deneme toast ---
-    "wm.toast.dlqBaslik": "DLQ'dan yeniden teslim sıraya alındı",
-    "wm.toast.normalBaslik": "Yeniden teslim sıraya alındı",
-    "wm.toast.aciklama": "{url} — teslimat motoru üstel geri çekilmeyle deneyecek (simülasyon).",
+    "wm.toast.dlqBaslik": "Yeniden teslim kuyruğa alındı — demo",
+    "wm.toast.normalBaslik": "Yeniden teslim kuyruğa alındı — demo",
+    "wm.toast.aciklama": "{url} — gerçek teslimat motoru üstel geri çekilmeyle deneyecek. Bu izleme konsolunda eylem demo/simülasyondur.",
+
+    // --- Temsili kayıt rozeti ---
+    "wm.temsiliRozet": "temsili",
+    "wm.temsiliRozetTip": "Bu kayıt, uç nokta yapılandırmasından türetilen deterministik temsili geçmiştendir (gerçek teslimat değil).",
   },
   en: {
     "wm.zaman.azOnce": "just now",
@@ -229,9 +233,12 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "wm.not.metin": "Endpoint management (create / delete / real test delivery) is done from the <b>Developer</b> module. The \"Test delivery\", \"Retry\" and \"Manual retry\" actions here are each a <b>simulation</b> that triggers the delivery engine within this monitoring console; real delivery records accumulate as the delivery engine runs.",
 
-    "wm.toast.dlqBaslik": "Redelivery from DLQ queued",
-    "wm.toast.normalBaslik": "Redelivery queued",
-    "wm.toast.aciklama": "{url} — the delivery engine will retry with exponential backoff (simulation).",
+    "wm.toast.dlqBaslik": "Redelivery queued — demo",
+    "wm.toast.normalBaslik": "Redelivery queued — demo",
+    "wm.toast.aciklama": "{url} — the real delivery engine will retry with exponential backoff. In this monitoring console the action is a demo/simulation.",
+
+    "wm.temsiliRozet": "sample",
+    "wm.temsiliRozetTip": "This record comes from the deterministic representative history derived from the endpoint configuration (not a real delivery).",
   },
   de: {
     "wm.zaman.azOnce": "gerade eben",
@@ -334,9 +341,12 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "wm.not.metin": "Die Endpunktverwaltung (Erstellen / Löschen / echte Testzustellung) erfolgt über das <b>Entwickler</b>-Modul. Die Aktionen \"Testzustellung\", \"Wiederholen\" und \"Manuell wiederholen\" hier sind jeweils eine <b>Simulation</b>, die die Zustellmaschine innerhalb dieser Überwachungskonsole auslöst; echte Zustellprotokolle sammeln sich an, während die Zustellmaschine läuft.",
 
-    "wm.toast.dlqBaslik": "Erneute Zustellung aus DLQ eingereiht",
-    "wm.toast.normalBaslik": "Erneute Zustellung eingereiht",
-    "wm.toast.aciklama": "{url} — die Zustellmaschine wird mit exponentiellem Backoff wiederholen (Simulation).",
+    "wm.toast.dlqBaslik": "Erneute Zustellung eingereiht — Demo",
+    "wm.toast.normalBaslik": "Erneute Zustellung eingereiht — Demo",
+    "wm.toast.aciklama": "{url} — die echte Zustellmaschine wird mit exponentiellem Backoff wiederholen. In dieser Überwachungskonsole ist die Aktion eine Demo/Simulation.",
+
+    "wm.temsiliRozet": "Beispiel",
+    "wm.temsiliRozetTip": "Dieser Datensatz stammt aus der deterministischen repräsentativen Historie, die aus der Endpunktkonfiguration abgeleitet ist (keine echte Zustellung).",
   },
   fr: {
     "wm.zaman.azOnce": "à l'instant",
@@ -439,9 +449,12 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "wm.not.metin": "La gestion des points de terminaison (création / suppression / livraison de test réelle) se fait depuis le module <b>Développeur</b>. Les actions \"Livraison de test\", \"Réessayer\" et \"Réessai manuel\" ici sont chacune une <b>simulation</b> qui déclenche le moteur de livraison au sein de cette console de surveillance ; les enregistrements de livraison réels s'accumulent à mesure que le moteur de livraison fonctionne.",
 
-    "wm.toast.dlqBaslik": "Nouvelle livraison depuis la DLQ mise en file d'attente",
-    "wm.toast.normalBaslik": "Nouvelle livraison mise en file d'attente",
-    "wm.toast.aciklama": "{url} — le moteur de livraison réessaiera avec un backoff exponentiel (simulation).",
+    "wm.toast.dlqBaslik": "Nouvelle livraison en file d'attente — démo",
+    "wm.toast.normalBaslik": "Nouvelle livraison en file d'attente — démo",
+    "wm.toast.aciklama": "{url} — le vrai moteur de livraison réessaiera avec un backoff exponentiel. Dans cette console de surveillance, l'action est une démo/simulation.",
+
+    "wm.temsiliRozet": "exemple",
+    "wm.temsiliRozetTip": "Cet enregistrement provient de l'historique représentatif déterministe dérivé de la configuration du point de terminaison (pas une vraie livraison).",
   },
   es: {
     "wm.zaman.azOnce": "ahora mismo",
@@ -544,9 +557,12 @@ const sozluk: Record<Dil, Record<string, string>> = {
 
     "wm.not.metin": "La gestión de puntos de conexión (crear / eliminar / entrega de prueba real) se realiza desde el módulo <b>Desarrollador</b>. Las acciones \"Entrega de prueba\", \"Reintentar\" y \"Reintento manual\" aquí son cada una una <b>simulación</b> que activa el motor de entrega dentro de esta consola de supervisión; los registros de entrega reales se acumulan a medida que el motor de entrega funciona.",
 
-    "wm.toast.dlqBaslik": "Reentrega desde la DLQ en cola",
-    "wm.toast.normalBaslik": "Reentrega en cola",
-    "wm.toast.aciklama": "{url} — el motor de entrega reintentará con backoff exponencial (simulación).",
+    "wm.toast.dlqBaslik": "Reentrega en cola — demo",
+    "wm.toast.normalBaslik": "Reentrega en cola — demo",
+    "wm.toast.aciklama": "{url} — el motor de entrega real reintentará con backoff exponencial. En esta consola de supervisión la acción es una demo/simulación.",
+
+    "wm.temsiliRozet": "muestra",
+    "wm.temsiliRozetTip": "Este registro proviene del historial representativo determinista derivado de la configuración del punto de conexión (no es una entrega real).",
   },
 };
 

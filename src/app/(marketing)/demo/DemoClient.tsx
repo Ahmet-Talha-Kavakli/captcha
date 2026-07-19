@@ -289,6 +289,7 @@ function CanliCaptcha() {
           {ch ? (
             <GhostText
               text={ch.answer}
+              decoy="ERISIM RED"
               width={560}
               height={170}
               cell={3}

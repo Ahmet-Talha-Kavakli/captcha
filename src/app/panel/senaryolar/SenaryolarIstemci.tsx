@@ -87,7 +87,7 @@ const KAT_KEYLER: Array<"hepsi" | SenaryoKat> = ["hepsi", "eticaret", "saas", "m
 const KAT_GORSEL: Record<SenaryoKat, { renk: string; soft: string; kabuk: string }> = {
   eticaret: { renk: "#2f6fed", soft: "#eaf1fe", kabuk: "border-brand-100" },
   saas:     { renk: "#7c3aed", soft: "#f1ebfe", kabuk: "border-violet-100" },
-  medya:    { renk: "#0891b2", soft: "#e2f5f9", kabuk: "border-cyan-100" },
+  medya:    { renk: "#0891b2", soft: "#e2f5f9", kabuk: "border-teal-100" },
   api:      { renk: "#d97706", soft: "#fdf1e3", kabuk: "border-amber-100" },
 };
 
@@ -103,6 +103,12 @@ function metrikGauge(deger: string): number | null {
   return Math.max(0, Math.min(100, n));
 }
 
+/**
+ * DÜRÜSTLÜK: `metrikler` alanındaki değerler (-94%, 8ms, korundu…) kullanıcının
+ * kendi sitesinin ÖLÇÜMÜ DEĞİLDİR — benzer kurulumlara dayalı TEMSİLİ benchmark
+ * referanslarıdır. UI'da gauge/kart/drawer'da "temsili" olarak açıkça etiketlenir;
+ * gerçek etki kural uygulandıktan sonra Analitik'te görünür.
+ */
 const SENARYOLAR: Senaryo[] = [
   // --- Resmi (vurgu) senaryolar — KORUNDU + derinleştirildi ---
   {
@@ -392,7 +398,7 @@ export function SenaryolarIstemci({ dil, sites }: { dil: Dil; sites: Site[] }) {
           {[
             { deger: ozet.toplam, etiket: t("kpi.senaryo"), ikon: Layers, renk: "#2f6fed", soft: "bg-brand-50", ct: "text-brand-600" },
             { deger: ozet.toplamKural, etiket: t("kpi.kural"), ikon: Zap, renk: "#d97706", soft: "bg-amber-50", ct: "text-amber-600" },
-            { deger: ozet.ajanKapsam, etiket: t("kpi.ajan"), ikon: Bot, renk: "#0891b2", soft: "bg-cyan-50", ct: "text-cyan-600" },
+            { deger: ozet.ajanKapsam, etiket: t("kpi.ajan"), ikon: Bot, renk: "#4f46e5", soft: "bg-brand-50", ct: "text-brand-600" },
             { deger: 4, etiket: t("kpi.kategori"), ikon: Target, renk: "#7c3aed", soft: "bg-violet-50", ct: "text-violet-600" },
           ].map((k, i) => {
             const KIkon = k.ikon;
@@ -493,6 +499,9 @@ export function SenaryolarIstemci({ dil, sites }: { dil: Dil; sites: Site[] }) {
                         <span className="-mt-1 max-w-[110px] text-center text-[10.5px] leading-tight text-slate-faint">
                           {t(`sen.${s.key}.m${s.metrikler.indexOf(anaMetrik)}.etiket`)}
                         </span>
+                        <span className="mt-0.5 rounded-full bg-canvas px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-faint">
+                          {t("kart.temsili")}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -500,7 +509,7 @@ export function SenaryolarIstemci({ dil, sites }: { dil: Dil; sites: Site[] }) {
                     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                       {/* hedef-AI rozetleri (varsa) — küçük renkli noktalarla */}
                       {s.ajanlar && s.ajanlar.length > 0 ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-50 px-2.5 py-1 text-[12px] font-medium text-cyan-700">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[12px] font-medium text-brand-700">
                           <Bot className="size-3.5" /> {t("kart.ajan", { n: s.ajanlar.length })}
                         </span>
                       ) : null}
@@ -546,6 +555,7 @@ export function SenaryolarIstemci({ dil, sites }: { dil: Dil; sites: Site[] }) {
                       <div className="flex flex-col items-center">
                         <GaugeGost deger={gaugeSkor} boyut={72} renk={kg.renk} />
                         <span className="-mt-1 text-[9.5px] font-medium text-slate-faint">{t(`sen.${s.key}.m${s.metrikler.indexOf(anaMetrik)}.deger`)}</span>
+                        <span className="text-[8.5px] uppercase tracking-wide text-slate-faint/80">{t("kart.temsili")}</span>
                       </div>
                     ) : (
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" style={{ background: kg.soft, color: kg.renk }}>
@@ -560,7 +570,7 @@ export function SenaryolarIstemci({ dil, sites }: { dil: Dil; sites: Site[] }) {
                       <Layers className="size-3" /> {t("kart.kural", { n: s.kurallar.length })}
                     </span>
                     {s.ajanlar && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[11.5px] text-cyan-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11.5px] text-brand-700">
                         <Bot className="size-3" /> {t("kart.ajan", { n: s.ajanlar.length })}
                       </span>
                     )}
@@ -667,9 +677,10 @@ function SenaryoDetay({
             </div>
           </div>
 
-          {/* Beklenen etki metrikleri */}
+          {/* Beklenen etki metrikleri — TEMSİLİ benchmark (site ölçümü değil) */}
           <div>
-            <h4 className="mb-2.5 text-sm font-semibold text-slate-ink">{t("drawer.beklenenEtki")}</h4>
+            <h4 className="mb-1 text-sm font-semibold text-slate-ink">{t("drawer.beklenenEtki")}</h4>
+            <p className="mb-2.5 text-[11.5px] leading-snug text-slate-faint">{t("drawer.beklenenEtkiNot")}</p>
             <div className="grid grid-cols-3 gap-3">
               {senaryo.metrikler.map((m, mi) => (
                 <div key={mi} className="rounded-2xl border border-line bg-canvas px-3 py-3 text-center">

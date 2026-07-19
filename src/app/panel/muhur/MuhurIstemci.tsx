@@ -18,9 +18,9 @@ interface Site { id: string; name: string; verified: boolean; korumaBaslangic: n
 // Enum ANAHTARLARI (key) gömme koduna gider — sabittir, çevrilmez.
 // Görüntülenen etiket ise dile göre t() ile çözülür.
 const STILLER = [
-  { key: "koyu", bg: "#0b1120", fg: "#ffffff", alt: "#67e8f9" },
-  { key: "acik", bg: "#faf9f4", fg: "#1a1a18", alt: "#2f6fed" },
-  { key: "mavi", bg: "#2f6fed", fg: "#ffffff", alt: "#c0d5ff" },
+  { key: "koyu", bg: "#0f0e26", fg: "#ffffff", alt: "#a5b4fc" },
+  { key: "acik", bg: "#faf9f4", fg: "#1a1a18", alt: "#4f46e5" },
+  { key: "mavi", bg: "#4f46e5", fg: "#ffffff", alt: "#c7d2fe" },
 ] as const;
 
 const BOYUTLAR = [
@@ -41,6 +41,8 @@ export function MuhurIstemci({
   engellenen,
   toplamIstek,
   dogrulanan,
+  blokOrani,
+  harfNotu,
   rozetGorunum,
   gorunumTrend,
   gorunumEtiket,
@@ -51,6 +53,8 @@ export function MuhurIstemci({
   engellenen: number;
   toplamIstek: number;
   dogrulanan: number;
+  blokOrani: number;
+  harfNotu: string;
   rozetGorunum: number;
   gorunumTrend: number[];
   gorunumEtiket: string[];
@@ -67,8 +71,10 @@ export function MuhurIstemci({
   const s = STILLER.find((x) => x.key === stil)!;
   const b = BOYUTLAR.find((x) => x.key === boyut)!;
   const origin = typeof window !== "undefined" ? window.location.origin : "https://veylify.com";
-  const siteSlug = ilkSiteAdi.replace(/[^a-z0-9.-]/gi, "");
+  const siteSlug = ilkSiteAdi.replace(/[^a-z0-9.-]/gi, "").toLowerCase();
   const trustUrl = `${origin}/muhur/${siteSlug}`;
+  // Gerçek engelleme oranı (page.tsx'te gerçek veriden türetildi).
+  const blokOraniMetni = blokOrani.toFixed(1);
 
   const etiketMetni = canliSayac
     ? t("rozetTehdit").replace("{n}", engellenen.toLocaleString(loc))
@@ -268,7 +274,7 @@ import { SpecterBadge } from "@specter/vue";
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between rounded-xl border border-line bg-canvas/50 px-3.5 py-2.5">
                   <span className="flex items-center gap-2 text-[12.5px] text-slate-muted"><ShieldCheck className="size-4 text-ok" /> {t("guvenEngelleme")}</span>
-                  <span className="num text-[15px] font-bold text-slate-ink">%99.4</span>
+                  <span className="num text-[15px] font-bold text-slate-ink">%{blokOraniMetni}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-line bg-canvas/50 px-3.5 py-2.5">
                   <span className="flex items-center gap-2 text-[12.5px] text-slate-muted"><MousePointerClick className="size-4 text-brand-600" /> {t("guvenCtr")}</span>
@@ -276,7 +282,7 @@ import { SpecterBadge } from "@specter/vue";
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-line bg-canvas/50 px-3.5 py-2.5">
                   <span className="flex items-center gap-2 text-[12.5px] text-slate-muted"><Sparkles className="size-4 text-amber-500" /> {t("guvenDerece")}</span>
-                  <span className="num text-[15px] font-bold text-ok">A+</span>
+                  <span className="num text-[15px] font-bold text-ok">{harfNotu}</span>
                 </div>
               </div>
             </div>
@@ -332,7 +338,7 @@ import { SpecterBadge } from "@specter/vue";
                 <span className="truncate font-mono text-[12px] text-slate-muted">{trustUrl}</span>
               </div>
               <Tooltip metin={t("herkeseAcik")}>
-                <a href="#" onClick={(e) => e.preventDefault()} className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong bg-surface px-2.5 py-2 text-[12px] font-medium text-slate-ink transition hover:bg-canvas">
+                <a href={trustUrl} target="_blank" rel="noopener" className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong bg-surface px-2.5 py-2 text-[12px] font-medium text-slate-ink transition hover:bg-canvas">
                   <ExternalLink className="size-3.5" /> {t("ac")}
                 </a>
               </Tooltip>
@@ -357,11 +363,11 @@ import { SpecterBadge } from "@specter/vue";
                   <div className="text-[10.5px] text-slate-muted">{t("tehditEngellendi")}</div>
                 </div>
                 <div className="px-2 py-3">
-                  <div className="text-base font-bold tabular-nums text-slate-ink">%99.4</div>
+                  <div className="text-base font-bold tabular-nums text-slate-ink">%{blokOraniMetni}</div>
                   <div className="text-[10.5px] text-slate-muted">{t("engellemeOrani")}</div>
                 </div>
                 <div className="px-2 py-3">
-                  <div className="text-base font-bold tabular-nums text-slate-ink">A+</div>
+                  <div className="text-base font-bold tabular-nums text-slate-ink">{harfNotu}</div>
                   <div className="text-[10.5px] text-slate-muted">{t("guvenDerecesi")}</div>
                 </div>
               </div>

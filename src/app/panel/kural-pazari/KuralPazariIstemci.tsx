@@ -80,6 +80,7 @@ export function KuralPazariIstemci({ dil, sites }: { dil: Dil; sites: { id: stri
         <div>
           <p className="text-sm font-semibold text-slate-ink">{t("pz.tanitimBaslik")}</p>
           <p className="mt-0.5 text-[13px] text-slate-muted">{t("pz.tanitimAciklama")}</p>
+          <p className="mt-1 text-[12px] text-slate-faint">{t("pz.ornekNot")}</p>
         </div>
       </div>
 
@@ -119,8 +120,14 @@ export function KuralPazariIstemci({ dil, sites }: { dil: Dil; sites: { id: stri
             </div>
             <p className="mt-1 line-clamp-2 flex-1 text-[13px] leading-relaxed text-slate-muted">{paketAciklama(p)}</p>
             <div className="mt-3 flex items-center gap-3 text-[12px] text-slate-faint">
-              <span className="flex items-center gap-1"><Star className="size-3.5 text-amber-500" /> {p.puan}</span>
-              <span className="flex items-center gap-1"><Download className="size-3.5" /> {p.kurulum.toLocaleString("tr-TR")}</span>
+              <span className="flex items-center gap-1" title={t("pz.ornekNot")}>
+                <Star className="size-3.5 text-amber-500" /> {p.puan}
+                <span className="text-[9px] uppercase tracking-wide text-slate-faint/80">{t("pz.ornekRozet")}</span>
+              </span>
+              <span className="flex items-center gap-1" title={t("pz.ornekNot")}>
+                <Download className="size-3.5" /> {p.kurulum.toLocaleString("tr-TR")}
+                <span className="text-[9px] uppercase tracking-wide text-slate-faint/80">{t("pz.ornekRozet")}</span>
+              </span>
               <Badge ton="gri">{sektorEtiket(p.sektor)}</Badge>
             </div>
             <div className="mt-2 text-[11px] text-slate-faint">{t("pz.kuralIcerir").replace("{n}", String(p.kurallar.length))}</div>
