@@ -3,16 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Scroll'la uçan clay baykuş — sayfanın TÜM GENİŞLİĞİNDE gezinen karakter.
+ * Scroll'la uçan clay baykuş — sayfada PÜRÜZSÜZ gezinen karakter.
  *
  *  - VİDEO kendi loop'unda sürekli kanat çırpar (scroll'dan bağımsız).
- *  - KONUM scroll'a göre: baykuş sayfa boyunca soldan-sağa-sola dalgalanan
- *    (sinüs) yatay bir rota + üstten-alta doğru dikey bir rota izler. Yani
- *    sadece sağda değil, ekranın her yerinde gezinir.
- *  - Eğim: hareket yönüne göre hafifçe yatık durur (uçuş hissi).
+ *  - KONUM scroll'a göre TEK SÜREKLİ eğrisel rota izler: yatayda yumuşak bir
+ *    sinüs (soldan-sağa-sola), dikeyde üstten alta doğru. Ani sıçrama/atlama
+ *    YOK (eski "bant geçişi" sıçraması kaldırıldı). Kenarlara taşmaz.
+ *  - Konum lerp ile yumuşatılır; her karede küçük adım → akıcı, atlamasız.
  *
- * Konum viewport'un sol-üstünden (0,0) itibaren translate ile hesaplanır.
- * Video koşulsuz render edilir; görünürlük CSS ile (lg + reduced-motion).
+ * Yalnız lg+ ekran + reduced-motion kapalıysa görünür. pointer-events yok.
  */
 export function UcanBaykus() {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,10 +33,12 @@ export function UcanBaykus() {
       };
     }
 
-    const GENISLIK = 320; // baykuş kutusu genişliği (xl)
+    const GENISLIK = 320;    // baykuş kutusu genişliği (xl)
+    const KENAR = 32;        // ekran kenar boşluğu (kenara yapışmasın)
+
     let suanX = 0, suanY = 0, suanEgim = 0;
-    let hedefX = 0, hedefY = 0, hedefEgim = 0;
-    let sonX = 0, sonY = 0; // yön (eğim) için önceki konum
+    let hedefX = 0, hedefY = 0;
+    let oncekiX = 0;
     let t = 0;
     let raf = 0;
     let calisiyor = true;
@@ -49,21 +50,16 @@ export function UcanBaykus() {
       const maxScroll = Math.max(1, h.scrollHeight - vh);
       const ilerleme = Math.min(1, Math.max(0, window.scrollY / maxScroll)); // 0..1
 
-      // YATAY: baykuş yalnızca KENAR bantlarında gezinir (sol %6..%26 ve sağ
-      // %74..%94) — ekranın ORTASINA hiç gelmez, böylece merkezi içeriğin
-      // (ghost-font görseli vb.) üstüne binmez. Sayfa ilerledikçe sol↔sağ geçer.
-      const dalga = (Math.sin(ilerleme * Math.PI * 2.5 + Math.PI / 2) + 1) / 2; // 0..1
-      // dalga<0.5 → sol bant, dalga>=0.5 → sağ bant (ortayı atla)
-      let oran; // ekran genişliğine göre 0..1 sol konum
-      if (dalga < 0.5) {
-        oran = 0.04 + (dalga / 0.5) * 0.16;          // sol bant: %4..%20
-      } else {
-        oran = 0.72 + ((dalga - 0.5) / 0.5) * 0.16;  // sağ bant: %72..%88
-      }
-      hedefX = oran * vw;
+      // YATAY: TEK sürekli sinüs. Başlangıçta (scroll=0) SAĞ tarafta durur
+      // (hero görselinin olduğu boş alan) → sol yazıyı kapatmaz. cos → 0'da +1.
+      const genislikAlani = vw - GENISLIK - KENAR * 2;
+      const dalga = (Math.cos(ilerleme * Math.PI * 2) + 1) / 2; // 0..1, 0'da 1 (sağ)
+      const oran = 0.07 + dalga * 0.86; // 0.07..0.93 (kenara dayanmaz)
+      hedefX = KENAR + oran * genislikAlani;
 
-      // DİKEY: başlangıçta biraz aşağıda, sayfa boyunca hafifçe iner.
-      hedefY = vh * (0.32 + ilerleme * 0.34);
+      // DİKEY: başlangıçta EKRAN ORTASINDA (hero başlığının hizasında değil,
+      // görselin olduğu bantta), sayfa boyunca yumuşak iniş.
+      hedefY = vh * (0.34 + ilerleme * 0.42);
     };
 
     const dongu = () => {
@@ -71,26 +67,28 @@ export function UcanBaykus() {
       t += 0.02;
       hesapla();
 
-      const idleY = Math.sin(t) * 14;
-      // lerp (yumuşak takip)
-      suanX += (hedefX - suanX) * 0.07;
-      suanY += (hedefY + idleY - suanY) * 0.07;
+      // idle süzülme (dururken bile hafif canlı)
+      const idleY = Math.sin(t) * 10;
 
-      // eğim: son harekete göre (sağa giderken hafif sağa yatık)
-      const dx = suanX - sonX;
-      const dy = suanY - sonY;
-      hedefEgim = Math.max(-18, Math.min(18, dx * 1.6 + dy * 0.4));
-      suanEgim += (hedefEgim - suanEgim) * 0.08;
-      sonX = suanX; sonY = suanY;
+      // lerp — düşük katsayı = daha yumuşak, atlamasız takip. Aynı katsayı her
+      // eksen → tutarlı hız, ani sıçrama olmaz.
+      suanX += (hedefX - suanX) * 0.055;
+      suanY += (hedefY + idleY - suanY) * 0.055;
+
+      // eğim: yatay hıza göre hafif yatıklık (uçuş hissi), sınırlı + yumuşak.
+      const hiz = suanX - oncekiX;
+      oncekiX = suanX;
+      const hedefEgim = Math.max(-12, Math.min(12, hiz * 2.2));
+      suanEgim += (hedefEgim - suanEgim) * 0.06;
 
       el.style.transform =
         `translate3d(${suanX.toFixed(1)}px, ${suanY.toFixed(1)}px, 0) rotate(${suanEgim.toFixed(1)}deg)`;
       raf = requestAnimationFrame(dongu);
     };
 
-    // başlangıç konumu (ani sıçrama olmasın)
+    // başlangıç konumu — ani sıçrama olmasın (hedefe eşitle)
     hesapla();
-    suanX = hedefX; suanY = hedefY; sonX = suanX; sonY = suanY;
+    suanX = hedefX; suanY = hedefY; oncekiX = suanX;
     raf = requestAnimationFrame(dongu);
 
     return () => {
@@ -110,7 +108,7 @@ export function UcanBaykus() {
       }`}
     >
       <video
-        src="/video/ucan-baykus-v7.webm"
+        src="/video/ucan-baykus-v8.webm"
         autoPlay
         loop
         muted

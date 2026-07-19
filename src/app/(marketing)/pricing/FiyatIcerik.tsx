@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PLANLAR as PLAN_KAYNAK } from "@/lib/specter/plans";
+import { PLANLAR as PLAN_KAYNAK, ODEME_HAZIR } from "@/lib/specter/plans";
 import {
   ArrowRight, Eye, Check, Sparkles, Plus, Minus, ShieldCheck,
   CreditCard, Headphones, RefreshCw, Lock, Coins, Zap,
@@ -80,7 +80,7 @@ function Planlar() {
       ozellikler: [`${planSayi(f.dogrulamaKotasi)} doğrulama/ay`, "Ghost-font CAPTCHA", `${f.siteLimiti} site`, "Temel analitik", "Topluluk desteği"],
     },
     {
-      ad: p.ad, fiyat: p.fiyat.replace("/ay", ""), period: "/ay", ozet: "Büyüyen ürünler ve ekipler için", vurgu: true, cta: `${p.ad}'yi seç`,
+      ad: p.ad, fiyat: p.fiyat.replace("/ay", ""), period: "/ay", ozet: "Büyüyen ürünler ve ekipler için", vurgu: true, cta: `${p.ad}'yi seç`, odemeli: true,
       kredi: `${planSayi(p.dogrulamaKotasi)} doğrulama kredisi/ay dahil`,
       ozellikler: [`${planSayi(p.dogrulamaKotasi)} doğrulama/ay`, "Tüm savunma katmanları", `${p.siteLimiti} site`, "Kural motoru + görünmez mod", "Coğrafi & ASN istihbaratı", "Webhook & Slack", "Öncelikli destek"],
     },
@@ -124,16 +124,22 @@ function Planlar() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href={p.fiyat === "Özel" ? "/contact" : "/signup"}
-                  className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
-                    p.vurgu
-                      ? "bg-veylify-600 text-white hover:bg-veylify-700"
-                      : "border border-veylify-200 bg-white text-veylify-700 hover:bg-veylify-50"
-                  }`}
-                >
-                  {p.cta} <ArrowRight className="size-4" />
-                </Link>
+                {"odemeli" in p && p.odemeli && !ODEME_HAZIR ? (
+                  <span className="mt-6 inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-full bg-veylify-100 px-5 py-3 text-[14px] font-semibold text-veylify-500">
+                    Yakında
+                  </span>
+                ) : (
+                  <Link
+                    href={p.fiyat === "Özel" ? "/contact" : "/signup"}
+                    className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
+                      p.vurgu
+                        ? "bg-veylify-600 text-white hover:bg-veylify-700"
+                        : "border border-veylify-200 bg-white text-veylify-700 hover:bg-veylify-50"
+                    }`}
+                  >
+                    {p.cta} <ArrowRight className="size-4" />
+                  </Link>
+                )}
               </div>
             </Reveal>
           ))}
@@ -194,16 +200,22 @@ function KrediPaketleri() {
                   <span className="text-[13px] text-slate-400">/ tek seferlik</span>
                 </div>
                 <div className="mt-1 text-[12.5px] font-medium text-veylify-600">{k.birim}</div>
-                <Link
-                  href="/signup"
-                  className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
-                    k.vurgu
-                      ? "bg-veylify-600 text-white hover:bg-veylify-700"
-                      : "border border-veylify-200 bg-white text-veylify-700 hover:bg-veylify-50"
-                  }`}
-                >
-                  Kredi satın al <ArrowRight className="size-4" />
-                </Link>
+                {ODEME_HAZIR ? (
+                  <Link
+                    href="/signup"
+                    className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
+                      k.vurgu
+                        ? "bg-veylify-600 text-white hover:bg-veylify-700"
+                        : "border border-veylify-200 bg-white text-veylify-700 hover:bg-veylify-50"
+                    }`}
+                  >
+                    Kredi satın al <ArrowRight className="size-4" />
+                  </Link>
+                ) : (
+                  <span className="mt-6 inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-full border border-veylify-200 bg-veylify-50/60 px-5 py-3 text-[14px] font-semibold text-veylify-400">
+                    Yakında
+                  </span>
+                )}
               </div>
             </Reveal>
           ))}

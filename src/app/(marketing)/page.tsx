@@ -8,7 +8,6 @@ import { GhostFontGorsel, IzgaraArka, AiAjanKoruma, Gorsel } from "@/components/
 import { GhostHero } from "@/components/site/GhostHero";
 import { UcanBaykus } from "@/components/site/UcanBaykus";
 import { ParallaxKatman } from "@/components/site/Parallax";
-import { HeroVideo } from "@/components/site/HeroVideo";
 import { AkisDiyagram, MimariSema } from "@/components/site/illustrasyonlar";
 import { MarkaLogo, GUVEN_MARKALARI } from "@/components/site/marka-logolari";
 import { Faq, SORULAR } from "@/components/site/Faq";
@@ -101,8 +100,8 @@ function Hero({ t, dil }: { t: T; dil: LandingDil }) {
         </div>
         <ParallaxKatman hiz={0.08} className="lg:scale-[1.05]">
           <Reveal delay={2} className="zn-float">
-            {/* Sağda clay hero VİDEOSU — baykuş kalkanda, robotlar engelli (animasyon). */}
-            <HeroVideo />
+            {/* Sağda clay hayvan ailesi — baykuş + tüm ekip kalkan arkasında. */}
+            <Gorsel ad="hero-aile" alt={t("hero.gorselAlt")} oran="16/9" oncelik />
           </Reveal>
         </ParallaxKatman>
       </div>
@@ -199,16 +198,22 @@ function GhostFont({ t, dil }: { t: T; dil: LandingDil }) {
             className="w-full max-w-2xl"
           />
         </div>
-        {/* canlı interaktif demo (gerçek motor) + statik karşılaştırma */}
+        {/* canlı interaktif demo (gerçek motor) + statik karşılaştırma.
+            Her iki sütun da EŞİT yükseklikte bir başlık satırıyla başlar →
+            alttaki kutular birbiriyle hizalı. */}
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1fr_1.1fr]">
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-white">
+          <div className="flex flex-col">
+            <div className="mb-3 flex h-7 items-center gap-2 text-[13px] font-semibold text-white">
               <span className="rounded-full bg-veylify-600 px-2.5 py-1 text-[11px] uppercase tracking-wide">{t("ghost.dene")}</span>
               {t("ghost.deneMetin")}
             </div>
             <GhostHero />
           </div>
-          <GhostFontGorsel dil={dil} />
+          <div className="flex flex-col">
+            {/* sağ sütun için görünmez hizalayıcı başlık — sol başlıkla aynı yükseklik */}
+            <div className="mb-3 hidden h-7 lg:block" aria-hidden />
+            <GhostFontGorsel dil={dil} />
+          </div>
         </div>
       </div>
     </section>
