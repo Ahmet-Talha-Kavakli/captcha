@@ -44,6 +44,7 @@ const tr: Sozluk = {
   "nav.demo": "Canlı demo",
   "nav.giris": "Giriş",
   "nav.basla": "Ücretsiz başla",
+  "nav.panel": "Panel",
 
   // --- Hero ---
   "hero.rozet": "AI çağının bot koruması",

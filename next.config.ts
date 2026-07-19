@@ -27,6 +27,15 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
+  images: {
+    // Clerk/Google profil avatarları (navbar oturum göstergesi) uzak host'tan
+    // gelir → next/image için izinli host'lar.
+    remotePatterns: [
+      { protocol: "https", hostname: "img.clerk.com" },
+      { protocol: "https", hostname: "images.clerk.dev" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+    ],
+  },
   async redirects() {
     // Eski Türkçe pazarlama/auth URL'leri yeni İngilizce rotalara kalıcı (301)
     // yönlendir. SEO ve dış bağlantılar kırılmasın.
