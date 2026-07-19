@@ -9,7 +9,6 @@
  * içindir (ve seçim, otomatik seçimi kalıcı olarak ezer).
  */
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Globe, Check, ChevronDown } from "lucide-react";
 import {
   LANDING_DILLER,
@@ -19,7 +18,6 @@ import {
 } from "@/lib/i18n/landing";
 
 export function DilDegistirici({ dil }: { dil: LandingDil }) {
-  const router = useRouter();
   const [acik, setAcik] = useState(false);
   const kok = useRef<HTMLDivElement>(null);
 
@@ -43,7 +41,9 @@ export function DilDegistirici({ dil }: { dil: LandingDil }) {
   function sec(yeni: LandingDil) {
     document.cookie = `${LANDING_DIL_COOKIE}=${yeni}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
     setAcik(false);
-    if (yeni !== dil) router.refresh();
+    // Dil değişince sayfayı tamamen yenile — tüm metinler (server + client)
+    // yeni dilde kesin gelsin (kullanıcı isteği: otomatik refresh).
+    if (yeni !== dil) window.location.reload();
   }
 
   const secili = LANDING_DIL_META[dil];

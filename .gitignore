@@ -43,3 +43,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# geçici/yedek
+*.eski
+/public/pazarlama-eski-yedek/
+/public/deneme/
+.DS_Store

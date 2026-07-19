@@ -261,6 +261,15 @@ const tr: Sozluk = {
   "mock.insanGecisi": "İnsan geçişi",
   "mock.modelEgitimi": "Model eğitimi",
   "mock.gun14Trafik": "14 günlük AI trafiği",
+  "mock.yanit": "Yanıt",
+  "mock.dogrulandi": "Doğrulandı",
+  "mock.korumaKatmani": "Veylify koruma katmanı",
+  "mock.navKomuta": "Komuta merkezi",
+  "mock.navAjanlar": "AI ajanlar",
+  "mock.navKurallar": "Kurallar",
+  "mock.navCografi": "Coğrafi risk",
+  "mock.navImza": "İmza",
+  "mock.navAvlar": "Kayıtlı avlar",
 };
 
 /* Diğer diller ayrı dosyalardan gelir (landing.<dil>.ts) — burada birleştirilir. */

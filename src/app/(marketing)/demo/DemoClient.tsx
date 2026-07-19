@@ -24,18 +24,23 @@ import {
   ArrowRight,
   Bot,
   Check,
+  Code2,
   Copy,
   Eye,
   EyeOff,
   Fingerprint,
   Hand,
+  KeyRound,
   RefreshCw,
   ScanEye,
   ShieldCheck,
   Sparkles,
+  Terminal,
+  Waypoints,
   X,
 } from "lucide-react";
 import { GhostText } from "@/components/site/GhostText";
+import { Gorsel } from "@/components/site/gorseller";
 import { MARKA } from "@/lib/marka";
 import { deriveAnswer, type Difficulty } from "@/lib/specter/challenge";
 import { scoreBehavior, emptySignals, type BehaviorSignals } from "@/lib/specter/behavior";
@@ -61,21 +66,38 @@ function Bolum({
   );
 }
 
-function BolumBaslik({
+/**
+ * Adım-başlık: numaralı bir "rozet" + glass ikon ile bölüm hissi.
+ * Sol tarafta büyük numara, ortada glass ikon, sağda etiket/başlık/açıklama.
+ * Her demo bölümünün üstünde tutarlı bir "adım" ritmi verir.
+ */
+function AdimBaslik({
+  numara,
   etiket,
   baslik,
   aciklama,
+  ikon: Ikon,
 }: {
+  numara: number;
   etiket: string;
   baslik: React.ReactNode;
   aciklama?: string;
+  ikon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="mx-auto max-w-2xl text-center">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-veylify-100 bg-veylify-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-veylify-700">
-        {etiket}
-      </span>
-      <h2 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-veylify-950 sm:text-3xl">
+    <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+      <div className="flex items-center gap-3">
+        <span className="grid h-11 w-11 place-items-center rounded-2xl glass-ikon text-veylify-600">
+          <Ikon className="h-5 w-5" />
+        </span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-veylify-100 bg-veylify-50/80 py-1 pl-1.5 pr-3 text-[11px] font-bold uppercase tracking-wider text-veylify-700">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-veylify-600 text-[11px] font-black text-white">
+            {numara}
+          </span>
+          {etiket}
+        </span>
+      </div>
+      <h2 className="mt-5 font-display text-2xl font-extrabold tracking-tight text-veylify-950 sm:text-[2rem] sm:leading-[1.15]">
         {baslik}
       </h2>
       {aciklama ? (
@@ -230,12 +252,31 @@ function CanliCaptcha() {
   return (
     <div
       onMouseMove={onMouse}
-      className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-[0_24px_60px_-32px_rgba(79,70,229,0.35)]"
+      className="mx-auto grid max-w-4xl items-center gap-8 md:grid-cols-[0.72fr_1fr]"
     >
+      {/* sol: clay görsel + anlatı — krem zeminde, çerçevesiz */}
+      <div className="order-2 text-center md:order-1 md:text-left">
+        <Gorsel ad="demo-test" alt="Ghost-font testi" oran="1/1" className="mx-auto w-40 sm:w-48 md:mx-0" />
+        <p className="mx-auto mt-4 max-w-xs text-[14px] leading-relaxed text-ink-500 md:mx-0">
+          Kod ekranda titreşir. Gözün bunu anında birleştirir; bir OCR modeli tek karede sadece
+          nokta bulutu görür.
+        </p>
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-medium text-ink-600">
+          <span className="grid h-4 w-4 place-items-center rounded-full bg-ok-500 text-white">
+            <Check className="h-2.5 w-2.5" />
+          </span>
+          reCAPTCHA uyumlu token akışı
+        </div>
+      </div>
+
+      {/* sağ: gerçek widget */}
+      <div className="order-1 overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-[0_24px_60px_-32px_rgba(79,70,229,0.35)] md:order-2">
       {/* pencere üst şeridi — gerçek widget hissi */}
       <div className="flex items-center justify-between border-b border-ink-100 bg-ink-50 px-5 py-3">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-veylify-500" />
+          <span className="grid h-6 w-6 place-items-center rounded-lg glass-ikon text-veylify-600">
+            <ShieldCheck className="h-3.5 w-3.5" />
+          </span>
           <span className="text-[12px] font-semibold text-ink-700">Veylify challenge</span>
         </div>
         <span className="font-mono text-[11px] text-ink-400">
@@ -343,6 +384,7 @@ function CanliCaptcha() {
           </button>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -361,29 +403,32 @@ function MakineVsInsan() {
   return (
     <div className="mx-auto grid max-w-4xl gap-5 md:grid-cols-2">
       {/* insan */}
-      <div className="rounded-2xl border border-ink-200 bg-white p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-veylify-50 text-veylify-600">
-            <Eye className="h-4 w-4" />
+      <div className="flex flex-col rounded-3xl border border-ink-200 bg-white p-5 sm:p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl glass-ikon text-veylify-600">
+            <Eye className="h-4.5 w-4.5" />
           </span>
           <div>
             <div className="text-[14px] font-bold text-veylify-950">İnsan görüşü</div>
             <div className="text-[12px] text-ink-400">hareketli — göz okur</div>
           </div>
         </div>
-        <div className="overflow-hidden rounded-xl bg-ink-50 p-2">
+        <div className="overflow-hidden rounded-2xl bg-ink-50 p-2">
           <GhostText text={metin} width={420} height={150} cell={3} color="#1e1b4b" bg="#eef2ff" className="mx-auto w-full" />
         </div>
-        <div className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-ok-700">
-          <Check className="h-4 w-4" /> Okundu: “{metin}” · geçti
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-ok-500/20 bg-ok-50 px-3 py-2.5 text-[13px] font-semibold text-ok-700">
+          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ok-500 text-white">
+            <Check className="h-3 w-3" />
+          </span>
+          Okundu: “{metin}” · challenge geçti
         </div>
       </div>
 
       {/* makine */}
-      <div className="rounded-2xl border border-ink-200 bg-white p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink-100 text-ink-700">
-            {donmus ? <EyeOff className="h-4 w-4" /> : <ScanEye className="h-4 w-4" />}
+      <div className="flex flex-col rounded-3xl border border-ink-200 bg-white p-5 sm:p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-100 text-ink-600">
+            {donmus ? <EyeOff className="h-4.5 w-4.5" /> : <ScanEye className="h-4.5 w-4.5" />}
           </span>
           <div>
             <div className="text-[14px] font-bold text-veylify-950">Makine / OCR görüşü</div>
@@ -392,7 +437,7 @@ function MakineVsInsan() {
             </div>
           </div>
         </div>
-        <div className="relative overflow-hidden rounded-xl bg-ink-50 p-2">
+        <div className="relative overflow-hidden rounded-2xl bg-ink-50 p-2">
           <GhostText text={metin} width={420} height={150} cell={3} color="#1e1b4b" bg="#eef2ff" paused={donmus} className="mx-auto w-full" />
           {donmus ? (
             <div className="pointer-events-none absolute inset-2 grid place-items-center rounded-lg bg-ink-950/[0.03]">
@@ -408,12 +453,15 @@ function MakineVsInsan() {
           onMouseLeave={birak}
           onTouchStart={bas}
           onTouchEnd={birak}
-          className="mt-3 inline-flex w-full select-none items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-ink-700 transition hover:border-veylify-300 active:bg-ink-50"
+          className="mt-3 inline-flex w-full select-none items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-ink-700 transition hover:border-veylify-300 active:scale-[0.99] active:bg-ink-50"
         >
-          <Hand className="h-4 w-4" /> Basılı tut — AI'ın gördüğü kare
+          <Hand className="h-4 w-4" /> Basılı tut — AI&apos;ın gördüğü kare
         </button>
-        <div className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-danger-600">
-          <X className="h-4 w-4" /> {donmus ? "Statik analiz çöktü · engellendi" : "Hareketsizken metin gürültüde kaybolur"}
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-danger-500/20 bg-danger-50 px-3 py-2.5 text-[13px] font-semibold text-danger-600">
+          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-danger-500 text-white">
+            <X className="h-3 w-3" />
+          </span>
+          {donmus ? "Statik analiz çöktü · istek engellendi" : "Hareketsizken metin gürültüde kaybolur"}
         </div>
       </div>
     </div>
@@ -718,8 +766,12 @@ function DavranisBiyometrisi() {
       onClick={onClick}
       onKeyDown={onKey}
       tabIndex={0}
-      className="mx-auto max-w-3xl cursor-crosshair rounded-3xl border border-ink-200 bg-white p-6 outline-none sm:p-8"
+      className="group/panel relative mx-auto max-w-3xl cursor-crosshair rounded-3xl border border-ink-200 bg-white p-6 outline-none transition focus:border-veylify-300 sm:p-8"
     >
+      {/* etkileşim ipucu — kart boşken */}
+      <div className="pointer-events-none absolute right-5 top-5 hidden items-center gap-1.5 rounded-full border border-veylify-100 bg-veylify-50/80 px-3 py-1 text-[11px] font-semibold text-veylify-700 sm:inline-flex">
+        <Hand className="h-3 w-3" /> canlı izleniyor
+      </div>
       <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
         {/* gauge */}
         <div>
@@ -749,8 +801,8 @@ function DavranisBiyometrisi() {
             )}
           </div>
           <p className="mt-3 text-[12.5px] leading-relaxed text-ink-500">
-            Gerçek <span className="font-mono">scoreBehavior()</span> motoru — challenge'dan önce, görünmez.
-            reCAPTCHA v3 / Turnstile'ın sürtünmesiz akışının Veylify karşılığı.
+            Gerçek <span className="font-mono">scoreBehavior()</span> motoru — challenge&apos;dan önce, görünmez.
+            reCAPTCHA v3 / Turnstile&apos;ın sürtünmesiz akışının Veylify karşılığı.
           </p>
         </div>
 
@@ -805,8 +857,8 @@ function KurulumCta() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl overflow-hidden rounded-3xl border border-veylify-200 bg-gradient-to-br from-veylify-50 via-white to-white p-8 sm:p-10">
-      <div className="grid gap-8 md:grid-cols-[1fr_1.1fr] md:items-center">
+    <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-veylify-200 bg-gradient-to-br from-veylify-50 via-white to-white p-8 shadow-[0_30px_80px_-40px_rgba(79,70,229,0.4)] sm:p-10">
+      <div className="grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-center">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-veylify-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
             <Sparkles className="h-3 w-3" /> 10 dakikada kurulum
@@ -816,18 +868,35 @@ function KurulumCta() {
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-ink-600">
             Bir <span className="font-mono text-[13px]">&lt;div&gt;</span> + tek script. Widget ghost-font
-            challenge'ı Shadow DOM içinde monte eder, gizli <span className="font-mono text-[13px]">veylify-token</span>{" "}
+            challenge&apos;ı Shadow DOM içinde monte eder, gizli <span className="font-mono text-[13px]">veylify-token</span>{" "}
             alanını forma ekler. reCAPTCHA uyumlu.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+
+          {/* kurulum adımcıkları */}
+          <ul className="mt-6 space-y-2.5">
+            {[
+              { ikon: Code2, metin: "Tek <div> etiketi yapıştır" },
+              { ikon: Terminal, metin: "Async script'i ekle" },
+              { ikon: KeyRound, metin: "veylify-token forma otomatik düşer" },
+            ].map((s) => (
+              <li key={s.metin} className="flex items-center gap-3 text-[14px] font-medium text-ink-700">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl glass-ikon text-veylify-600">
+                  <s.ikon className="h-4 w-4" />
+                </span>
+                {s.metin}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/kayit"
+              href="/signup"
               className="inline-flex items-center gap-2 rounded-xl bg-veylify-600 px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-veylify-700"
             >
               Ücretsiz başla <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/nasil-calisir"
+              href="/how-it-works"
               className="inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-6 py-3 text-[15px] font-semibold text-ink-700 transition hover:border-veylify-300"
             >
               Nasıl çalışır
@@ -835,9 +904,12 @@ function KurulumCta() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-ink-800 bg-ink-950">
+        {/* kod bloğu — ghost-font koyu zemin */}
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-veylify-950 shadow-lg">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-            <span className="font-mono text-[11px] text-white/50">index.html</span>
+            <span className="flex items-center gap-2 font-mono text-[11px] text-white/50">
+              <Waypoints className="h-3.5 w-3.5" /> index.html
+            </span>
             <button
               onClick={() => void kopyala()}
               className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/15"
@@ -859,96 +931,160 @@ function KurulumCta() {
 /* Sayfa                                                                */
 /* ------------------------------------------------------------------ */
 
+const ADIMLAR = [
+  { no: 1, etiket: "Canlı CAPTCHA", hedef: "#dene" },
+  { no: 2, etiket: "Makine vs İnsan", hedef: "#makine" },
+  { no: 3, etiket: "AI ajan simülatörü", hedef: "#ajan" },
+  { no: 4, etiket: "Davranış biyometrisi", hedef: "#davranis" },
+];
+
 export function DemoClient() {
   return (
     <div className="overflow-x-clip pb-24">
       {/* 1 — Hero */}
-      <Bolum className="pt-16 sm:pt-24">
-        <div className="mx-auto max-w-3xl text-center">
-          <motion.span
-            initial={{ y: 12 }}
-            animate={{ y: 0 }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-veylify-100 bg-veylify-50 px-3 py-1 text-[12px] font-semibold text-veylify-700"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-veylify-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-veylify-500" />
-            </span>
-            Canlı demo · gerçek API
-          </motion.span>
-          <motion.h1
-            initial={{ y: 16 }}
-            animate={{ y: 0 }}
-            className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-veylify-950 sm:text-6xl"
-          >
-            Botların geçemediği{" "}
-            <span className="bg-gradient-to-r from-veylify-600 to-violet-600 bg-clip-text text-transparent">
-              katmanı
-            </span>{" "}
-            kendin dene
-          </motion.h1>
-          <motion.p
-            initial={{ y: 18 }}
-            animate={{ y: 0 }}
-            className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed text-ink-500"
-          >
-            {MARKA.ad}, insanların hareketten okuduğu ama makinelerin statik karede yalnızca gürültü
-            gördüğü bir ghost-font katmanı kurar. Aşağıdaki her bölüm gerçek çalışır — sahte demo yok.
-          </motion.p>
-          <div className="mt-8 flex justify-center">
-            <a
-              href="#dene"
-              className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-ink-800"
+      <Bolum className="pt-14 sm:pt-20">
+        <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[1.15fr_0.85fr]">
+          {/* metin */}
+          <div className="text-center md:text-left">
+            <motion.span
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-veylify-100 bg-veylify-50 px-3 py-1 text-[12px] font-semibold text-veylify-700"
             >
-              Denemeye başla <ArrowDown className="h-4 w-4" />
-            </a>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-veylify-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-veylify-500" />
+              </span>
+              Canlı demo · gerçek API çağrıları
+            </motion.span>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-veylify-950 sm:text-[3.4rem]"
+            >
+              Botların geçemediği{" "}
+              <span className="bg-gradient-to-r from-veylify-600 to-violet-600 bg-clip-text text-transparent">
+                katmanı
+              </span>{" "}
+              kendin dene
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed text-ink-500 md:mx-0"
+            >
+              {MARKA.ad}, insanların hareketten okuduğu ama makinelerin statik karede yalnızca gürültü
+              gördüğü bir ghost-font katmanı kurar. Aşağıdaki dört adımın hepsi gerçek çalışır —
+              sahte demo yok.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start"
+            >
+              <a
+                href="#dene"
+                className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-ink-800"
+              >
+                Denemeye başla <ArrowDown className="h-4 w-4" />
+              </a>
+              <Link
+                href="/how-it-works"
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-6 py-3 text-[15px] font-semibold text-ink-700 transition hover:border-veylify-300 hover:text-veylify-700"
+              >
+                Nasıl çalışır
+              </Link>
+            </motion.div>
           </div>
+
+          {/* clay görsel — krem zemin, çerçevesiz */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mx-auto w-full max-w-[300px]"
+          >
+            <Gorsel ad="demo-hero" alt="Veylify canlı demo" oran="1/1" className="w-full" oncelik />
+          </motion.div>
         </div>
+
+        {/* adım rayı — sayfanın haritası */}
+        <nav className="mx-auto mt-14 max-w-3xl">
+          <ol className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            {ADIMLAR.map((a) => (
+              <li key={a.no}>
+                <a
+                  href={a.hedef}
+                  className="group flex items-center gap-2.5 rounded-2xl border border-ink-200 bg-white/70 px-3.5 py-3 transition hover:border-veylify-300 hover:bg-white"
+                >
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-veylify-50 text-[12px] font-black text-veylify-700 transition group-hover:bg-veylify-600 group-hover:text-white">
+                    {a.no}
+                  </span>
+                  <span className="text-[12.5px] font-semibold leading-tight text-ink-700">
+                    {a.etiket}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
       </Bolum>
 
       {/* 2 — Canlı ghost-font CAPTCHA */}
-      <Bolum id="dene" className="pt-24">
-        <BolumBaslik
-          etiket="Bölüm 1 · Canlı CAPTCHA"
+      <Bolum id="dene" className="scroll-mt-24 pt-24">
+        <AdimBaslik
+          numara={1}
+          ikon={ShieldCheck}
+          etiket="Canlı CAPTCHA"
           baslik={<>Gerçek ghost-font challenge&apos;ı çöz</>}
           aciklama="Ekrandaki kodu oku ve yaz. Doğrulama gerçek /api/v1/verify çağrısıdır — cevabı sunucu bağımsız kontrol eder."
         />
-        <div className="mt-8">
+        <div className="mt-10">
           <CanliCaptcha />
         </div>
       </Bolum>
 
       {/* 3 — Makine vs İnsan */}
-      <Bolum className="pt-24">
-        <BolumBaslik
-          etiket="Bölüm 2 · Makine vs İnsan"
+      <Bolum id="makine" className="scroll-mt-24 pt-24">
+        <AdimBaslik
+          numara={2}
+          ikon={ScanEye}
+          etiket="Makine vs İnsan"
           baslik={<>Bir makine bunu neden okuyamaz?</>}
           aciklama="Sağdaki karta basılı tut — animasyon durur. OCR/AI'ın gördüğü tek kare budur: metin gürültünün içinde yok olur. İnsan hareketten okur."
         />
-        <div className="mt-8">
+        <div className="mt-10">
           <MakineVsInsan />
         </div>
       </Bolum>
 
       {/* 4 — AI ajan simülatörü */}
-      <Bolum className="pt-24">
-        <BolumBaslik
-          etiket="Bölüm 3 · AI ajan simülatörü"
+      <Bolum id="ajan" className="scroll-mt-24 pt-24">
+        <AdimBaslik
+          numara={3}
+          ikon={Bot}
+          etiket="AI ajan simülatörü"
           baslik={<>Bir AI crawler gibi gel — ne olur gör</>}
           aciklama="Bir botu seç: Veylify onu tanır, gerçek imza kataloğundaki risk/kategorisini gösterir ve site sahibinin politikasını uygular."
         />
-        <div className="mt-8">
+        <div className="mt-10">
           <AiSimulator />
         </div>
       </Bolum>
 
       {/* 5 — Davranış biyometrisi */}
-      <Bolum className="pt-24">
-        <BolumBaslik
-          etiket="Bölüm 4 · Davranış biyometrisi"
+      <Bolum id="davranis" className="scroll-mt-24 pt-24">
+        <AdimBaslik
+          numara={4}
+          ikon={Fingerprint}
+          etiket="Davranış biyometrisi"
           baslik={<>Sen daha yazmadan seni tanır</>}
           aciklama="Bu alanda fareni gezdir, tıkla, yaz. Görünmez katman fare/ritim/zamanlama sinyallerinden canlı bir insanlık skoru üretir."
         />
+        <Gorsel ad="demo-sonuc" alt="Davranış sonucu" oran="1/1" className="mx-auto mt-8 w-32 sm:w-36" />
         <div className="mt-8">
           <DavranisBiyometrisi />
         </div>

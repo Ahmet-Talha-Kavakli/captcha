@@ -115,7 +115,7 @@ export default function BlogPage() {
             Okuduklarınızı uygulamaya dökmenin en hızlı yolu: ücretsiz bir hesapla başlayın.
           </p>
           <Link
-            href="/kayit"
+            href="/signup"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-veylify-600 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_32px_-10px_rgba(79,70,229,0.65)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
           >
             Ücretsiz başla <ArrowRight className="size-[18px]" />

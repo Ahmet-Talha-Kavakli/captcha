@@ -95,10 +95,10 @@ export function KomutPaleti({ rol, ilkSiteKey }: { rol: Role; ilkSiteKey?: strin
     [degistir, router, goster],
   );
 
-  // Çıkış: oturumu kapat → /giris.
+  // Çıkış: oturumu kapat → /login.
   const cikisYap = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-    router.push("/giris");
+    router.push("/login");
   }, [router]);
 
   // Sidebar daralt/genişlet: localStorage toggle + Sidebar'a event ile haber ver.

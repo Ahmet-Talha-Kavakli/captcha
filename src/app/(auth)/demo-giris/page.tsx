@@ -5,7 +5,7 @@ export const metadata = { title: "Demo Giriş" };
 
 /**
  * Demo giriş — kendi cookie-auth akışı (demo@specter.dev / vitrin + test).
- * Gerçek kullanıcılar Clerk üzerinden /giris ile girer; bu sayfa yalnız
+ * Gerçek kullanıcılar Clerk üzerinden /login ile girer; bu sayfa yalnız
  * demo/deneme hesabı ve test-otomasyonu için korunur.
  */
 export default function DemoGirisPage() {

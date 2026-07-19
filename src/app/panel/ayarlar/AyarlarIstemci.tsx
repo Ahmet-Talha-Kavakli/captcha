@@ -197,7 +197,7 @@ export function AyarlarIstemci({ me, dil }: { me: AyarMe; dil: Dil }) {
         body: JSON.stringify({ confirm: silOnay }),
       });
       if (res.ok) {
-        router.push("/giris");
+        router.push("/login");
       } else {
         const { error } = await res.json().catch(() => ({ error: t("toast.silinemedi") }));
         goster({ tip: "hata", baslik: t("toast.hesapSilinemedi"), aciklama: error });

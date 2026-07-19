@@ -126,7 +126,7 @@ export default async function BlogYaziPage({
               {MARKA.ad} ile insanı yormadan botu durduran doğrulamayı 10 dakikada kurun.
             </p>
             <Link
-              href="/kayit"
+              href="/signup"
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-veylify-700 transition hover:-translate-y-0.5"
             >
               Ücretsiz başla <ArrowRight className="size-[18px]" />

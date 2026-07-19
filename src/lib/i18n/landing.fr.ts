@@ -223,4 +223,13 @@ export const fr: Record<string, string> = {
   "mock.insanGecisi": "Taux de passage humain",
   "mock.modelEgitimi": "Entraînement de modèle",
   "mock.gun14Trafik": "Trafic IA sur 14 jours",
+  "mock.yanit": "Réponse",
+  "mock.dogrulandi": "Vérifié",
+  "mock.korumaKatmani": "Couche de protection Veylify",
+  "mock.navKomuta": "Centre de commande",
+  "mock.navAjanlar": "Agents IA",
+  "mock.navKurallar": "Règles",
+  "mock.navCografi": "Risque géo",
+  "mock.navImza": "Signature",
+  "mock.navAvlar": "Chasses enregistrées",
 };

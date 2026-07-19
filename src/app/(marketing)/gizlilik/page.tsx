@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Veylify gizlilik politikası: hangi verileri topladığımız, çerezler, saklama süreleri, üçüncü taraflar ve haklarınız hakkında ayrıntılı bilgi.",
 };
 
-const GUNCELLEME = "16 Temmuz 2026";
+const GUNCELLEME = "19 Temmuz 2026";
 
 export default function GizlilikPage() {
   return (
@@ -71,10 +71,27 @@ export default function GizlilikPage() {
 
           <Bolum n="4" baslik="Çerezler ve Benzer Teknolojiler">
             <p>
-              Oturum yönetimi ve temel işlevsellik için gerekli (zorunlu) çerezleri kullanırız.
-              Ayrıca hizmeti iyileştirmek amacıyla anonimleştirilmiş kullanım istatistikleri
-              toplayabiliriz. Tarayıcı ayarlarınızdan çerezleri yönetebilir veya silebilirsiniz;
-              ancak zorunlu çerezlerin devre dışı bırakılması bazı işlevleri etkileyebilir.
+              Web sitemizde ve panelimizde çerezler ve benzeri teknolojiler kullanırız. Çerezleri
+              amaçlarına göre üç kategoride ele alırız:
+            </p>
+            <ul>
+              <li>
+                <strong>Zorunlu çerezler:</strong> Oturum yönetimi, kimlik doğrulama ve temel
+                işlevsellik için gereklidir; devre dışı bırakılamaz. Bu çerezler olmadan giriş
+                yapma ve panel kullanımı gibi temel işlevler çalışmaz.
+              </li>
+              <li>
+                <strong>Tercih çerezleri:</strong> Dil seçimi gibi tercihlerinizi hatırlar.
+              </li>
+              <li>
+                <strong>Analitik çerezler:</strong> Hizmeti iyileştirmek amacıyla
+                anonimleştirilmiş kullanım istatistikleri toplar (bkz. Üçüncü Taraf Hizmetler —
+                Google Analytics).
+              </li>
+            </ul>
+            <p>
+              Tarayıcı ayarlarınızdan çerezleri yönetebilir veya silebilirsiniz; ancak zorunlu
+              çerezlerin devre dışı bırakılması bazı işlevleri etkileyebilir.
             </p>
           </Bolum>
 
@@ -88,15 +105,32 @@ export default function GizlilikPage() {
             </p>
           </Bolum>
 
-          <Bolum n="6" baslik="Üçüncü Taraflarla Paylaşım">
+          <Bolum n="6" baslik="Üçüncü Taraf Hizmetler ve Paylaşım">
             <p>
-              Kişisel verilerinizi satmayız. Verileri yalnızca şu durumlarda paylaşabiliriz:
+              Kişisel verilerinizi satmayız. Hizmetin sunulabilmesi için, veri işleyen sıfatıyla
+              ve sözleşmeyle bağlı olarak aşağıdaki güvenilir üçüncü taraf hizmet sağlayıcılarla
+              yalnızca gerekli ölçüde veri paylaşırız:
             </p>
             <ul>
               <li>
-                Hizmetin sağlanması için gerekli altyapı ve barındırma sağlayıcıları (veri
-                işleyen sıfatıyla, sözleşmeyle bağlı olarak).
+                <strong>Clerk:</strong> Kullanıcı kimlik doğrulama ve hesap yönetimi altyapısı
+                (e-posta, oturum bilgileri).
               </li>
+              <li>
+                <strong>PayTR:</strong> Ücretli plan ödemelerinin güvenli biçimde alınması için
+                ödeme altyapısı. Kart bilgileriniz PayTR’nin PCI-DSS uyumlu ortamında işlenir;
+                tam kart verisi tarafımızca saklanmaz.
+              </li>
+              <li>
+                <strong>Google Analytics:</strong> Anonimleştirilmiş kullanım istatistikleri ve
+                site performans ölçümü.
+              </li>
+              <li>
+                Hizmetin çalışması için gerekli barındırma ve altyapı sağlayıcıları.
+              </li>
+            </ul>
+            <p>Bunların dışında verilerinizi yalnızca şu durumlarda paylaşabiliriz:</p>
+            <ul>
               <li>Yasal bir yükümlülük veya yetkili makam talebi bulunduğunda.</li>
               <li>Açık rızanızın olduğu durumlarda.</li>
             </ul>
@@ -107,7 +141,7 @@ export default function GizlilikPage() {
               Verilerinizi korumak için aktarımda TLS şifrelemesi, beklemede şifreleme, erişim
               denetimi ve düzenli güvenlik incelemeleri dâhil teknik ve idari tedbirler
               uygularız. Ayrıntı için{" "}
-              <Link href="/guvenlik" className="font-semibold text-veylify-700">
+              <Link href="/security" className="font-semibold text-veylify-700">
                 Güvenlik
               </Link>{" "}
               sayfamıza bakın.
@@ -140,7 +174,7 @@ export default function GizlilikPage() {
                 {MARKA.destekEposta}
               </a>{" "}
               adresine yazabilir veya{" "}
-              <Link href="/iletisim" className="font-semibold text-veylify-700">
+              <Link href="/contact" className="font-semibold text-veylify-700">
                 iletişim formumuzu
               </Link>{" "}
               kullanabilirsiniz.
@@ -224,7 +258,7 @@ export function HukukiAltCta() {
         </div>
       </div>
       <Link
-        href="/iletisim"
+        href="/contact"
         className="inline-flex shrink-0 items-center gap-2 rounded-full bg-veylify-600 px-6 py-3 text-[14px] font-semibold text-white transition hover:-translate-y-0.5 hover:bg-veylify-700"
       >
         Bize ulaşın <ArrowRight className="size-4" />

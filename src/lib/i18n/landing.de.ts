@@ -184,4 +184,13 @@ export const de: Record<string, string> = {
   "mock.insanGecisi": "Mensch-Durchlassrate",
   "mock.modelEgitimi": "Modelltraining",
   "mock.gun14Trafik": "KI-Traffic (14 Tage)",
+  "mock.yanit": "Antwort",
+  "mock.dogrulandi": "Verifiziert",
+  "mock.korumaKatmani": "Veylify-Schutzschicht",
+  "mock.navKomuta": "Kommandozentrale",
+  "mock.navAjanlar": "KI-Agenten",
+  "mock.navKurallar": "Regeln",
+  "mock.navCografi": "Geo-Risiko",
+  "mock.navImza": "Signatur",
+  "mock.navAvlar": "Gespeicherte Jagden",
 };

@@ -117,7 +117,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       <p className="mt-6 text-center text-[13px] text-ink-500">
         {isSignUp ? "Zaten hesabın var mı? " : "Hesabın yok mu? "}
         <Link
-          href={isSignUp ? "/giris" : "/kayit"}
+          href={isSignUp ? "/login" : "/signup"}
           className="font-medium text-specter-600 hover:text-specter-700"
         >
           {isSignUp ? "Giriş yap" : "Kayıt ol"}

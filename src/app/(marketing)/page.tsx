@@ -4,8 +4,11 @@ import {
   Fingerprint, GitBranch, Sparkles, Lock, Activity, Server, Layers,
 } from "lucide-react";
 import { Badge, Highlight, Reveal } from "@/components/site/primitives";
-import { HeroGorsel, GhostFontGorsel, IzgaraArka, UrunEkranGorseli, AiAjanKoruma, Gorsel } from "@/components/site/gorseller";
+import { GhostFontGorsel, IzgaraArka, AiAjanKoruma, Gorsel } from "@/components/site/gorseller";
 import { GhostHero } from "@/components/site/GhostHero";
+import { UcanBaykus } from "@/components/site/UcanBaykus";
+import { ParallaxKatman } from "@/components/site/Parallax";
+import { HeroVideo } from "@/components/site/HeroVideo";
 import { AkisDiyagram, MimariSema } from "@/components/site/illustrasyonlar";
 import { MarkaLogo, GUVEN_MARKALARI } from "@/components/site/marka-logolari";
 import { Faq, SORULAR } from "@/components/site/Faq";
@@ -24,6 +27,7 @@ export default async function LandingPage() {
   return (
     <>
       <JsonLd sss={SORULAR} />
+      <UcanBaykus />
       <Hero t={t} dil={dil} />
       <LogoStrip t={t} />
       <Problem t={t} />
@@ -51,7 +55,7 @@ function Hero({ t, dil }: { t: T; dil: LandingDil }) {
     <section className="relative overflow-hidden px-5 pt-16 pb-20 lg:px-8 lg:pt-24">
       <IzgaraArka />
       <div className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-veylify-200/50 to-violet-200/40 blur-3xl" />
-      <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1fr_1.15fr]">
         <div>
           <Reveal>
             <Badge variant="indigo">
@@ -72,7 +76,7 @@ function Hero({ t, dil }: { t: T; dil: LandingDil }) {
           <Reveal delay={3}>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/kayit"
+                href="/signup"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-veylify-600 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_32px_-10px_rgba(79,70,229,0.65)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
               >
                 {t("hero.cta1")} <ArrowRight className="size-[18px]" />
@@ -95,12 +99,12 @@ function Hero({ t, dil }: { t: T; dil: LandingDil }) {
             </div>
           </Reveal>
         </div>
-        <Reveal delay={2} className="zn-float space-y-5">
-          {/* Gerçek üretilmiş hero görseli — insan siluetinin kalkandan geçişi,
-              dağılan AI botları. Ürünün vaadini tek bakışta anlatır. */}
-          <Gorsel ad="hero" alt={t("hero.gorselAlt")} oran="16/11" oncelik />
-          <HeroGorsel dil={dil} />
-        </Reveal>
+        <ParallaxKatman hiz={0.08} className="lg:scale-[1.05]">
+          <Reveal delay={2} className="zn-float">
+            {/* Sağda clay hero VİDEOSU — baykuş kalkanda, robotlar engelli (animasyon). */}
+            <HeroVideo />
+          </Reveal>
+        </ParallaxKatman>
       </div>
     </section>
   );
@@ -127,9 +131,9 @@ function LogoStrip({ t }: { t: T }) {
 /* ============================================================ PROBLEM */
 function Problem({ t }: { t: T }) {
   const kartlar = [
-    { ikon: Bot, baslik: t("problem.k1.baslik"), metin: t("problem.k1.metin") },
-    { ikon: Server, baslik: t("problem.k2.baslik"), metin: t("problem.k2.metin") },
-    { ikon: Zap, baslik: t("problem.k3.baslik"), metin: t("problem.k3.metin") },
+    { ikon: Bot, gorsel: "problem-bot-istilasi", baslik: t("problem.k1.baslik"), metin: t("problem.k1.metin") },
+    { ikon: Server, gorsel: "problem-sunucu", baslik: t("problem.k2.baslik"), metin: t("problem.k2.metin") },
+    { ikon: Zap, gorsel: "problem-hiz", baslik: t("problem.k3.baslik"), metin: t("problem.k3.metin") },
   ];
   return (
     <section className="px-5 py-20 lg:px-8">
@@ -146,12 +150,19 @@ function Problem({ t }: { t: T }) {
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {kartlar.map((k, i) => (
             <Reveal key={k.baslik} delay={((i % 3) + 1) as 1 | 2 | 3}>
-              <div className="h-full rounded-2xl border border-veylify-100 bg-white p-6 transition hover:border-veylify-200 hover:shadow-[0_20px_50px_-25px_rgba(79,70,229,0.3)]">
-                <span className="grid size-11 place-items-center rounded-xl bg-red-50 text-red-500 ring-1 ring-red-100">
-                  <k.ikon className="size-5" />
-                </span>
-                <h3 className="mt-4 text-[17px] font-bold text-veylify-950">{k.baslik}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-slate-600">{k.metin}</p>
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-veylify-100 bg-white transition hover:border-veylify-200 hover:shadow-[0_20px_50px_-25px_rgba(79,70,229,0.3)]">
+                {/* clay problem görseli — kart zemini de krem tonuna çekildi ki
+                    görselin kremi kartla dikişsiz birleşsin */}
+                <div className="bg-[#f4f1ea] px-6 pt-5">
+                  <Gorsel ad={k.gorsel} alt={k.baslik} oran="16/10" />
+                </div>
+                <div className="flex flex-1 flex-col p-6 pt-5">
+                  <span className="glass-ikon grid size-11 place-items-center rounded-xl text-red-500">
+                    <k.ikon className="size-5" />
+                  </span>
+                  <h3 className="mt-4 text-[17px] font-bold text-veylify-950">{k.baslik}</h3>
+                  <p className="mt-2 text-[14px] leading-relaxed text-slate-600">{k.metin}</p>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -178,12 +189,14 @@ function GhostFont({ t, dil }: { t: T; dil: LandingDil }) {
             {t("ghost.aciklama")}
           </p>
         </div>
-        {/* Gerçek ghost-font görseli — okunabilir ama taranamaz yüzey. */}
-        <div className="mt-12">
+        {/* Ghost-font clay görseli — baykuş gizli yazıyı okur, robot okuyamaz.
+            Arka planı koyu bölüm zeminiyle (veylify-950) birebir aynı. */}
+        <div className="mt-12 flex justify-center">
           <Gorsel
-            ad="kavram-ghost-yazit"
+            ad="ghost-font"
             alt={t("ghost.gorselAlt")}
-            oran="21/9"
+            oran="16/10"
+            className="w-full max-w-2xl"
           />
         </div>
         {/* canlı interaktif demo (gerçek motor) + statik karşılaştırma */}
@@ -205,9 +218,9 @@ function GhostFont({ t, dil }: { t: T; dil: LandingDil }) {
 /* ============================================================ HOW IT WORKS */
 function HowItWorks({ t }: { t: T }) {
   const adimlar = [
-    { no: "01", ikon: Code2, baslik: t("nasil.a1.baslik"), metin: t("nasil.a1.metin") },
-    { no: "02", ikon: Activity, baslik: t("nasil.a2.baslik"), metin: t("nasil.a2.metin") },
-    { no: "03", ikon: ShieldCheck, baslik: t("nasil.a3.baslik"), metin: t("nasil.a3.metin") },
+    { no: "01", ikon: Code2, gorsel: "nasil-entegrasyon", baslik: t("nasil.a1.baslik"), metin: t("nasil.a1.metin") },
+    { no: "02", ikon: Activity, gorsel: "nasil-analiz", baslik: t("nasil.a2.baslik"), metin: t("nasil.a2.metin") },
+    { no: "03", ikon: ShieldCheck, gorsel: "nasil-koruma", baslik: t("nasil.a3.baslik"), metin: t("nasil.a3.metin") },
   ];
   return (
     <section id="nasil" className="px-5 py-20 lg:px-8">
@@ -221,13 +234,19 @@ function HowItWorks({ t }: { t: T }) {
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {adimlar.map((a, i) => (
             <Reveal key={a.no} delay={((i % 3) + 1) as 1 | 2 | 3}>
-              <div className="relative h-full rounded-2xl border border-veylify-100 bg-white p-6">
-                <span className="text-[13px] font-bold text-veylify-300">{a.no}</span>
-                <span className="mt-3 grid size-11 place-items-center rounded-xl bg-veylify-50 text-veylify-600 ring-1 ring-veylify-100">
-                  <a.ikon className="size-5" />
-                </span>
-                <h3 className="mt-4 text-[17px] font-bold text-veylify-950">{a.baslik}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-slate-600">{a.metin}</p>
+              <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-veylify-100 bg-white">
+                {/* clay adım görseli — krem zeminle dikişsiz */}
+                <div className="bg-[#f4f1ea] px-6 pt-5">
+                  <Gorsel ad={a.gorsel} alt={a.baslik} oran="16/10" />
+                </div>
+                <div className="flex flex-1 flex-col p-6 pt-5">
+                  <span className="text-[13px] font-bold text-veylify-300">{a.no}</span>
+                  <span className="mt-3 grid size-11 place-items-center rounded-xl glass-ikon text-veylify-600">
+                    <a.ikon className="size-5" />
+                  </span>
+                  <h3 className="mt-4 text-[17px] font-bold text-veylify-950">{a.baslik}</h3>
+                  <p className="mt-2 text-[14px] leading-relaxed text-slate-600">{a.metin}</p>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -256,15 +275,17 @@ function HowItWorks({ t }: { t: T }) {
 
 /* ============================================================ FEATURES */
 function Features({ t }: { t: T }) {
+  // Her özellik = clay görsel + glass ikon + başlık + açıklama (tek kart).
+  // "Havada duran" çıplak görseller yerine hepsi metinle bütünleşik kartlar.
   const ozellikler = [
-    { ikon: Eye, baslik: t("ozellik.f1.baslik"), metin: t("ozellik.f1.metin") },
-    { ikon: Fingerprint, baslik: t("ozellik.f2.baslik"), metin: t("ozellik.f2.metin") },
-    { ikon: GitBranch, baslik: t("ozellik.f3.baslik"), metin: t("ozellik.f3.metin") },
-    { ikon: Lock, baslik: t("ozellik.f4.baslik"), metin: t("ozellik.f4.metin") },
-    { ikon: Bot, baslik: t("ozellik.f5.baslik"), metin: t("ozellik.f5.metin") },
-    { ikon: Globe, baslik: t("ozellik.f6.baslik"), metin: t("ozellik.f6.metin") },
-    { ikon: Gauge, baslik: t("ozellik.f7.baslik"), metin: t("ozellik.f7.metin") },
-    { ikon: Layers, baslik: t("ozellik.f8.baslik"), metin: t("ozellik.f8.metin") },
+    { ikon: Eye, gorsel: "ozellik-gorunmez", baslik: t("ozellik.f1.baslik"), metin: t("ozellik.f1.metin") },
+    { ikon: Fingerprint, gorsel: "ozellik-davranis", baslik: t("ozellik.f2.baslik"), metin: t("ozellik.f2.metin") },
+    { ikon: GitBranch, gorsel: "ozellik-kural", baslik: t("ozellik.f3.baslik"), metin: t("ozellik.f3.metin") },
+    { ikon: Lock, gorsel: "ozellik-powkanit", baslik: t("ozellik.f4.baslik"), metin: t("ozellik.f4.metin") },
+    { ikon: Bot, gorsel: "katmanli-savunma", baslik: t("ozellik.f5.baslik"), metin: t("ozellik.f5.metin") },
+    { ikon: Globe, gorsel: "mobil", baslik: t("ozellik.f6.baslik"), metin: t("ozellik.f6.metin") },
+    { ikon: Gauge, gorsel: "analitik", baslik: t("ozellik.f7.baslik"), metin: t("ozellik.f7.metin") },
+    { ikon: Layers, gorsel: "ozellik-tls", baslik: t("ozellik.f8.baslik"), metin: t("ozellik.f8.metin") },
   ];
   return (
     <section id="ozellikler" className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
@@ -275,27 +296,22 @@ function Features({ t }: { t: T }) {
             {t("ozellik.baslik")}
           </h2>
         </Reveal>
-        {/* Üç sütunlu görsel şerit — katmanlı savunmanın görsel dili. */}
-        <div className="mt-12 grid gap-4 sm:grid-cols-3">
-          {[
-            { ad: "ozellik-davranis", alt: t("ozellik.gorsel1Alt") },
-            { ad: "ozellik-powkanit", alt: t("ozellik.gorsel2Alt") },
-            { ad: "kavram-katmanli-savunma", alt: t("ozellik.gorsel3Alt") },
-          ].map((g) => (
-            <Reveal key={g.ad}>
-              <Gorsel ad={g.ad} alt={g.alt} oran="16/11" />
-            </Reveal>
-          ))}
-        </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Her clay görsel kendi başlık + açıklamasıyla tek kartta. */}
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {ozellikler.map((o, i) => (
             <Reveal key={o.baslik} delay={(((i % 4) + 1) as 1 | 2 | 3 | 4)}>
-              <div className="h-full rounded-2xl border border-veylify-100 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-25px_rgba(79,70,229,0.3)]">
-                <span className="grid size-10 place-items-center rounded-xl bg-veylify-50 text-veylify-600 ring-1 ring-veylify-100">
-                  <o.ikon className="size-[18px]" />
-                </span>
-                <h3 className="mt-3.5 text-[15px] font-bold text-veylify-950">{o.baslik}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">{o.metin}</p>
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-veylify-100 bg-white transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-25px_rgba(79,70,229,0.3)]">
+                {/* clay görsel — kart üst alanı krem ki görselle dikişsiz */}
+                <div className="bg-[#f4f1ea] px-5 pt-4">
+                  <Gorsel ad={o.gorsel} alt={o.baslik} oran="4/3" />
+                </div>
+                <div className="flex flex-1 flex-col p-5 pt-4">
+                  <span className="glass-ikon grid size-10 place-items-center rounded-xl text-veylify-600">
+                    <o.ikon className="size-[18px]" />
+                  </span>
+                  <h3 className="mt-3.5 text-[15px] font-bold text-veylify-950">{o.baslik}</h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">{o.metin}</p>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -325,15 +341,15 @@ function UrunOnizleme({ t, dil }: { t: T; dil: LandingDil }) {
             {t("urun.aciklama")}
           </p>
         </Reveal>
-        <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr]">
-          <Reveal className="space-y-5">
-            <Gorsel ad="panel-soc" alt={t("urun.gorselAlt")} oran="16/10" />
-            <UrunEkranGorseli dil={dil} />
+        <div className="mt-12 grid items-stretch gap-10 lg:grid-cols-[1.25fr_1fr]">
+          <Reveal className="flex items-center">
+            {/* Gerçek dashboard'ın MacBook mockup'ı — "ürün gerçekten böyle" */}
+            <Gorsel ad="cihaz-macbook" alt={t("urun.gorselAlt")} oran="1010/619" oncelik className="w-full" />
           </Reveal>
-          <Reveal delay={1} className="flex flex-col gap-5">
+          <Reveal delay={1} className="flex flex-col justify-center gap-5">
             {noktalar.map((n) => (
               <div key={n.baslik} className="flex items-start gap-3.5 rounded-2xl border border-veylify-100 bg-white p-5 transition hover:border-veylify-200 hover:shadow-[0_18px_44px_-24px_rgba(79,70,229,0.3)]">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-veylify-50 text-veylify-600 ring-1 ring-veylify-100">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl glass-ikon text-veylify-600">
                   <n.ikon className="size-5" />
                 </span>
                 <div>
@@ -354,8 +370,10 @@ function AiKoruma({ t, dil }: { t: T; dil: LandingDil }) {
   return (
     <section className="border-y border-veylify-100 bg-veylify-50/30 px-5 py-20 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.15fr]">
+        <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.15fr]">
           <Reveal>
+            {/* clay baykuş + robot görseli — yazının ÜSTÜNDE (kullanıcı isteği) */}
+            <Gorsel ad="ai-ajan" alt={t("aikoruma.gorselAlt")} oran="16/11" className="mb-6 w-full max-w-md" />
             <Badge variant="indigo">{t("aikoruma.rozet")}</Badge>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
               {t("aikoruma.baslik")}
@@ -375,8 +393,8 @@ function AiKoruma({ t, dil }: { t: T; dil: LandingDil }) {
               ))}
             </div>
           </Reveal>
-          <Reveal delay={1} className="space-y-5">
-            <Gorsel ad="ai-ajan" alt={t("aikoruma.gorselAlt")} oran="16/11" />
+          {/* sağ: sadece Veylify koruma katmanı kartı (tablet kaldırıldı) */}
+          <Reveal delay={1}>
             <AiAjanKoruma dil={dil} />
           </Reveal>
         </div>
@@ -440,15 +458,15 @@ function Testimonials({ t }: { t: T }) {
   const yorumlar = [
     {
       metin: "reCAPTCHA'dan geçiş: görünmez mod ile gerçek kullanıcılar hiç sürtünme yaşamadan, bot trafiği davranış skoru + kural motoruyla eleniyor.",
-      ad: "E-ticaret", unvan: "Yüksek trafikli kayıt/checkout", bas: "🛒", renk: "#4f46e5",
+      ad: "E-ticaret", unvan: "Yüksek trafikli kayıt/checkout", ikon: Server,
     },
     {
       metin: "İçerik kazıma savunması: GPTBot ve ClaudeBot TLS/JA3 parmak izi + AI-ajan politikasıyla yakalanır — içeriğiniz AI eğitim verisi olmaktan çıkar.",
-      ad: "İçerik Platformu", unvan: "AI kazıyıcı koruması", bas: "📰", renk: "#7c3aed",
+      ad: "İçerik Platformu", unvan: "AI kazıyıcı koruması", ikon: Bot,
     },
     {
       metin: "Kimlik doldurma (credential stuffing): kural motoru + davranış biyometrisi + PoW ile login sayfası korunur; kurulum ortalama 10 dakika.",
-      ad: "SaaS / Giriş", unvan: "Hesap ele geçirme önleme", bas: "🔐", renk: "#db2777",
+      ad: "SaaS / Giriş", unvan: "Hesap ele geçirme önleme", ikon: Lock,
     },
   ];
   return (
@@ -474,11 +492,8 @@ function Testimonials({ t }: { t: T }) {
                   {y.metin}
                 </p>
                 <figcaption className="mt-5 flex items-center gap-3 border-t border-veylify-100 pt-4">
-                  <span
-                    className="grid size-10 shrink-0 place-items-center rounded-full text-[13px] font-bold text-white"
-                    style={{ background: y.renk }}
-                  >
-                    {y.bas}
+                  <span className="glass-ikon grid size-10 shrink-0 place-items-center rounded-full text-veylify-600">
+                    <y.ikon className="size-[18px]" />
                   </span>
                   <span>
                     <span className="block text-[13.5px] font-bold text-veylify-950">{y.ad}</span>
@@ -620,7 +635,7 @@ function Pricing({ t }: { t: T }) {
                   ))}
                 </ul>
                 <Link
-                  href={p.ozel ? "/iletisim" : "/kayit"}
+                  href={p.ozel ? "/contact" : "/signup"}
                   className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[14px] font-semibold transition ${
                     p.vurgu
                       ? "bg-veylify-600 text-white hover:bg-veylify-700"
@@ -653,7 +668,8 @@ function Guven({ t }: { t: T }) {
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
           <Badge variant="indigo">{t("guven.rozet")}</Badge>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
+          <Gorsel ad="guven-uyum" alt={t("guven.baslik")} oran="1/1" className="mx-auto mt-6 w-40" />
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
             {t("guven.baslik")}
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-600">
@@ -664,7 +680,7 @@ function Guven({ t }: { t: T }) {
           {rozetler.map((r, i) => (
             <Reveal key={r.ad} delay={(((i % 3) + 1) as 1 | 2 | 3)}>
               <div className="flex h-full items-start gap-3.5 rounded-2xl border border-veylify-100 bg-white p-5 transition hover:border-veylify-200 hover:shadow-[0_18px_44px_-24px_rgba(79,70,229,0.3)]">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                <span className="glass-ikon grid size-11 shrink-0 place-items-center rounded-xl text-emerald-600">
                   <r.ikon className="size-5" />
                 </span>
                 <div>
@@ -701,6 +717,7 @@ function Entegrasyonlar({ t }: { t: T }) {
       <div className="mx-auto max-w-6xl">
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
           <Reveal>
+            <Gorsel ad="entegrasyon" alt={t("enteg.baslik")} oran="16/10" className="mb-6 w-full max-w-sm" />
             <Badge variant="indigo">{t("enteg.rozet")}</Badge>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-veylify-950 sm:text-4xl">
               {t("enteg.baslik")}
@@ -720,7 +737,7 @@ function Entegrasyonlar({ t }: { t: T }) {
               ))}
             </div>
             <Link
-              href="/nasil-calisir"
+              href="/how-it-works"
               className="mt-7 inline-flex items-center gap-2 text-[14px] font-semibold text-veylify-600 transition hover:gap-3 hover:text-veylify-700"
             >
               {t("enteg.link")} <ArrowRight className="size-4" />
@@ -733,7 +750,7 @@ function Entegrasyonlar({ t }: { t: T }) {
                   key={a.ad}
                   className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-veylify-100 bg-white p-3 text-center transition hover:-translate-y-0.5 hover:border-veylify-200 hover:shadow-[0_16px_40px_-24px_rgba(79,70,229,0.3)]"
                 >
-                  <span className="grid size-9 place-items-center rounded-lg bg-veylify-50 text-veylify-600 ring-1 ring-veylify-100">
+                  <span className="grid size-9 place-items-center rounded-lg glass-ikon text-veylify-600">
                     <a.ikon className="size-[18px]" />
                   </span>
                   <span className="text-[11.5px] font-semibold text-slate-600">{a.ad}</span>
@@ -751,6 +768,8 @@ function Entegrasyonlar({ t }: { t: T }) {
 function FinalCta({ t }: { t: T }) {
   return (
     <section className="px-5 py-24 lg:px-8">
+      {/* clay kutlama görseli — tüm hayvan ekibi zafer; krem zeminle dikişsiz */}
+      <Gorsel ad="final-cta" alt={t("cta.baslik")} oran="16/9" className="mx-auto mb-2 w-full max-w-md" />
       <Reveal className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-veylify-700 via-veylify-600 to-violet-600 px-8 py-16 text-center shadow-[0_40px_100px_-40px_rgba(79,70,229,0.6)]">
         <div className="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10 blur-2xl" />
         <h2 className="relative text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -761,7 +780,7 @@ function FinalCta({ t }: { t: T }) {
         </p>
         <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
-            href="/kayit"
+            href="/signup"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-veylify-700 transition hover:-translate-y-0.5"
           >
             {t("cta.buton1")} <ArrowRight className="size-[18px]" />

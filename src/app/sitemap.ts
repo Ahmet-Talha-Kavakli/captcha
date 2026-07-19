@@ -7,19 +7,36 @@ import { MARKA } from "@/lib/marka";
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = MARKA.url;
-  const guncelleme = new Date("2026-07-18");
+  const guncelleme = new Date("2026-07-19");
 
   // Ağırlıklı public rotalar. [yol, changeFrequency, priority]
+  // Öncelik mantığı: ana sayfa 1.0 · ürün/pazarlama 0.8 · dönüşüm (demo/signup)
+  // 0.7 · durum/blog 0.5-0.6 · giriş 0.4 · yasal sayfalar 0.3.
+  // Yalnız GERÇEKTEN var olan rotalar (kırık URL SEO'ya zarar verir). Eski
+  // Türkçe rotalar (/ozellikler…) next.config.ts'te 301 → sitemap'e KONMAZ.
   const rotalar: Array<[string, MetadataRoute.Sitemap[number]["changeFrequency"], number]> = [
-    ["", "daily", 1],
-    ["/ozellikler", "weekly", 0.9],
-    ["/nasil-calisir", "weekly", 0.9],
-    ["/cozumler", "weekly", 0.8],
-    ["/fiyatlandirma", "weekly", 0.9],
+    ["", "daily", 1.0],
+    // Ürün / pazarlama
+    ["/features", "weekly", 0.8],
+    ["/how-it-works", "weekly", 0.8],
+    ["/solutions", "weekly", 0.8],
+    ["/pricing", "weekly", 0.8],
+    ["/security", "monthly", 0.7],
+    ["/about", "monthly", 0.6],
+    ["/contact", "monthly", 0.6],
+    // Dönüşüm / uygulama girişi
     ["/demo", "weekly", 0.7],
+    ["/signup", "monthly", 0.6],
+    ["/login", "monthly", 0.4],
+    // Canlı durum
     ["/durum", "daily", 0.5],
-    ["/giris", "monthly", 0.4],
-    ["/kayit", "monthly", 0.6],
+    // Yasal
+    ["/gizlilik", "yearly", 0.3],
+    ["/kvkk", "yearly", 0.3],
+    ["/sartlar", "yearly", 0.3],
+    ["/mesafeli-satis", "yearly", 0.3],
+    ["/iade", "yearly", 0.3],
+    ["/teslimat", "yearly", 0.3],
   ];
 
   const girisler: MetadataRoute.Sitemap = rotalar.map(([r, cf, p]) => ({

@@ -34,3 +34,38 @@ export const MARKA = {
 } as const;
 
 export type Marka = typeof MARKA;
+
+/**
+ * FİRMA — yasal/kurumsal bilgiler (mesafeli satış sözleşmesi, iade politikası,
+ * KVKK, iletişim sayfalarında kullanılır). PayTR / ödeme başvurusu ve 6502
+ * sayılı Tüketicinin Korunması Hakkında Kanun uyumu için ZORUNLU alanlardır.
+ *
+ * ⚠️ CANLIYA ÇIKMADAN / PayTR BAŞVURUSUNDAN ÖNCE tüm [KÖŞELİ PARANTEZ]
+ * placeholder'ları GERÇEK firma bilgileriyle doldur. Tek kaynak: burası.
+ */
+export const FIRMA = {
+  /** Ticaret unvanı (ör. "Veylify Yazılım Ltd. Şti." veya şahıs adı-soyadı). */
+  unvan: "[FİRMA TİCARET UNVANI]",
+  /** Kısa görünen ad (sözleşmelerde "SATICI"/"HİZMET SAĞLAYICI"). */
+  kisaAd: "Veylify",
+  /** Açık adres — il/ilçe dahil tam posta adresi. */
+  adres: "[AÇIK ADRES — Mahalle, Cadde/Sokak No, İlçe/İl, Posta Kodu]",
+  /** Vergi dairesi. */
+  vergiDairesi: "[VERGİ DAİRESİ]",
+  /** Vergi / TC kimlik no. */
+  vergiNo: "[VERGİ NO / TC KİMLİK NO]",
+  /** MERSIS no (tüzel kişi ise). Şahıs ise boş bırakılabilir. */
+  mersis: "[MERSIS NO]",
+  /** Ticaret sicil no (tüzel kişi ise). */
+  ticaretSicilNo: "[TİCARET SİCİL NO]",
+  /** İletişim telefonu. */
+  telefon: "[+90 XXX XXX XX XX]",
+  /** Genel iletişim e-postası. */
+  eposta: "destek@veylify.com",
+  /** KVKK / veri sorumlusu başvuru e-postası. */
+  kvkkEposta: "kvkk@veylify.com",
+  /** Müşteri hizmetleri/destek çalışma saatleri. */
+  calismaSaatleri: "Hafta içi 09:00–18:00 (GMT+3)",
+} as const;
+
+export type Firma = typeof FIRMA;

@@ -10,9 +10,14 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#ffffff",
     theme_color: MARKA.renk,
+    // GERÇEK dosyalar: Next `src/app/icon.png` → /icon.png (512), `apple-icon.png`
+    // → /apple-icon.png (180); ayrıca public/favicon-32.png. Önceden olmayan
+    // /icon.svg + /apple-icon.svg'e işaret ediyordu (kırık PWA ikonları).
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
-      { src: "/apple-icon.svg", sizes: "180x180", type: "image/svg+xml" },
+      { src: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  if (!user) redirect("/giris");
+  if (!user) redirect("/login");
 
   // RBAC: efektif rolü hesapla (gerçek rol veya daraltılmış önizleme).
   const rol = await efektifRol(user.role);

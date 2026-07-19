@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-const GUNCELLEME = "16 Temmuz 2026";
+const GUNCELLEME = "19 Temmuz 2026";
 
 export default function SartlarPage() {
   return (
@@ -76,7 +76,7 @@ export default function SartlarPage() {
               Ücretsiz ve ücretli planlar sunulur. Ücretli planlarda ücretler, seçtiğiniz plan ve
               kullanım hacmine göre belirlenir; faturalandırma dönemsel olarak yapılır. Vergiler,
               aksi belirtilmedikçe fiyatlara dâhil değildir. Plan koşulları{" "}
-              <Link href="/fiyatlandirma" className="font-semibold text-veylify-700">
+              <Link href="/pricing" className="font-semibold text-veylify-700">
                 Fiyatlandırma
               </Link>{" "}
               sayfasında yer alır.

@@ -1,4 +1,5 @@
 import { MARKA } from "@/lib/marka";
+import { PLANLAR } from "@/lib/specter/plans";
 
 /**
  * JsonLd — yapılandırılmış veri (schema.org). Arama motorları + AI arama
@@ -11,7 +12,9 @@ import { MARKA } from "@/lib/marka";
 type Sss = { s: string; c: string };
 
 export function JsonLd({ sss }: { sss?: Sss[] }) {
-  const logo = `${MARKA.url}/brand/logo.png`;
+  // Logo — gerçekten var olan dosya (public/brand/logo-baykus-512.png). Önceden
+  // olmayan /brand/logo.png'e işaret ediyordu → kırık structured-data görseli.
+  const logo = `${MARKA.url}/brand/logo-baykus-512.png`;
   const og = `${MARKA.url}/opengraph-image`;
 
   const graph: Record<string, unknown>[] = [
@@ -23,6 +26,8 @@ export function JsonLd({ sss }: { sss?: Sss[] }) {
       logo: {
         "@type": "ImageObject",
         url: logo,
+        width: 512,
+        height: 512,
       },
       description: `${MARKA.ad}, ghost-font (temporal dithering) teknolojisiyle web sitelerini AI botlarından koruyan insan doğrulama / CAPTCHA platformudur.`,
       sameAs: [],
@@ -61,12 +66,28 @@ export function JsonLd({ sss }: { sss?: Sss[] }) {
       description: `AI botlarına karşı ghost-font CAPTCHA: insanın gördüğü, makinenin göremediği görünmez doğrulama katmanı. Davranışsal analiz, kural motoru ve görünmez mod ile.`,
       inLanguage: "tr-TR",
       publisher: { "@id": `${MARKA.url}/#organization` },
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "TRY",
-        description: "Başlangıç planı ücretsiz — kredi kartı gerekmez.",
-      },
+      // Fiyatlar plans.ts'ten (tek kaynak). Free = 0 ₺; Pro = 990 ₺/ay. Ölçek
+      // planı "Özel" (sayısal fiyat yok) → structured-data'ya dahil edilmez.
+      offers: [
+        {
+          "@type": "Offer",
+          name: PLANLAR.free.ad,
+          price: "0",
+          priceCurrency: "TRY",
+          description: "Başlangıç planı ücretsiz — kredi kartı gerekmez.",
+          availability: "https://schema.org/InStock",
+          url: `${MARKA.url}/pricing`,
+        },
+        {
+          "@type": "Offer",
+          name: PLANLAR.pro.ad,
+          price: "990",
+          priceCurrency: "TRY",
+          description: "Büyüme planı — aylık, üretim ölçeğinde bot koruması.",
+          availability: "https://schema.org/InStock",
+          url: `${MARKA.url}/pricing`,
+        },
+      ],
     },
   ];
 

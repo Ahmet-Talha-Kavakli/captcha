@@ -105,7 +105,7 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
 
   async function cikis() {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/giris");
+    router.push("/login");
   }
 
   return (

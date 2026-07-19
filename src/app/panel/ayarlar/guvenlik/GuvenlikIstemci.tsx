@@ -118,7 +118,7 @@ export function GuvenlikIstemci({
       body: JSON.stringify({ confirm: silOnay }),
     });
     setSiliniyor(false);
-    if (res.ok) router.push("/giris");
+    if (res.ok) router.push("/login");
     else {
       const { error } = await res.json().catch(() => ({ error: "Silinemedi" }));
       goster({ tip: "hata", baslik: "Hesap silinemedi", aciklama: error });

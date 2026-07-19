@@ -98,6 +98,6 @@ export function middleware(req: NextRequest) {
  */
 export const config = {
   matcher: [
-    "/((?!panel|api|giris|kayit|demo-giris|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:webp|png|jpg|jpeg|svg|ico|css|js|woff2?)).*)",
+    "/((?!panel|api|login|signup|demo-giris|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:webp|png|jpg|jpeg|svg|ico|css|js|woff2?)).*)",
   ],
 };

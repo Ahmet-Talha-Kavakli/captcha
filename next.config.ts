@@ -27,6 +27,26 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
+  async redirects() {
+    // Eski Türkçe pazarlama/auth URL'leri yeni İngilizce rotalara kalıcı (301)
+    // yönlendir. SEO ve dış bağlantılar kırılmasın.
+    const eskiden: Array<[string, string]> = [
+      ["/ozellikler", "/features"],
+      ["/fiyatlandirma", "/pricing"],
+      ["/nasil-calisir", "/how-it-works"],
+      ["/cozumler", "/solutions"],
+      ["/iletisim", "/contact"],
+      ["/hakkimizda", "/about"],
+      ["/guvenlik", "/security"],
+      ["/giris", "/login"],
+      ["/kayit", "/signup"],
+    ];
+    return eskiden.map(([source, destination]) => ({
+      source,
+      destination,
+      permanent: true,
+    }));
+  },
   async headers() {
     return [
       {

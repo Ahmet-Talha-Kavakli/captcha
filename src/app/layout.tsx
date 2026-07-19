@@ -114,8 +114,8 @@ gtag('config', '${GA_ID}');`}
     <ClerkProvider
       localization={trTR}
       appearance={{ variables: { colorPrimary: MARKA.renk } }}
-      signInUrl="/giris"
-      signUpUrl="/kayit"
+      signInUrl="/login"
+      signUpUrl="/signup"
     >
       {govde}
     </ClerkProvider>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { MARKA } from "@/lib/marka";
+import { MARKA, FIRMA } from "@/lib/marka";
 import { HukukiHero, Bolum, HukukiAltCta } from "../gizlilik/page";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-const GUNCELLEME = "16 Temmuz 2026";
+const GUNCELLEME = "19 Temmuz 2026";
 
 export default function KvkkPage() {
   return (
@@ -36,10 +36,27 @@ export default function KvkkPage() {
           <Bolum n="1" baslik="Veri Sorumlusu">
             <p>
               6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca, kişisel
-              verileriniz veri sorumlusu sıfatıyla {MARKA.ad} tarafından aşağıda açıklanan
-              kapsamda işlenmektedir. İletişim: {MARKA.domain}, {MARKA.destekEposta} — İstanbul,
-              Türkiye.
+              verileriniz veri sorumlusu sıfatıyla aşağıda kimlik ve iletişim bilgileri yer alan
+              firma tarafından işlenmektedir:
             </p>
+            <ul>
+              <li><strong>Veri Sorumlusu (Ticaret Unvanı):</strong> {FIRMA.unvan}</li>
+              <li><strong>Adres:</strong> {FIRMA.adres}</li>
+              <li><strong>MERSIS No:</strong> {FIRMA.mersis}</li>
+              <li><strong>Vergi Dairesi / No:</strong> {FIRMA.vergiDairesi} — {FIRMA.vergiNo}</li>
+              <li>
+                <strong>KVKK Başvuru E-postası:</strong>{" "}
+                <a href={`mailto:${FIRMA.kvkkEposta}`} className="font-semibold text-veylify-700">
+                  {FIRMA.kvkkEposta}
+                </a>
+              </li>
+              <li>
+                <strong>Genel İletişim:</strong> {MARKA.domain} ·{" "}
+                <a href={`mailto:${FIRMA.eposta}`} className="font-semibold text-veylify-700">
+                  {FIRMA.eposta}
+                </a>{" "}· {FIRMA.telefon}
+              </li>
+            </ul>
           </Bolum>
 
           <Bolum n="2" baslik="İşlenen Kişisel Veriler">
@@ -89,7 +106,24 @@ export default function KvkkPage() {
             </p>
           </Bolum>
 
-          <Bolum n="7" baslik="İlgili Kişinin Hakları (KVKK m.11)">
+          <Bolum n="7" baslik="Saklama Süreleri">
+            <p>
+              Kişisel verileriniz, işleme amacının gerektirdiği süre boyunca ve ilgili mevzuatta
+              öngörülen yasal saklama süreleri kadar muhafaza edilir:
+            </p>
+            <ul>
+              <li><strong>Hesap ve müşteri işlem verileri:</strong> Hesabınız aktif olduğu sürece; hesap kapatıldıktan sonra yasal zamanaşımı ve ispat yükümlülükleri kapsamında azami on yıla kadar.</li>
+              <li><strong>Fatura ve finansal kayıtlar:</strong> Vergi Usul Kanunu ve Türk Ticaret Kanunu uyarınca on yıl.</li>
+              <li><strong>İşlem güvenliği / doğrulama sinyalleri:</strong> Yalnızca güvenlik analizinin gerektirdiği kısa süre boyunca; doğrulama akışı stateless çalıştığından bu veriler kalıcı profilleme amacıyla saklanmaz.</li>
+              <li><strong>İletişim ve destek kayıtları:</strong> Talebin sonuçlandırılmasını izleyen makul süre boyunca.</li>
+            </ul>
+            <p>
+              Saklama süresi sona eren veriler silinir, yok edilir veya geri döndürülemez biçimde
+              anonim hâle getirilir.
+            </p>
+          </Bolum>
+
+          <Bolum n="8" baslik="İlgili Kişinin Hakları (KVKK m.11)">
             <p>KVKK’nın 11. maddesi uyarınca aşağıdaki haklara sahipsiniz:</p>
             <ul>
               <li>Kişisel verinizin işlenip işlenmediğini öğrenme.</li>
@@ -104,14 +138,14 @@ export default function KvkkPage() {
             </ul>
           </Bolum>
 
-          <Bolum n="8" baslik="Başvuru Yolu">
+          <Bolum n="9" baslik="Başvuru Yolu">
             <p>
               Yukarıdaki haklarınıza ilişkin taleplerinizi{" "}
-              <a href={`mailto:${MARKA.destekEposta}`} className="font-semibold text-veylify-700">
-                {MARKA.destekEposta}
+              <a href={`mailto:${FIRMA.kvkkEposta}`} className="font-semibold text-veylify-700">
+                {FIRMA.kvkkEposta}
               </a>{" "}
               adresine iletebilir veya{" "}
-              <Link href="/iletisim" className="font-semibold text-veylify-700">
+              <Link href="/contact" className="font-semibold text-veylify-700">
                 iletişim formumuz
               </Link>{" "}
               üzerinden başvurabilirsiniz. Başvurunuz, talebin niteliğine göre en geç otuz gün

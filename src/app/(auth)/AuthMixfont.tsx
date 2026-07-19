@@ -83,16 +83,17 @@ export function AuthMixfont({ mode }: { mode: "sign-in" | "sign-up" }) {
 
   return (
     <div className="w-full max-w-[440px]">
-      {/* üst marka satırı — sade */}
+      {/* üst satır — logo yalnız MOBİLDE (lg'de sol panelde zaten büyük marka var,
+          çift logo olmasın). Sağda giriş/kayıt geçişi. */}
       <div className="mb-14 flex items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-2">
+        <Link href="/" className="inline-flex items-center gap-2 lg:invisible">
           <SpecterMark size={26} />
           <span className="font-display text-[17px] font-extrabold tracking-tight text-ink-900">
             {MARKA.ad}
           </span>
         </Link>
         <Link
-          href={isSignUp ? "/giris" : "/kayit"}
+          href={isSignUp ? "/login" : "/signup"}
           className="text-[13.5px] font-medium text-ink-500 transition hover:text-ink-900"
         >
           {isSignUp ? "Giriş Yap" : "Kayıt Ol"}
@@ -182,21 +183,11 @@ export function AuthMixfont({ mode }: { mode: "sign-in" | "sign-up" }) {
         </button>
       </form>
 
-      {/* demo hesap ipucu (yalnızca giriş) */}
-      {!isSignUp && (
-        <p className="mt-5 text-center text-[12.5px] leading-relaxed text-ink-500">
-          Demo hesabı:{" "}
-          <span className="font-mono font-medium text-ink-700">demo@veylify.com</span>{" "}
-          /{" "}
-          <span className="font-mono font-medium text-ink-700">specter123</span>
-        </p>
-      )}
-
       {/* alt geçiş linki */}
       <p className="mt-8 text-center text-[14px] text-ink-500">
         {isSignUp ? "Zaten hesabın var mı? " : "Henüz hesabın yok mu? "}
         <Link
-          href={isSignUp ? "/giris" : "/kayit"}
+          href={isSignUp ? "/login" : "/signup"}
           className="font-medium text-ink-900 underline-offset-4 hover:underline"
         >
           {isSignUp ? "Giriş yap" : "Kayıt ol"}

@@ -10,10 +10,15 @@ import { landingDil } from "@/lib/i18n/landing-sunucu";
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
   const dil = await landingDil();
   return (
-    <div className="overflow-x-clip bg-white text-veylify-950">
+    // Navbar overflow-clip'in DIŞINDA — yoksa `overflow-x-clip` ata elementi
+    // sticky konumlamayı bozar (navbar scroll'da sabit kalmaz). Yatay taşma
+    // koruması yalnız içeriğe (main) uygulanır.
+    <div className="bg-[#f4f1ea] text-veylify-950">
       <Navbar dil={dil} />
-      <main>{children}</main>
-      <Footer dil={dil} />
+      <div className="overflow-x-clip">
+        <main>{children}</main>
+        <Footer dil={dil} />
+      </div>
     </div>
   );
 }

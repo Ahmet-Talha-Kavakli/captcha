@@ -9,10 +9,10 @@ import { DilDegistirici } from "./DilDegistirici";
 import { landingCeviri, LANDING_VARSAYILAN, type LandingDil } from "@/lib/i18n/landing";
 
 const LINKS = [
-  { href: "/ozellikler", anahtar: "nav.ozellikler" },
-  { href: "/nasil-calisir", anahtar: "nav.nasil" },
-  { href: "/cozumler", anahtar: "nav.cozumler" },
-  { href: "/fiyatlandirma", anahtar: "nav.fiyat" },
+  { href: "/features", anahtar: "nav.ozellikler" },
+  { href: "/how-it-works", anahtar: "nav.nasil" },
+  { href: "/solutions", anahtar: "nav.cozumler" },
+  { href: "/pricing", anahtar: "nav.fiyat" },
   { href: "/demo", anahtar: "nav.demo" },
 ];
 
@@ -30,7 +30,7 @@ export function Navbar({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 transition-all duration-300 relative",
+        "sticky top-0 z-50 transition-all duration-300",
         // Apple "liquid glass": her zaman blur + yarı-saydam beyaz zemin;
         // scroll'da daha opak + belirgin alt-border + yumuşak gölge.
         scrolled
@@ -49,19 +49,19 @@ export function Navbar({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
       <nav
         className={cn(
           "mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 transition-all duration-300 lg:px-8",
-          scrolled ? "py-3.5" : "py-5",
+          scrolled ? "py-4" : "py-6",
         )}
       >
         <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
-          <Logo size={scrolled ? 30 : 34} tone="dark" />
+          <Logo size={scrolled ? 34 : 40} tone="dark" />
         </Link>
 
-        <div className="hidden items-center gap-0.5 md:flex">
+        <div className="hidden items-center gap-1 md:flex">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-xl px-3.5 py-2.5 text-[15px] font-medium text-slate-600 transition hover:bg-veylify-50 hover:text-veylify-700"
+              className="rounded-xl px-4 py-2.5 text-[16px] font-medium text-slate-600 transition hover:bg-veylify-50 hover:text-veylify-700"
             >
               {t(l.anahtar)}
             </Link>
@@ -71,14 +71,14 @@ export function Navbar({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
         <div className="hidden items-center gap-2.5 md:flex">
           <DilDegistirici dil={dil} />
           <Link
-            href="/giris"
-            className="rounded-xl px-3.5 py-2.5 text-[15px] font-medium text-slate-600 transition hover:text-veylify-700"
+            href="/login"
+            className="rounded-xl px-4 py-2.5 text-[16px] font-medium text-slate-600 transition hover:text-veylify-700"
           >
             {t("nav.giris")}
           </Link>
           <Link
-            href="/kayit"
-            className="inline-flex items-center gap-1.5 rounded-full bg-veylify-600 px-5 py-2.5 text-[15px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(79,70,229,0.6)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
+            href="/signup"
+            className="inline-flex items-center gap-1.5 rounded-full bg-veylify-600 px-6 py-3 text-[16px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(79,70,229,0.6)] transition hover:-translate-y-0.5 hover:bg-veylify-700"
           >
             {t("nav.basla")} <ArrowRight className="h-4 w-4" />
           </Link>
@@ -111,13 +111,13 @@ export function Navbar({ dil = LANDING_VARSAYILAN }: { dil?: LandingDil }) {
             <div className="mt-2 flex flex-col gap-2 border-t border-veylify-100 pt-3">
               <div className="px-1 pb-1"><DilDegistirici dil={dil} /></div>
               <Link
-                href="/giris"
+                href="/login"
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-veylify-50"
               >
                 {t("nav.giris")}
               </Link>
               <Link
-                href="/kayit"
+                href="/signup"
                 className="rounded-full bg-veylify-600 px-5 py-2.5 text-center text-sm font-semibold text-white"
               >
                 {t("nav.basla")}
