@@ -14,7 +14,12 @@ export default async function MarketingLayout({ children }: { children: React.Re
 
   // Oturum durumu (currentUser hem Clerk hem cookie'yi çözer). Profil resmi
   // Clerk'ten (Google avatarı) gelir; yoksa isim baş harfi + renk kullanılır.
-  const user = await currentUser();
+  //
+  // PERFORMANS: burada yalnızca "giriş yapmış mı + adı ne" bilgisi gerekir;
+  // saniyelik tazelik gerekmez. `taze:false` TTL'li hafif okuma yapar — aksi
+  // halde HER anonim landing ziyaretçisi tüm DB blob'unu indirip sayfa
+  // sunucuda 20sn+ sürüyordu (reklam trafiği için ölümcül).
+  const user = await currentUser({ taze: false });
   let avatarUrl: string | null = null;
   if (user && clerkYapili()) {
     try {

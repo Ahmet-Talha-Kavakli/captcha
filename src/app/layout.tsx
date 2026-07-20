@@ -112,8 +112,16 @@ gtag('config', '${GA_ID}');`}
   if (!clerkYapili()) return govde;
   return (
     <ClerkProvider
+      // NOT: Formdaki "<uygulama> ile devam etmek için" alt başlığı Clerk'in
+      // UYGULAMA ADI'ndan gelir ve koddan ezilemez — Clerk Dashboard → Settings →
+      // Application name alanı "Veylify" yapılmalı (şu an "captcha" görünüyor).
       localization={trTR}
-      appearance={{ variables: { colorPrimary: MARKA.renk } }}
+      appearance={{
+        variables: { colorPrimary: MARKA.renk },
+        // Clerk'in kendi başlık logosu gizlenir — sayfada zaten kendi logomuz var
+        // (aksi halde üst üste iki Veylify logosu görünüyordu).
+        elements: { logoBox: "hidden" },
+      }}
       signInUrl="/login"
       signUpUrl="/signup"
     >

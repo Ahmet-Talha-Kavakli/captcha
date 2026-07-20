@@ -17,11 +17,16 @@ import type { User } from "./db/schema";
 export const SESSION_COOKIE = "specter_session";
 
 /** Mevcut istekteki kullanıcıyı çözer (yoksa null). Önce Clerk, sonra cookie. */
-export async function currentUser(): Promise<User | null> {
+export async function currentUser(opts?: { taze?: boolean }): Promise<User | null> {
   // Supabase modunda state'i TAZE yükle (zorla) — auth kritik; başka instance'ın
-  // (login) yazdığı session/kullanıcı bu istekte kesin görünsün. TTL küçük
-  // olduğundan aynı istekteki tekrar çağrılar yine cache'ten döner.
-  await blobHazirla(true);
+  // (login) yazdığı session/kullanıcı bu istekte kesin görünsün.
+  //
+  // PERFORMANS: `zorla=true` TTL'i atlar, yani HER istekte tüm blob indirilir.
+  // Bu yalnızca oturumun kesin güncel olması gereken yerlerde (panel, API,
+  // login sonrası) gerekli. Landing gibi salt "giriş yapmış mı" bilgisini
+  // kullanan yüksek-trafikli sayfalarda `taze:false` geçilir → TTL'li hafif
+  // okuma; aksi halde her anonim ziyaretçi tüm DB'yi indirip sayfa 20sn+ sürer.
+  await blobHazirla(opts?.taze !== false);
   // 1) Clerk oturumu var mı?
   try {
     const { userId } = await clerkAuth();
