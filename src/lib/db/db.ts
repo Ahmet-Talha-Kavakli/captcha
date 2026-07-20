@@ -73,9 +73,22 @@ let blobYuklemeSozu: Promise<void> | null = null;
  * await eder → böylece senkron `load()` GÜNCEL cache bulur (serverless'ta
  * başka instance'ın yazdığı session/kullanıcı burada da görünür).
  */
+/**
+ * Supabase art arda başarısız olursa (kota aşımı, duraklatılmış proje, arıza)
+ * DEVRE KESİCİ açılır: bir süre boyunca Supabase'e hiç gidilmez, tüm okumalar
+ * bellekteki cache'ten yapılır. Aksi halde her istek 4 sn timeout bekler ve
+ * kullanıcı oturumu bile açamaz (blobHazirla dönene kadar auth bloke olur).
+ */
+let ardArdaHata = 0;
+let devreKesikBitis = 0;
+const HATA_ESIGI = 2;
+const DEVRE_KESIK_MS = 60_000;
+
 export async function blobHazirla(zorla = false): Promise<void> {
   if (!supabaseAktif) return;
   const simdi = Date.now();
+  // Devre kesik ve elimizde kullanılabilir cache varsa Supabase'i hiç deneme.
+  if (cache && simdi < devreKesikBitis) return;
   if (!zorla && cache && simdi - blobSonYukleme < BLOB_TTL_MS) return;
   if (blobYuklemeSozu) return blobYuklemeSozu;
   blobYuklemeSozu = (async () => {
@@ -83,10 +96,16 @@ export async function blobHazirla(zorla = false): Promise<void> {
       const uzak = await blobYukle();
       if (uzak && uzak._version === SCHEMA_VERSION) {
         cache = uzak;
+        ardArdaHata = 0;
+        devreKesikBitis = 0;
       } else if (!cache) {
         // Supabase'de yok/eski VE bellek boş → seed üret + Supabase'e yaz.
         cache = buildSeed(Date.now());
         await blobKaydet(cache);
+      } else {
+        // Cache var ama uzaktan veri gelmedi (timeout/hata) → cache KORUNUR.
+        // Üst üste başarısızlıkta devreyi kes.
+        if (++ardArdaHata >= HATA_ESIGI) devreKesikBitis = Date.now() + DEVRE_KESIK_MS;
       }
       cacheMtime = Date.now();
       blobSonYukleme = simdi;

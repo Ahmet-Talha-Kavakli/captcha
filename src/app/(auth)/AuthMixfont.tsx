@@ -196,8 +196,9 @@ export function AuthMixfont({ mode }: { mode: "sign-in" | "sign-up" }) {
 
       {/* ince gri alt açıklama — mixfont sadeliği */}
       <p className="mx-auto mt-10 max-w-[360px] text-center text-[11.5px] leading-relaxed text-ink-400">
-        Devam ederek {MARKA.ad} Hizmet Koşulları ve Gizlilik Politikası&apos;nı kabul
-        etmiş olursunuz. Sitenizi AI botlarından ghost-font teknolojisiyle koruyun.
+        Devam ederek {MARKA.ad}{" "}
+        Hizmet Koşulları ve Gizlilik Politikası&apos;nı kabul etmiş olursunuz.
+        Sitenizi AI botlarından ghost-font teknolojisiyle koruyun.
       </p>
     </div>
   );
