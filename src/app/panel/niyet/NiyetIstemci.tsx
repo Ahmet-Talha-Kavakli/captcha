@@ -118,7 +118,7 @@ function NiyetDagilim({ sonuc, dil, buyuk }: { sonuc: NiyetSonuc; dil: Dil; buyu
           <p className="text-[16px] font-bold text-slate-ink">{niyetMotAd(sonuc.niyet, dil)}</p>
           <p className="text-[12px] text-slate-faint">{niyetMotAcik(sonuc.niyet, dil)}</p>
         </div>
-        <span className="num ml-auto text-[22px] font-bold" style={{ color: meta.renk }}>%{Math.round(enUst.olasilik * 100)}</span>
+        <span className="num ml-auto text-[22px] font-bold" style={{ color: meta.renk }}>%{Math.round((enUst?.olasilik ?? 0) * 100)}</span>
       </div>
 
       <div className="mt-4 space-y-1.5">
@@ -172,7 +172,7 @@ function SaldirganKart({ s, idx, azalt, dil }: { s: SaldirganNiyet; idx: number;
           <span className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold" style={{ background: `${meta.renk}18`, color: meta.renk }}>
             <MotIkon ad={meta.ikon} className="size-3.5" /> {niyetMotAd(s.sonuc.niyet, dil)}
           </span>
-          <span className="num text-[12px] text-slate-faint">%{Math.round(s.sonuc.dagilim[0].olasilik * 100)}</span>
+          <span className="num text-[12px] text-slate-faint">%{Math.round((s.sonuc.dagilim[0]?.olasilik ?? 0) * 100)}</span>
           <button onClick={() => setAcik((v) => !v)} className="rounded-lg p-1 text-slate-faint hover:bg-canvas hover:text-slate-ink">
             <ChevronDown className={cn("size-4 transition", acik && "rotate-180")} />
           </button>

@@ -309,17 +309,22 @@ export function KomutaMerkeziIstemci({
   }, [t]);
 
   const kotuAsnBatch = useCallback(() => {
+    // "Hangileri YENİ" bilgisi updater dışında, mevcut state'ten hesaplanır →
+    // hem sayaç hem liste aynı kümeyi kullanır (StrictMode'da updater'ın iki kez
+    // çalışması sayacı bozmaz).
+    const eklenecek = foto.bilinenKotuAsn.filter((a) => !durum.engelliAsn.includes(a));
+    if (!eklenecek.length) return;
     setDurum((d) => {
-      const eklenecek = foto.bilinenKotuAsn.filter((a) => !d.engelliAsn.includes(a));
-      if (!eklenecek.length) return d;
       const kayit: KomutaKayit = {
         id: d.sonrakiId, ts: Date.now(), tur: "batch",
         ozet: t("km.log.batch").replace("{n}", String(eklenecek.length)),
       };
       return { ...d, sonrakiId: d.sonrakiId + 1, engelliAsn: [...eklenecek, ...d.engelliAsn], kayitlar: [kayit, ...d.kayitlar].slice(0, 120) };
     });
-    setEkEngel((n) => n + foto.bilinenKotuAsn.length * 3);
-  }, [foto.bilinenKotuAsn, t]);
+    // Yalnızca gerçekten eklenenler sayılır; tüm listeyi saymak ikinci tıklamada
+    // zaten engelli ASN'leri tekrar sayıp sayacı şişiriyordu.
+    setEkEngel((n) => n + eklenecek.length * 3);
+  }, [foto.bilinenKotuAsn, durum.engelliAsn, t]);
 
   const senaryoKarantina = useCallback((sinif: string) => {
     setDurum((d) => {

@@ -479,7 +479,8 @@ export function DavranisYakalamaIstemci({ dil }: { dil: Dil }) {
         />
         <StatKart sayi={aktif ? `%${skor.confidence}` : "—"} etiket={t("dy.kart.guven")} ikon={<Gauge className="size-5" />} />
         <StatKart sayi={sinyal.mouseSamples.toLocaleString(yerel)} etiket={t("dy.kart.fareOrnegi")} ikon={<MousePointerClick className="size-5" />} />
-        <StatKart sayi={sinyal.keyIntervals.length + 1 > 1 ? sinyal.keyIntervals.length + 1 : 0} etiket={t("dy.kart.tusVurusu")} ikon={<Keyboard className="size-5" />} />
+        {/* N aralık → N+1 tuş; hiç aralık yoksa 0. (Aşağıdaki ayrıntı listesiyle aynı formül.) */}
+        <StatKart sayi={sinyal.keyIntervals.length + (sinyal.keyIntervals.length > 0 ? 1 : 0)} etiket={t("dy.kart.tusVurusu")} ikon={<Keyboard className="size-5" />} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -767,7 +768,7 @@ function FareIzi({ noktalar, azMotion }: { noktalar: IzNoktasi[]; azMotion: bool
     <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
       <defs>
         <linearGradient id="izGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#67e8f9" />
+          <stop offset="0" stopColor="#a5b4fc" />
           <stop offset="1" stopColor="#4a41e8" />
         </linearGradient>
       </defs>

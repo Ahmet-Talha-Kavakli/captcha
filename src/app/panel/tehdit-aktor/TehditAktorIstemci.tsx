@@ -10,7 +10,9 @@ import type { Dil } from "@/lib/i18n/panel";
 import { aktorCeviri } from "./tehdit-aktor.i18n";
 import { cn } from "@/lib/cn";
 
-function zaman(ts: number) { return new Date(ts).toLocaleString("tr-TR"); }
+const LOCALE: Record<Dil, string> = { tr: "tr-TR", en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES" };
+
+function zaman(ts: number, dil: Dil) { return new Date(ts).toLocaleString(LOCALE[dil]); }
 
 // Motorun döndürdüğü Türkçe profil adı → profil id (dağılım/en-aktif çevirisi için).
 const AD_ID = new Map(AKTOR_PROFILLERI.map((p) => [p.ad, p.id]));
@@ -119,8 +121,8 @@ export function TehditAktorIstemci({
                     <div className="space-y-2 text-[12.5px]">
                       <div className="flex items-center gap-1.5 text-slate-muted"><Server className="size-3.5 shrink-0" /> {a.asnler.slice(0, 2).join(", ") || "—"}</div>
                       <div className="flex items-start gap-1.5 text-slate-muted"><Globe className="mt-0.5 size-3.5 shrink-0" /> {t("target")}: {a.hedefYollar.slice(0, 3).join(", ")}</div>
-                      <div className="text-slate-faint">{t("first")}: {zaman(a.ilkGorulme)}</div>
-                      <div className="text-slate-faint">{t("last")}: {zaman(a.sonGorulme)}</div>
+                      <div className="text-slate-faint">{t("first")}: {zaman(a.ilkGorulme, dil)}</div>
+                      <div className="text-slate-faint">{t("last")}: {zaman(a.sonGorulme, dil)}</div>
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-2">

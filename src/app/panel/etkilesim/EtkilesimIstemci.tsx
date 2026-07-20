@@ -161,7 +161,8 @@ export function EtkilesimIstemci({ arketipler, ozet, trafik, varsayilanInsan, va
   const izgara = useMemo(() => hareketIsiHaritasi(seciliIsi), [seciliIsi]);
   const metrik = useMemo(() => isiMetrik(izgara), [izgara]);
   const desen = useMemo(() => tiklamaDeseni(seciliIsi), [seciliIsi]);
-  const isiTaraf: "insan" | "bot" = aktifArketip.beklenen;
+  // arketipler boş gelirse aktifArketip undefined olur → guard'sız erişim çökerdi.
+  const isiTaraf: "insan" | "bot" = aktifArketip?.beklenen ?? "insan";
 
   const kars = useMemo(() => etkilesimKarsilastir(insanAnahtar, botAnahtar), [insanAnahtar, botAnahtar]);
   const zi = useMemo(() => zamanlamaDagilimi(insanAnahtar), [insanAnahtar]);

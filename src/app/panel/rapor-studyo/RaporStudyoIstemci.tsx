@@ -337,7 +337,9 @@ export function RaporStudyoIstemci({
   /* --- Dışa aktarma verisi (gerçek) --- */
   const raporNesnesi = useMemo(() => {
     const tsl = taslak;
-    const oran = veri.toplam.issued ? veri.engellenenSayisi / veri.olaySayisi : 0;
+    // Guard BÖLEN üzerinde olmalı (olaySayisi); aksi halde issued>0 ama olay yokken
+    // dışa aktarılan raporda oran Infinity/NaN çıkıyordu.
+    const oran = veri.olaySayisi ? veri.engellenenSayisi / veri.olaySayisi : 0;
     return {
       meta: {
         baslik: tsl.markaBaslik,

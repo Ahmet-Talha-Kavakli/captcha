@@ -50,8 +50,12 @@ function LogoCip({ operator, renk, boyut = "size-9" }: { operator: string; renk:
       </span>
     );
   }
+  // `renk` çağrı yerlerinde ajanın LOGO YOLU ile besleniyor ("/logo/x.svg"), bu da
+  // geçersiz bir CSS rengi → fallback rozetin arka planı boş kalıyordu. Yalnızca
+  // gerçek renk değerlerini kabul et, aksi halde marka indigosuna düş.
+  const gecerliRenk = /^(#|rgb|hsl)/i.test(renk) ? renk : "#4f46e5";
   return (
-    <span className={cn("grid shrink-0 place-items-center rounded-xl text-white", boyut)} style={{ background: renk }}>
+    <span className={cn("grid shrink-0 place-items-center rounded-xl text-white", boyut)} style={{ background: gecerliRenk }}>
       <Bot className="size-4" />
     </span>
   );

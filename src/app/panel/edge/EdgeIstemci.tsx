@@ -40,6 +40,8 @@ import {
 } from "@/lib/specter/edge-yonlendirme";
 import { projeksiyon } from "@/lib/specter/ulke-koordinat";
 
+const LOCALE: Record<Dil, string> = { tr: "tr-TR", en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES" };
+
 /** Bölge enum → çevrilmiş görüntü etiketi (enum değeri korunur). */
 function bolgeAd(dil: Dil, b: EdgeBolge): string {
   return edgeCeviri(`ed.bolge.${b}`, dil);
@@ -580,7 +582,7 @@ function DunyaHaritasi({
       </div>
       <p className="mt-2.5 text-[11.5px] leading-relaxed text-slate-faint">
         {toplamYonlenen > 0
-          ? t("ed.harita.aciklamaVar").replace("{n}", toplamYonlenen.toLocaleString("tr-TR"))
+          ? t("ed.harita.aciklamaVar").replace("{n}", toplamYonlenen.toLocaleString(LOCALE[dil]))
           : t("ed.harita.aciklamaYok")}
       </p>
     </Panel>
@@ -1023,7 +1025,7 @@ function FailoverSimulasyon({
                           <span className="text-[13.5px] font-semibold text-slate-ink">{hp.sehir}</span>
                           <span className="num rounded bg-canvas px-1.5 py-0.5 text-[10px] font-bold text-slate-muted">{hp.kod}</span>
                         </div>
-                        <div className="num text-[11px] text-slate-faint">{h.mesafeKm.toLocaleString("tr-TR")} km · {bolgeAd(dil, hp.bolge)}</div>
+                        <div className="num text-[11px] text-slate-faint">{h.mesafeKm.toLocaleString(LOCALE[dil])} km · {bolgeAd(dil, hp.bolge)}</div>
                       </div>
                       <div className="ml-auto flex items-center gap-3">
                         <div className="hidden w-28 sm:block">

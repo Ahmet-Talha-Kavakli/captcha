@@ -75,7 +75,7 @@ export const KATMANLAR: Katman[] = [
     aciklama: "İlk savunma hattı. Ağ kenarında hacim/hız temelli seller ve kaba-kuvvet dalgaları daha uygulamaya varmadan kesilir.",
     yakalar: "Yüksek hacim / rate taşkını (DDoS, flood, kaba kuvvet)",
     ikon: "Gauge",
-    renk: "#0891b2", // cyan-600 — edge
+    renk: "#6366f1", // veylify-500 — edge (marka indigo ailesi)
   },
   {
     id: "ip-itibar",

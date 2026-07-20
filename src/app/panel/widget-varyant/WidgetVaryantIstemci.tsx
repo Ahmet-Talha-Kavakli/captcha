@@ -80,7 +80,7 @@ const LS_ANAHTAR = "specter_widget_varyantlar";
 function varsayilanConfig(t: Ceviri): VaryantConfig {
   return {
     tema: "koyu",
-    vurgu: "#06b6d4",
+    vurgu: "#4a41e8", // marka indigo (widget varsayılanı markayla tutarlı olmalı)
     yaricap: 20,
     boyut: "normal",
     tur: "kod",

@@ -135,7 +135,8 @@ function HuniKart({
         })}
       </div>
       <div className="mt-3 flex items-center gap-1.5 rounded-xl bg-canvas/50 px-3 py-2 text-[11.5px] text-slate-muted">
-        <ShieldCheck className="size-3.5 shrink-0" style={{ color: renk }} /> {t(`ky.${dizi}.${asamalar.length - 1}.aciklama`)}
+        {/* Boş dizide `length-1` = -1 → geçersiz çeviri anahtarı (ky.insan.-1…) üretiyordu. */}
+        <ShieldCheck className="size-3.5 shrink-0" style={{ color: renk }} /> {asamalar.length ? t(`ky.${dizi}.${asamalar.length - 1}.aciklama`) : ""}
       </div>
     </Panel>
   );

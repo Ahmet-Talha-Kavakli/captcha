@@ -9,6 +9,8 @@ import { cn } from "@/lib/cn";
 import type { Dil } from "@/lib/i18n/panel";
 import { tehditAviCeviri } from "./tehdit-avi.i18n";
 
+const LOCALE: Record<Dil, string> = { tr: "tr-TR", en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES" };
+
 type Ceviri = (anahtar: string) => string;
 
 interface AvOlay {
@@ -44,6 +46,7 @@ export function TehditAviIstemci({
   alanlar: string[];
 }) {
   const t = (anahtar: string) => tehditAviCeviri(anahtar, dil);
+  const loc = LOCALE[dil];
   const { goster } = useToast();
   const [sorgu, setSorgu] = useState("");
   const [sonuc, setSonuc] = useState<Sonuc>(ilkSonuc);
@@ -135,9 +138,9 @@ export function TehditAviIstemci({
 
       {/* özet + sonuç */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatKart sayi={sonuc.eslesme.toLocaleString("tr-TR")} etiket={calisti ? t("av.kpi.eslesen") : t("av.kpi.sonOlaylar")} ikon={<Filter className="size-5" />} tone="brand" />
-        <StatKart sayi={sonuc.toplam.toLocaleString("tr-TR")} etiket={t("av.kpi.taranan")} ikon={<Terminal className="size-5" />} />
-        <StatKart sayi={sonuc.ozet.benzersizIp.toLocaleString("tr-TR")} etiket={t("av.kpi.benzersizIp")} ikon={<Bot className="size-5" />} tone="danger" />
+        <StatKart sayi={sonuc.eslesme.toLocaleString(loc)} etiket={calisti ? t("av.kpi.eslesen") : t("av.kpi.sonOlaylar")} ikon={<Filter className="size-5" />} tone="brand" />
+        <StatKart sayi={sonuc.toplam.toLocaleString(loc)} etiket={t("av.kpi.taranan")} ikon={<Terminal className="size-5" />} />
+        <StatKart sayi={sonuc.ozet.benzersizIp.toLocaleString(loc)} etiket={t("av.kpi.benzersizIp")} ikon={<Bot className="size-5" />} tone="danger" />
         <StatKart sayi={`%${sonuc.toplam ? Math.round((sonuc.eslesme / sonuc.toplam) * 100) : 0}`} etiket={t("av.kpi.eslesmeOrani")} ikon={<ShieldCheck className="size-5" />} />
       </div>
 
@@ -165,7 +168,7 @@ export function TehditAviIstemci({
               {sonuc.olaylar.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-slate-muted">{t("av.sonuc.bos")}</td></tr>}
               {sonuc.olaylar.map((e) => (
                 <tr key={e.id} className="border-t border-line">
-                  <td className="py-2.5 pr-3 text-[11.5px] text-slate-faint">{new Date(e.ts).toLocaleString("tr-TR")}</td>
+                  <td className="py-2.5 pr-3 text-[11.5px] text-slate-faint">{new Date(e.ts).toLocaleString(loc)}</td>
                   <td className="py-2.5 pr-3 num text-[12.5px] font-medium text-slate-ink">{e.ip}</td>
                   <td className="py-2.5 pr-3"><Ulke kod={e.country} /></td>
                   <td className="py-2.5 pr-3 text-[12.5px] text-slate-muted">{botEtiket(e.botClass, t)}</td>

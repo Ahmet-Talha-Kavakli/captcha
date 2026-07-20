@@ -55,7 +55,11 @@ export function IliskiGrafigiIstemci({
         {/* graf görselleştirme */}
         <Panel baslik={seciliKume ? t("graf.ag.baslikSayi").replace("{n}", String(seciliKume.ipler.length)) : t("graf.ag.baslik")}>
           {seciliKume && seciliKume.ipler.length >= 2 ? (
-            <GrafGorsel kume={seciliKume} svgEtiket={t("graf.ag.svgEtiket").replace("{n}", String(seciliKume.ipler.length))} />
+            <GrafGorsel
+              kume={seciliKume}
+              svgEtiket={t("graf.ag.svgEtiket").replace("{n}", String(seciliKume.ipler.length))}
+              gizliMetin={(n) => t("graf.ag.gizliIp").replace("{n}", n.toLocaleString(loc))}
+            />
           ) : (
             <div className="grid h-[360px] place-items-center text-center text-slate-muted">
               <div>
@@ -132,7 +136,7 @@ export function IliskiGrafigiIstemci({
             </div>
             <div className="space-y-2">
               <MetaSatir etiket={t("graf.detay.toplamOlay")} deger={seciliKume.toplamOlay.toLocaleString(loc)} />
-              <MetaSatir etiket={t("graf.detay.engellenen")} deger={t("graf.detay.engellenenDeger").replace("{n}", String(seciliKume.engellenen)).replace("{yuzde}", String(Math.round((seciliKume.engellenen / seciliKume.toplamOlay) * 100)))} />
+              <MetaSatir etiket={t("graf.detay.engellenen")} deger={t("graf.detay.engellenenDeger").replace("{n}", String(seciliKume.engellenen)).replace("{yuzde}", String(seciliKume.toplamOlay ? Math.round((seciliKume.engellenen / seciliKume.toplamOlay) * 100) : 0))} />
               <MetaSatir etiket={t("graf.detay.minSkor")} deger={seciliKume.minSkor.toFixed(2)} />
               <MetaSatir etiket={t("graf.detay.tehditSkoru")} deger={String(seciliKume.tehditSkoru)} vurgu />
               <MetaSatir etiket={t("graf.detay.parmakIziCesidi")} deger={String(seciliKume.fingerprintler.length)} />
@@ -168,7 +172,7 @@ function MetaSatir({ etiket, deger, vurgu }: { etiket: string; deger: string; vu
  * Böylece görsel temiz bir "botnet yıldızı" olur, çakışma/taşma olmaz. */
 const GORUNEN_IP = 40;
 
-function GrafGorsel({ kume, svgEtiket }: { kume: Kume; svgEtiket: string }) {
+function GrafGorsel({ kume, svgEtiket, gizliMetin }: { kume: Kume; svgEtiket: string; gizliMetin: (n: number) => string }) {
   const layout = useMemo(() => {
     const W = 640, H = 380, cx = W / 2, cy = H / 2;
     const dugumler: { id: string; x: number; y: number; tur: string; etiket: string; boyut: number }[] = [];
@@ -234,7 +238,7 @@ function GrafGorsel({ kume, svgEtiket }: { kume: Kume; svgEtiket: string }) {
         {/* "+N IP daha" özeti (çizilmeyen düğümler) */}
         {layout.gizli > 0 && (
           <text x={layout.W - 14} y={layout.H - 12} textAnchor="end" fill="#94a3b8" fontSize="11" fontWeight="600" className="num">
-            +{layout.gizli.toLocaleString("tr-TR")} IP daha
+            {gizliMetin(layout.gizli)}
           </text>
         )}
       </svg>

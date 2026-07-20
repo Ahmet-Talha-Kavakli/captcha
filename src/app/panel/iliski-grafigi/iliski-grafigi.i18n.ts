@@ -38,6 +38,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "graf.ag.nedenBagli": "Neden bağlı:",
     "graf.ag.tekilBag": "Tekil — paylaşılan bağ yok",
     "graf.ag.svgEtiket": "{n} IP'li saldırgan ağı",
+    "graf.ag.gizliIp": "+{n} IP daha",
 
     // Küme listesi paneli
     "graf.liste.baslik": "Saldırgan kümeleri",
@@ -101,6 +102,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "graf.ag.nedenBagli": "Why linked:",
     "graf.ag.tekilBag": "Standalone — no shared link",
     "graf.ag.svgEtiket": "Attacker network of {n} IPs",
+    "graf.ag.gizliIp": "+{n} more IPs",
 
     "graf.liste.baslik": "Attacker clusters",
     "graf.liste.ara": "Search IP / ASN / country…",
@@ -159,6 +161,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "graf.ag.nedenBagli": "Grund der Verknüpfung:",
     "graf.ag.tekilBag": "Eigenständig — keine geteilte Verbindung",
     "graf.ag.svgEtiket": "Angreifer-Netzwerk mit {n} IPs",
+    "graf.ag.gizliIp": "+{n} weitere IPs",
 
     "graf.liste.baslik": "Angreifer-Cluster",
     "graf.liste.ara": "IP / ASN / Land suchen…",
@@ -218,6 +221,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "graf.ag.nedenBagli": "Raison du lien :",
     "graf.ag.tekilBag": "Autonome — aucun lien partagé",
     "graf.ag.svgEtiket": "Réseau d'attaquants de {n} IP",
+    "graf.ag.gizliIp": "+{n} IP de plus",
 
     "graf.liste.baslik": "Clusters d'attaquants",
     "graf.liste.ara": "Rechercher IP / ASN / pays…",
@@ -277,6 +281,7 @@ const sozluk: Record<Dil, Record<string, string>> = {
     "graf.ag.nedenBagli": "Motivo del vínculo:",
     "graf.ag.tekilBag": "Independiente — sin vínculo compartido",
     "graf.ag.svgEtiket": "Red de atacantes de {n} IP",
+    "graf.ag.gizliIp": "+{n} IP más",
 
     "graf.liste.baslik": "Clústeres de atacantes",
     "graf.liste.ara": "Buscar IP / ASN / país…",
