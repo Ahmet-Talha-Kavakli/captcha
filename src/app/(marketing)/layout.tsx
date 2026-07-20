@@ -1,7 +1,8 @@
+import { cookies } from "next/headers";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { landingDil } from "@/lib/i18n/landing-sunucu";
-import { currentUser } from "@/lib/auth";
+import { currentUser, SESSION_COOKIE } from "@/lib/auth";
 import { clerkYapili } from "@/lib/clerk-durum";
 
 /**
@@ -15,11 +16,17 @@ export default async function MarketingLayout({ children }: { children: React.Re
   // Oturum durumu (currentUser hem Clerk hem cookie'yi çözer). Profil resmi
   // Clerk'ten (Google avatarı) gelir; yoksa isim baş harfi + renk kullanılır.
   //
-  // PERFORMANS: burada yalnızca "giriş yapmış mı + adı ne" bilgisi gerekir;
-  // saniyelik tazelik gerekmez. `taze:false` TTL'li hafif okuma yapar — aksi
-  // halde HER anonim landing ziyaretçisi tüm DB blob'unu indirip sayfa
-  // sunucuda 20sn+ sürüyordu (reklam trafiği için ölümcül).
-  const user = await currentUser({ taze: false });
+  // PERFORMANS — KRİTİK: Landing sitenin en yüksek trafikli yüzeyi (reklamdan
+  // gelen HERKES burayı görür) ve ziyaretçilerin çoğu ANONİM. Oturum kanıtı
+  // (cookie ya da Clerk) yoksa kullanıcıyı çözmeye çalışmak boşuna — ama
+  // `currentUser()` yine de DB blob'unu indiriyordu. Bu, Supabase egress'ini
+  // (3.3 MB × her ziyaret) patlatıp Free kotayı doldurdu ve tüm sayfaları
+  // 20 sn'ye çıkardı. Artık: oturum kanıtı YOKSA DB'ye HİÇ gidilmez.
+  const cookieDeposu = await cookies();
+  const oturumKanitiVar =
+    Boolean(cookieDeposu.get(SESSION_COOKIE)?.value) || // kendi cookie-oturumumuz
+    Boolean(cookieDeposu.get("__session")?.value); // Clerk oturum cookie'si
+  const user = oturumKanitiVar ? await currentUser({ taze: false }) : null;
   let avatarUrl: string | null = null;
   if (user && clerkYapili()) {
     try {

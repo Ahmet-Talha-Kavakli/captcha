@@ -724,7 +724,11 @@ export const Events = {
     if (ev.verdict === "allowed") u.verified++;
     else if (ev.verdict === "blocked") u.blocked++;
     else if (ev.verdict === "challenged") u.challenged++;
-    if (db.events.length > 8000) db.events.splice(0, db.events.length - 8000);
+    // EGRESS: tüm state tek blob olarak Supabase'den indiriliyor; olaylar blob'un
+    // ~%97'siydi (8000 olay ≈ 3.2 MB) ve her okuma bu boyutu ağdan çekiyordu →
+    // Free plan egress kotası doldu, sorgular timeout'a düştü. Panel zaten son
+    // 30 günü gösteriyor; 2500 olay tüm görünümler için fazlasıyla yeterli.
+    if (db.events.length > 2500) db.events.splice(0, db.events.length - 2500);
     persist();
     return full;
   },
