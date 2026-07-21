@@ -85,4 +85,7 @@ export async function endSession(): Promise<void> {
   const token = store.get(SESSION_COOKIE)?.value;
   Sessions.destroy(token);
   store.delete(SESSION_COOKIE);
+  // Oturum silmeyi Supabase'e SENKRON yaz → başka instance/istek silinen
+  // oturumu geçerli sanmasın (write-behind kaybını önle).
+  await blobFlush();
 }

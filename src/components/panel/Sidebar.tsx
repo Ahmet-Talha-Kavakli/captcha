@@ -104,8 +104,28 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
   };
 
   async function cikis() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
+    // 1) Kendi cookie-oturumumuzu kapat (specter_session sil).
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      /* ağ hatası olsa bile Clerk/yönlendirme adımına devam et */
+    }
+    // 2) Clerk oturumunu da kapat. Google/Clerk ile giriş yapıldıysa yalnız
+    //    kendi cookie'mizi silmek YETMEZ — Clerk oturumu açık kalır ve /login'e
+    //    gidince kullanıcı otomatik yeniden içeri alınır (çıkış "çalışmıyor"
+    //    görünür). Clerk global nesnesi varsa signOut ile tam çıkış yapılır.
+    try {
+      const clerk = (window as unknown as { Clerk?: { signOut?: (o?: { redirectUrl?: string }) => Promise<void> } }).Clerk;
+      if (clerk?.signOut) {
+        await clerk.signOut({ redirectUrl: "/login" });
+        return; // signOut yönlendirmeyi kendi yapar
+      }
+    } catch {
+      /* Clerk yoksa/başarısızsa aşağıdaki sabit yönlendirmeye düş */
+    }
+    // 3) Clerk yoksa (demo/cookie-auth) — tam sayfa yenilemesiyle /login'e git
+    //    (router.push yerine: sunucu state'i temiz okunur).
+    window.location.href = "/login";
   }
 
   return (
