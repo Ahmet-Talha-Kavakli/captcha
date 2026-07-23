@@ -742,6 +742,9 @@ export interface Database {
   iletisimMesajlari: IletisimMesaji[];
   usedNonces: UsedNonce[];
   sessions: Record<string, { userId: string; exp: number }>;
+  /** Platform-geneli özellik bayrakları (admin panelinden yönetilir). Örn:
+   *  { "bakim-modu": true, "yeni-kayit": false }. Tanımsız = varsayılanlar. */
+  platformBayraklar?: Record<string, boolean>;
   _version: number;
 }
 

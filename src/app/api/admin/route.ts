@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { platformAdminMi } from "@/lib/platform-admin";
-import { Users, Audit } from "@/lib/db/db";
+import { Users, Audit, Platform, PLATFORM_BAYRAK_VARSAYILAN } from "@/lib/db/db";
 import { mailGonder, mailAktif } from "@/lib/specter/mail";
 import { askiMail } from "@/lib/specter/mail-sablonlar";
 import { MARKA } from "@/lib/marka";
@@ -37,6 +37,17 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const { action, uid } = body as { action?: string; uid?: string };
   if (!action) return NextResponse.json({ error: "action zorunlu." }, { status: 400 });
+
+  // PLATFORM BAYRAĞI — uid gerektirmez; platform-geneli gerçek ayar.
+  if (action === "setBayrak") {
+    const { key, deger } = body as { key?: string; deger?: boolean };
+    if (!key || !(key in PLATFORM_BAYRAK_VARSAYILAN)) {
+      return NextResponse.json({ error: "Geçersiz bayrak anahtarı." }, { status: 400 });
+    }
+    const bayraklar = Platform.setBayrak(key, Boolean(deger));
+    Audit.log(admin.id, admin.name, "admin.bayrak-degistir", key, { deger: String(Boolean(deger)) }, { category: "admin", critical: true });
+    return NextResponse.json({ ok: true, bayraklar });
+  }
 
   // MAIL TEST — uid gerektirmez; admin'in kendisine test maili gönderir.
   if (action === "mailTest") {

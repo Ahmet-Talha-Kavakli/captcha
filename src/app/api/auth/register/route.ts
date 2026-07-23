@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Users, blobHazirla } from "@/lib/db/db";
+import { Users, blobHazirla, Platform } from "@/lib/db/db";
 import { startSession } from "@/lib/auth";
 import { mailGonder } from "@/lib/specter/mail";
 import { hosgeldinMail } from "@/lib/specter/mail-sablonlar";
@@ -10,6 +10,14 @@ export async function POST(req: Request) {
 
   // KRİTİK: blob'u taze yükle — seed-race'i önle (bkz. login route).
   await blobHazirla(true);
+
+  // PLATFORM BAYRAĞI: admin yeni kaydı kapattıysa reddet (gerçek etki).
+  if (!Platform.bayrak("yeni-kayit")) {
+    return NextResponse.json(
+      { error: "Yeni kayıtlar şu an kapalı. Lütfen daha sonra tekrar deneyin." },
+      { status: 403 },
+    );
+  }
 
   if (!email || !password || !name) {
     return NextResponse.json(

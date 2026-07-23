@@ -39,6 +39,7 @@ import {
   Rules,
   Tokens,
   Team,
+  Platform,
 } from "@/lib/db/db";
 import { PLANLAR, type Plan } from "@/lib/specter/plans";
 import { ULKE_AD } from "@/lib/flag";
@@ -269,6 +270,8 @@ export default async function AdminPage() {
     planSayim,
     planFiyatTl: PLAN_AYLIK_TL,
     mrrTl,
+    // platform bayrakları (gerçek DB durumu)
+    platformBayraklar: Platform.bayraklar(),
     // tablolar
     hesaplar,
     enTehditliUlkeler,

@@ -9,13 +9,36 @@ import { KisayolYardim } from "@/components/panel/KisayolYardim";
 import { UrunTuru } from "@/components/panel/UrunTuru";
 import { ToastSaglayici } from "@/components/panel/kit";
 import { panelDil } from "@/lib/i18n/sunucu";
-import { Sites, Users } from "@/lib/db/db";
+import { Sites, Users, Platform } from "@/lib/db/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
   if (!user) redirect("/login");
+
+  // BAKIM MODU (platform bayrağı): açıksa ve kullanıcı staff DEĞİLSE bakım
+  // ekranı göster. Platform admin bakımda da girebilir (kilitlenme önlenir).
+  if (Platform.bayrak("bakim-modu") && !platformAdminMi(user)) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-canvas px-6 text-center">
+        <div className="max-w-md">
+          <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-amber-50 text-3xl">🛠️</div>
+          <h1 className="text-xl font-bold text-slate-ink">Bakım çalışması</h1>
+          <p className="mt-2 text-[14px] leading-relaxed text-slate-muted">
+            Veylify şu anda kısa bir bakımdan geçiyor. Kısa süre içinde tekrar hizmetinizdeyiz —
+            koruma katmanlarınız çalışmaya devam ediyor. Lütfen birazdan tekrar deneyin.
+          </p>
+          <a
+            href="/panel"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2 text-[13px] font-medium text-slate-ink transition hover:border-brand-300"
+          >
+            Yeniden dene
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   // RBAC: efektif rolü hesapla (gerçek rol veya daraltılmış önizleme).
   const rol = await efektifRol(user.role);

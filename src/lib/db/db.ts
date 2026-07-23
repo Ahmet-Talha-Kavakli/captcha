@@ -666,6 +666,39 @@ export const Sessions = {
   },
 };
 
+// --------------------------------------------------------------- Platform bayrakları
+/**
+ * Platform-geneli özellik bayrakları — admin panelinden yönetilir, GERÇEK etki
+ * eder (localStorage değil, kalıcı DB). Örn: bakım modu, yeni-kayıt kapatma.
+ */
+export const PLATFORM_BAYRAK_VARSAYILAN: Record<string, boolean> = {
+  "yeni-kayit": true, // yeni hesap kaydı açık mı
+  "bakim-modu": false, // bakım modu (panel/API kapalı)
+  "ai-dogrulama-beta": false,
+  "edge-otoscale": true,
+  "yeni-onboarding": false,
+};
+
+export const Platform = {
+  /** Tüm bayrakları (varsayılan + kayıtlı override) döndürür. */
+  bayraklar(): Record<string, boolean> {
+    const kayitli = load().platformBayraklar ?? {};
+    return { ...PLATFORM_BAYRAK_VARSAYILAN, ...kayitli };
+  },
+  /** Tek bir bayrağın efektif değeri. */
+  bayrak(key: string): boolean {
+    return Platform.bayraklar()[key] ?? false;
+  },
+  /** Bir bayrağı ayarla (kalıcı). */
+  setBayrak(key: string, deger: boolean): Record<string, boolean> {
+    const db = load();
+    if (!db.platformBayraklar) db.platformBayraklar = {};
+    db.platformBayraklar[key] = deger;
+    persist();
+    return Platform.bayraklar();
+  },
+};
+
 // --------------------------------------------------------------- Sites
 
 export const Sites = {

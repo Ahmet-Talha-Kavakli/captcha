@@ -7,7 +7,8 @@
  * bayrakları localStorage'da tutulur (demo; production'da merkezi bir bayrak
  * servisi olurdu). Yıkıcı işlem yoktur.
  */
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   ServerCog,
   Users2,
@@ -19,7 +20,6 @@ import {
   Bot,
   Flag,
   Database,
-  Cpu,
   CircleDot,
   AlertTriangle,
   TrendingUp,
@@ -35,7 +35,7 @@ import {
   KorumaSkoru,
   SkorCubugu,
 } from "@/components/panel/grafikler";
-import { Gauge as GaugeGost, IsiMatris } from "@/components/panel/grafikler-ek";
+import { Gauge as GaugeGost } from "@/components/panel/grafikler-ek";
 import type { Plan } from "@/lib/specter/plans";
 import type { Role } from "@/lib/db/schema";
 import { HesapYonetimModal } from "./HesapYonetimModal";
@@ -90,6 +90,8 @@ export interface AdminVeri {
   planSayim: Record<Plan, number>;
   planFiyatTl: Record<Plan, number>;
   mrrTl: number;
+  /** Platform-geneli özellik bayraklarının GERÇEK DB durumu. */
+  platformBayraklar: Record<string, boolean>;
   hesaplar: HesapSatir[];
   enTehditliUlkeler: { kod: string; ad: string; deger: number }[];
   buyukKampanyalar: {
@@ -156,7 +158,7 @@ function goreliZaman(ts: number, t: (k: string) => string): string {
   return t("zaman.gun").replace("{n}", String(gun));
 }
 
-/* --- özellik bayrakları (localStorage, temsili operasyonel kontrol) --- */
+/* --- özellik bayrakları (GERÇEK DB — /api/admin setBayrak) --- */
 
 interface Bayrak {
   key: string;
@@ -172,17 +174,6 @@ const BAYRAKLAR: Bayrak[] = [
   { key: "yeni-onboarding", i18n: "bayrak.yeniOnboarding", varsayilan: false },
 ];
 
-const BAYRAK_LS = "specter.admin.flags";
-
-function bayraklariOku(): Record<string, boolean> {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(BAYRAK_LS) || "{}");
-  } catch {
-    return {};
-  }
-}
-
 /* ------------------------------------------------------------------ ana bileşen */
 
 export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
@@ -196,36 +187,46 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
   // Seçili hesabın yönetim modalı (gerçek /api/admin işlemleri).
   const [yonetilen, setYonetilen] = useState<HesapSatir | null>(null);
 
-  // Özellik bayrakları durumu (localStorage senkron).
-  const [bayraklar, setBayraklar] = useState<Record<string, boolean>>({});
-  useEffect(() => {
-    const kayitli = bayraklariOku();
-    const baslangic: Record<string, boolean> = {};
-    for (const b of BAYRAKLAR) baslangic[b.key] = kayitli[b.key] ?? b.varsayilan;
-    setBayraklar(baslangic);
-  }, []);
+  // Özellik bayrakları — GERÇEK DB durumu (server'dan gelir), değişiklik /api/admin.
+  const [bayraklar, setBayraklar] = useState<Record<string, boolean>>(veri.platformBayraklar);
+  const [bayrakMesgul, setBayrakMesgul] = useState<string | null>(null);
+  const router = useRouter();
   const bayrakDegistir = useCallback(
-    (key: string) => {
-      setBayraklar((onceki) => {
-        const yeniDeger = !onceki[key];
-        const yeni = { ...onceki, [key]: yeniDeger };
-        try {
-          localStorage.setItem(BAYRAK_LS, JSON.stringify(yeni));
-          // Kalıcılık onayı — kullanıcı değişikliğin gerçekten saklandığını görür.
-          const bMeta = BAYRAKLAR.find((b) => b.key === key);
-          const bAd = bMeta ? adminCeviri(`${bMeta.i18n}.ad`, dil) : key;
-          goster({
-            tip: "basari",
-            baslik: adminCeviri(yeniDeger ? "bayrak.acildi" : "bayrak.kapandi", dil).replace("{ad}", bAd),
-          });
-        } catch {
-          /* yok say */
+    async (key: string) => {
+      const yeniDeger = !bayraklar[key];
+      setBayrakMesgul(key);
+      // İyimser güncelle (anında geri bildirim), hata olursa geri al.
+      setBayraklar((o) => ({ ...o, [key]: yeniDeger }));
+      try {
+        const r = await fetch("/api/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "setBayrak", key, deger: yeniDeger }),
+        });
+        const d = await r.json();
+        if (!r.ok) {
+          setBayraklar((o) => ({ ...o, [key]: !yeniDeger })); // geri al
+          goster({ tip: "hata", baslik: "Bayrak değiştirilemedi", aciklama: d.error });
+          return;
         }
-        return yeni;
-      });
+        setBayraklar(d.bayraklar); // sunucu doğrusu
+        const bMeta = BAYRAKLAR.find((b) => b.key === key);
+        const bAd = bMeta ? adminCeviri(`${bMeta.i18n}.ad`, dil) : key;
+        goster({
+          tip: "basari",
+          baslik: adminCeviri(yeniDeger ? "bayrak.acildi" : "bayrak.kapandi", dil).replace("{ad}", bAd),
+        });
+        router.refresh(); // etkiyi (ör. bakım modu) yansıt
+      } catch {
+        setBayraklar((o) => ({ ...o, [key]: !yeniDeger }));
+        goster({ tip: "hata", baslik: "Ağ hatası" });
+      } finally {
+        setBayrakMesgul(null);
+      }
     },
-    [dil, goster],
+    [bayraklar, dil, goster, router],
   );
+  void bayrakMesgul;
 
   const filtreliHesaplar = useMemo(
     () => (planFiltre === "hepsi" ? veri.hesaplar : veri.hesaplar.filter((h) => h.plan === planFiltre)),
@@ -265,16 +266,6 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
     { etiket: t("bayrakDagilim.acik"), deger: bayrakAcikSayi, renk: "#2f6fed" },
     { etiket: t("bayrakDagilim.kapali"), deger: bayrakKapaliSayi, renk: "#cbd5e1" },
   ].filter((s) => s.deger > 0);
-
-  // Bölgesel kaynak kullanım ısı-matrisi (temsili, deterministik — worker metrikleriyle aynı ruh).
-  const kaynakSatirlar = [t("kaynak.cpu"), t("kaynak.bellek"), t("kaynak.ag"), t("kaynak.kuyruk")];
-  const kaynakSutunlar = ["EU-W", "US-E", "US-W", "AP-SE", "SA-E"];
-  const kaynakDegerler = [
-    [58, 71, 44, 63, 39],
-    [62, 55, 48, 70, 41],
-    [47, 66, 52, 58, 35],
-    [23, 31, 18, 44, 12],
-  ];
 
   // Hesap tablosu kolonları.
   const kolonlar: Kolon<HesapSatir>[] = [
@@ -362,7 +353,7 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
           ikon={<ShieldBan className="size-5" />}
           tone="danger"
         />
-        <StatKart sayi={kTl(veri.mrrTl)} etiket={t("kpi.mrr")} ikon={<Wallet className="size-5" />} tone="ok" />
+        <StatKart sayi={kTl(veri.mrrTl)} etiket={`${t("kpi.mrr")} (tahmini)`} ikon={<Wallet className="size-5" />} />
         <StatKart
           sayi={veri.saglikSkoru}
           etiket={t("kpi.saglik")}
@@ -456,12 +447,17 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
               );
             })}
             <div className="mt-2 flex items-center justify-between border-t border-line pt-3">
-              <span className="text-[13px] font-medium text-slate-ink">{t("mrr.toplam")}</span>
-              <span className="num text-lg font-bold text-ok">{kTl(veri.mrrTl)}</span>
+              <span className="text-[13px] font-medium text-slate-ink">{t("mrr.toplam")} <span className="text-[11px] font-normal text-slate-faint">(tahmini)</span></span>
+              <span className="num text-lg font-bold text-slate-ink">{kTl(veri.mrrTl)}</span>
             </div>
-            <p className="text-[11.5px] leading-relaxed text-slate-faint">
-              {t("mrr.not").replace("{tl}", kTl(veri.planFiyatTl.scale))}
-            </p>
+            {/* DÜRÜST NOT: ödeme altyapısı henüz aktif değil → gerçek tahsilat yok. */}
+            <div className="mt-2.5 flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2 text-[11.5px] leading-relaxed text-amber-800">
+              <Wallet className="mt-0.5 size-3.5 shrink-0" />
+              <span>
+                Bu bir <strong>tahmindir</strong>: plan başına aylık liste fiyatı × plandaki hesap sayısı.
+                Ödeme altyapısı aktifleşince gerçek tahsilat verisine dönüşecek — şu an fiili gelir tahsil edilmiyor.
+              </span>
+            </div>
           </div>
         </Panel>
 
@@ -654,31 +650,6 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
         </Panel>
 
         <div className="space-y-6">
-          {/* queue / worker sağlığı (temsili) */}
-          <Panel baslik={t("worker.baslik")}>
-            <div className="space-y-3.5">
-              {[
-                { anahtar: "edge", deger: 98, ton: "ok" as const },
-                { anahtar: "ingest", deger: 87, ton: "ok" as const },
-                { anahtar: "webhook", deger: 72, ton: "warn" as const },
-                { anahtar: "rapor", deger: 100, ton: "ok" as const },
-              ].map((w) => (
-                <div key={w.anahtar}>
-                  <div className="mb-1 flex items-center justify-between text-[13px]">
-                    <span className="flex items-center gap-2 text-slate-ink">
-                      <Cpu className="size-3.5 text-slate-faint" />
-                      {t(`worker.${w.anahtar}.ad`)}
-                    </span>
-                    <span className="num font-semibold text-slate-ink">%{w.deger}</span>
-                  </div>
-                  <Ilerleme deger={w.deger} ton={w.ton} />
-                  <div className="mt-1 text-[11.5px] text-slate-faint">{t(`worker.${w.anahtar}.alt`)}</div>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-[11.5px] text-slate-faint">{t("worker.not")}</p>
-          </Panel>
-
           {/* DB & kayıt sayıları (GERÇEK toplamlar) */}
           <Panel baslik={t("db.baslik")}>
             <div className="grid grid-cols-2 gap-3">
@@ -706,26 +677,6 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
           </Panel>
         </div>
       </div>
-
-      {/* --- bölgesel kaynak kullanımı (ısı-matris; liste tekrarını kırar) --- */}
-      <Panel baslik={t("kaynak.baslik")}>
-        <motion.div
-          initial={{ y: 8 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <IsiMatris
-            satirlar={kaynakSatirlar}
-            sutunlar={kaynakSutunlar}
-            degerler={kaynakDegerler}
-            renk="#2f6fed"
-          />
-        </motion.div>
-        <p className="mt-3 flex items-start gap-1.5 text-[12px] text-slate-faint">
-          <Cpu className="mt-0.5 size-3.5 shrink-0 text-brand-600" />
-          {t("kaynak.aciklama")}
-        </p>
-      </Panel>
 
       {/* --- kapasite büyüme özeti (küçük statlar) --- */}
       <Panel baslik={t("kapasite.baslik")}>
