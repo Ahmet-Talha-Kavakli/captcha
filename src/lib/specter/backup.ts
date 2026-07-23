@@ -13,6 +13,7 @@
 import {
   Sites, Rules, Team, Integrations, Webhooks, Users, Experiments,
 } from "@/lib/db/db";
+import type { Rule } from "@/lib/db/schema";
 
 export interface YedekMeta {
   surum: 1;
@@ -94,5 +95,74 @@ export function yedekDogrula(veri: unknown): GeriYuklemeSonuc {
       kural: y.kurallar.length,
       entegrasyon: Array.isArray(y.entegrasyonlar) ? y.entegrasyonlar.length : 0,
     },
+  };
+}
+
+export interface RestoreSonuc {
+  ok: boolean;
+  hata?: string;
+  geriYuklenen: { kural: number; aiPolitika: number };
+  atlanan: { kural: number; sebep?: string };
+}
+
+/**
+ * Yedekten GÜVENLİ geri yükleme. Yalnızca maskelenmemiş ve güvenli veriyi
+ * geri yükler: KURALLAR (kullanıcının mevcut bir sitesine bağlanır) + AI
+ * POLİTİKALARI. Siteler/webhooklar SIRLARI maskeli olduğundan geri yüklenmez
+ * (yanlış/kırık gizli anahtarla site oluşturmayı önler) — dürüstçe atlanır.
+ * Yıkıcı DEĞİLDİR: mevcut kurallar silinmez, yedektekiler EKLENİR.
+ */
+export function yedektenGeriYukle(ownerId: string, veri: unknown): RestoreSonuc {
+  const dogr = yedekDogrula(veri);
+  if (!dogr.gecerli) {
+    return { ok: false, hata: dogr.hata, geriYuklenen: { kural: 0, aiPolitika: 0 }, atlanan: { kural: 0 } };
+  }
+  const y = veri as Yedek;
+  const siteler = Sites.forOwner(ownerId);
+  if (siteler.length === 0) {
+    return {
+      ok: false,
+      hata: "Kuralları bağlayacak bir siteniz yok. Önce bir site ekleyin.",
+      geriYuklenen: { kural: 0, aiPolitika: 0 },
+      atlanan: { kural: Array.isArray(y.kurallar) ? y.kurallar.length : 0, sebep: "site-yok" },
+    };
+  }
+  const gecerliSiteIds = new Set(siteler.map((s) => s.id));
+  const varsayilanSite = siteler[0].id;
+
+  let kuralSayi = 0;
+  for (const ham of (y.kurallar ?? []) as Record<string, unknown>[]) {
+    if (!ham || typeof ham !== "object" || typeof ham.name !== "string") continue;
+    // siteId geçerli mi? Değilse ilk siteye bağla (hesaplar arası taşınabilirlik).
+    const siteId = typeof ham.siteId === "string" && gecerliSiteIds.has(ham.siteId) ? ham.siteId : varsayilanSite;
+    Rules.create({
+      siteId,
+      name: String(ham.name),
+      description: typeof ham.description === "string" ? ham.description : "",
+      enabled: ham.enabled !== false,
+      priority: typeof ham.priority === "number" ? ham.priority : 100,
+      field: (ham.field ?? "path") as Rule["field"],
+      op: (ham.op ?? "eq") as Rule["op"],
+      value: typeof ham.value === "string" ? ham.value : "",
+      action: (ham.action ?? "challenge") as Rule["action"],
+      kosulGrup: ham.kosulGrup as Rule["kosulGrup"],
+    });
+    kuralSayi++;
+  }
+
+  // AI politikaları (maskesiz, güvenli) — toplu uygula.
+  let aiSayi = 0;
+  if (y.aiPolitikalari && typeof y.aiPolitikalari === "object") {
+    const gecerli = Object.fromEntries(
+      Object.entries(y.aiPolitikalari).filter(([, v]) => typeof v === "string"),
+    );
+    aiSayi = Object.keys(gecerli).length;
+    if (aiSayi > 0) Users.setAiPolicies(ownerId, gecerli);
+  }
+
+  return {
+    ok: true,
+    geriYuklenen: { kural: kuralSayi, aiPolitika: aiSayi },
+    atlanan: { kural: (y.kurallar?.length ?? 0) - kuralSayi },
   };
 }

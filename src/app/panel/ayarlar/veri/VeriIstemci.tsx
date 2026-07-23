@@ -12,7 +12,38 @@ export function VeriIstemci({ kapsam }: { kapsam: Kapsam }) {
   const [indiriliyor, setIndiriliyor] = useState(false);
   const [onizleme, setOnizleme] = useState<{ site: number; kural: number; entegrasyon: number } | null>(null);
   const [dosyaAd, setDosyaAd] = useState("");
+  const [yedekVeri, setYedekVeri] = useState<unknown>(null); // doğrulanmış ham yedek
+  const [geriYukleniyor, setGeriYukleniyor] = useState(false);
   const dosyaRef = useRef<HTMLInputElement>(null);
+
+  async function geriYukle() {
+    if (!yedekVeri) return;
+    setGeriYukleniyor(true);
+    try {
+      const res = await fetch("/api/backup", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(yedekVeri),
+      });
+      const d = await res.json();
+      if (d.ok) {
+        goster({
+          tip: "basari",
+          baslik: "Geri yükleme tamamlandı",
+          aciklama: `${d.geriYuklenen.kural} kural + ${d.geriYuklenen.aiPolitika} AI politikası eklendi.`,
+        });
+        setOnizleme(null);
+        setYedekVeri(null);
+        setDosyaAd("");
+      } else {
+        goster({ tip: "hata", baslik: "Geri yüklenemedi", aciklama: d.hata });
+      }
+    } catch {
+      goster({ tip: "hata", baslik: "Ağ hatası", aciklama: "Geri yükleme gönderilemedi." });
+    } finally {
+      setGeriYukleniyor(false);
+    }
+  }
 
   async function disaAktar() {
     setIndiriliyor(true);
@@ -44,9 +75,11 @@ export function VeriIstemci({ kapsam }: { kapsam: Kapsam }) {
       const d = await res.json();
       if (d.gecerli) {
         setOnizleme(d.ozet);
+        setYedekVeri(veri); // gerçek geri yükleme için ham yedeği sakla
         goster({ tip: "basari", baslik: "Yedek doğrulandı" });
       } else {
         setOnizleme(null);
+        setYedekVeri(null);
         goster({ tip: "hata", baslik: "Geçersiz yedek", aciklama: d.hata });
       }
     } catch {
@@ -124,12 +157,23 @@ export function VeriIstemci({ kapsam }: { kapsam: Kapsam }) {
                 <span className="flex items-center gap-1.5"><Check className="size-3.5" /> {onizleme.kural} kural</span>
                 <span className="flex items-center gap-1.5"><Check className="size-3.5" /> {onizleme.entegrasyon} entegrasyon</span>
               </div>
-              <div className="mt-3 flex items-center gap-2 text-[12px] text-amber-700">
-                <AlertTriangle className="size-3.5" /> Yedek doğrulandı; içeriği yukarıda önizlendi. Gerçek geri yükleme (mevcut yapılandırmanın üzerine yazma) henüz devrede değil.
+              <div className="mt-3 flex items-start gap-2 text-[12px] text-slate-muted">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
+                <span>
+                  Geri yükleme <strong>güvenlidir</strong>: mevcut veriler SİLİNMEZ, yedekteki
+                  kurallar ve AI politikaları EKLENİR. Siteler ve webhooklar (gizli anahtarları
+                  maskeli olduğu için) geri yüklenmez — onları elle yeniden eklemelisin.
+                </span>
               </div>
-              {/* Sunucu-tarafı restore ucu yok: dürüstçe devre-dışı "Yakında". Yanlış onay verilmez. */}
-              <Button variant="danger" size="sm" className="mt-3" disabled title="Gerçek geri yükleme yakında">
-                <ShieldCheck className="size-4" /> Geri yüklemeyi onayla (Yakında)
+              <Button
+                variant="danger"
+                size="sm"
+                className="mt-3"
+                onClick={geriYukle}
+                disabled={geriYukleniyor}
+              >
+                <ShieldCheck className="size-4" />
+                {geriYukleniyor ? "Geri yükleniyor…" : "Geri yüklemeyi onayla"}
               </Button>
             </NotKutusu>
           </div>

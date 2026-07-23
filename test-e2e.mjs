@@ -41,8 +41,11 @@ async function main() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, name: "Test Kullanıcı", password: "test123" }),
   });
-  const setCookie = reg.headers.get("set-cookie");
-  if (setCookie) jar = setCookie.split(";")[0];
+  // NOT: middleware yanıta ayrıca `veylify_dil` cookie'si ekler; bu yüzden
+  // TÜM set-cookie başlıklarından specter_session'ı seç (ilk cookie değil).
+  const cookies = reg.headers.getSetCookie?.() ?? [reg.headers.get("set-cookie") ?? ""];
+  const sess = cookies.map((c) => c.split(";")[0]).find((c) => c.includes("specter_session"));
+  if (sess) jar = sess;
   check("Kayıt başarılı + session cookie", reg.ok && jar.includes("specter_session"));
 
   // 2) Site oluştur
@@ -436,7 +439,7 @@ async function main() {
   // AYRI hesap (free plan site-limiti 1 olduğu için mevcut jar dolu olabilir).
   const silEmail = `sil${Date.now()}@x.dev`;
   const silReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: silEmail, name: "U", password: "test1234" }) });
-  const silJar = (silReg.headers.get("set-cookie") || "").split(";")[0];
+  const silJar = ((silReg.headers.getSetCookie?.() ?? [silReg.headers.get("set-cookie") ?? ""]).map(c=>c.split(";")[0]).find(c=>c.includes("specter_session")) ?? "");
   const { site: silSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: silJar }, body: JSON.stringify({ name: "sil.com", domains: "localhost" }) })).json();
   await fetch(`${BASE}/api/rules`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: silJar }, body: JSON.stringify({ siteId: silSite.id, name: "k", field: "score", op: "lt", value: "0.2", action: "block" }) });
   const chVar = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: silSite.siteKey }) });
@@ -448,7 +451,7 @@ async function main() {
   // 18c) MONITOR MODU — "sadece izle": bot engellenmez ama işaretlenir.
   const monEmail = `mon${Date.now()}@x.dev`;
   const monReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: monEmail, name: "U", password: "test1234" }) });
-  const monJar = (monReg.headers.get("set-cookie") || "").split(";")[0];
+  const monJar = ((monReg.headers.getSetCookie?.() ?? [monReg.headers.get("set-cookie") ?? ""]).map(c=>c.split(";")[0]).find(c=>c.includes("specter_session")) ?? "");
   const { site: monSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ name: "mon.com", domains: "localhost" }) })).json();
   await fetch(`${BASE}/api/sites/${monSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: monJar }, body: JSON.stringify({ invisibleMode: true }) });
   const botSig = { mouseSamples: 0, keyIntervals: [5, 5], timeToSubmit: 50, webdriver: true };
@@ -469,7 +472,7 @@ async function main() {
   // 18e) SİTE-SAHİBİ ÖZEL RATE-LİMİT — site.rateLimit ayarı IP-başı enforce edilmeli.
   const rlEmail = `rl${Date.now()}@x.dev`;
   const rlReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: rlEmail, name: "U", password: "test1234" }) });
-  const rlJar = (rlReg.headers.get("set-cookie") || "").split(";")[0];
+  const rlJar = ((rlReg.headers.getSetCookie?.() ?? [rlReg.headers.get("set-cookie") ?? ""]).map(c=>c.split(";")[0]).find(c=>c.includes("specter_session")) ?? "");
   const { site: rlSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: rlJar }, body: JSON.stringify({ name: "rl.com", domains: "localhost" }) })).json();
   await fetch(`${BASE}/api/sites/${rlSite.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: rlJar }, body: JSON.stringify({ rateLimit: 5 }) });
   const rlKodlar = [];
@@ -483,7 +486,7 @@ async function main() {
   // 18f) SİTE AKTİF/PASİF — pasif site challenge servisi vermemeli.
   const actEmail = `act${Date.now()}@x.dev`;
   const actReg = await fetch(`${BASE}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: actEmail, name: "U", password: "test1234" }) });
-  const actJar = (actReg.headers.get("set-cookie") || "").split(";")[0];
+  const actJar = ((actReg.headers.getSetCookie?.() ?? [actReg.headers.get("set-cookie") ?? ""]).map(c=>c.split(";")[0]).find(c=>c.includes("specter_session")) ?? "");
   const { site: actSite } = await (await fetch(`${BASE}/api/sites`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: actJar }, body: JSON.stringify({ name: "act.com", domains: "localhost" }) })).json();
   const actOn = await fetch(`${BASE}/api/v1/challenge`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ siteKey: actSite.siteKey }) });
   check("Aktif site → challenge 200", actOn.status === 200);
@@ -514,7 +517,7 @@ async function main() {
   // 18i) TEHDİT AVI — SIEM sorgu dili gerçekten filtreliyor (tüm olay değil).
   // Demo hesabı zengin veriye sahip; farklı sorgular farklı eşleşme vermeli.
   const demoReg = await fetch(`${BASE}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: "demo@specter.dev", password: "specter123" }) });
-  const demoJar = (demoReg.headers.get("set-cookie") || "").split(";")[0];
+  const demoJar = ((demoReg.headers.getSetCookie?.() ?? [demoReg.headers.get("set-cookie") ?? ""]).map(c=>c.split(";")[0]).find(c=>c.includes("specter_session")) ?? "");
   const avBlocked = await (await fetch(`${BASE}/api/tehdit-avi`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: demoJar }, body: JSON.stringify({ sorgu: "verdict:blocked" }) })).json();
   const avAll = await (await fetch(`${BASE}/api/tehdit-avi`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: demoJar }, body: JSON.stringify({ sorgu: "score>0" }) })).json();
   check("Tehdit avı: SIEM sorgusu gerçekten filtreliyor (eşleşme < toplam)",

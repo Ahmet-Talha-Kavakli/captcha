@@ -30,7 +30,7 @@ async function kayit(email) {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, name: "U", password: "test123" }),
   });
-  return (r.headers.get("set-cookie") || "").split(";")[0];
+  return ((r.headers.getSetCookie?.() ?? [r.headers.get("set-cookie") ?? ""]).map(c=>c.split(";")[0]).find(c=>c.includes("specter_session")) ?? "");
 }
 
 async function main() {

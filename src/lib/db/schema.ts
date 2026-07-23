@@ -62,6 +62,20 @@ export interface User {
   krediBakiye?: number;
   /** Kredi hareket geçmişi (satın alma + tüketim). */
   krediHareketler?: KrediHareket[];
+  /** Hesap durumu (platform yönetimi). Tanımsız = "active" (geriye uyumlu).
+   *  "suspended" hesaplar giriş yapamaz / API kullanamaz. */
+  hesapDurumu?: "active" | "suspended";
+  /** Askıya alınma nedeni (admin notu) — hesapDurumu "suspended" ise anlamlı. */
+  askiNedeni?: string;
+  /** Platform admin (staff) bayrağı — /panel/admin erişimi. env allowlist'e ek. */
+  platformAdmin?: boolean;
+  /* --- Referral (davet et kazan) --- */
+  /** Bu kullanıcıyı davet eden kullanıcının referral kodu (kayıtta yakalanır). */
+  davetEdenKod?: string;
+  /** Bu kullanıcının başarıyla davet ettiği kişi sayısı. */
+  davetSayisi?: number;
+  /** Referral yoluyla kazanılan toplam kredi. */
+  davetKazanci?: number;
 }
 
 /** Tekil kredi hareketi (satın alma "+" veya tüketim "-"). */
@@ -347,7 +361,8 @@ export type AuditCategory =
   | "ai-policy" // AI ajan politikası değişikliği
   | "billing" // plan / faturalandırma / kota
   | "token" // API anahtarı oluştur/döndür/iptal
-  | "webhook"; // webhook oluştur/test/sil
+  | "webhook" // webhook oluştur/test/sil
+  | "admin"; // platform yönetici işlemi (plan/rol/askıya/kredi/sil)
 
 export interface AuditLog {
   id: string;
