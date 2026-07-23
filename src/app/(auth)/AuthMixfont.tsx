@@ -54,7 +54,9 @@ export function AuthMixfont({ mode }: { mode: "sign-in" | "sign-up" }) {
 
     setBusy(true);
     const endpoint = isSignUp ? "/api/auth/register" : "/api/auth/login";
-    const body = isSignUp ? { name, email, password } : { email, password };
+    // Referral: kayıt sırasında URL'deki ?ref=KOD kodunu ilet (davet ödülü).
+    const ref = params.get("ref") || undefined;
+    const body = isSignUp ? { name, email, password, ref } : { email, password };
     try {
       const res = await fetch(endpoint, {
         method: "POST",
