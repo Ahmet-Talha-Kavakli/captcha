@@ -18,7 +18,7 @@
  * (azHareket → sade). whileInView/viewport YOK.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Network,
@@ -98,7 +98,12 @@ function Bolum({
   gecikme?: number;
   children: React.ReactNode;
 }) {
-  if (azHareket) return <div>{children}</div>;
+  // HYDRATION: initial={{y:12}} SSR'de transform:translateY(12px) yazar, client
+  // animate'e geçince translateY(0) olur → sunucu/istemci uyuşmazlığı. Mount'tan
+  // ÖNCE düz <div> render edip (SSR ile birebir), mount SONRASI animasyonu açarız.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (azHareket || !mounted) return <div>{children}</div>;
   return (
     <motion.div
       initial={{ y: 12 }}
@@ -181,12 +186,19 @@ function Metrik({
 function AgGorseli({
   dugumler,
   kenarlar,
-  azHareket,
+  azHareket: azHareketProp,
 }: {
   dugumler: GrafDugum[];
   kenarlar: GrafKenar[];
   azHareket: boolean;
 }) {
+  // HYDRATION: framer-motion motion.* öğeleri SSR'de `initial` state'ini inline
+  // style olarak yazar, client'ta `animate`'e geçer → sunucu/istemci HTML
+  // uyuşmazlığı ("1 Issue" dev uyarısı). İlk render'ı (SSR + hydration) animasyonsuz
+  // yapıp, mount SONRASI animasyonu açarak uyuşmazlığı kesin önleriz.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const azHareket = azHareketProp || !mounted;
   const G = 340; // viewBox genişliği
   const Y = 200; // viewBox yüksekliği
   const cx = G / 2;
@@ -214,6 +226,22 @@ function AgGorseli({
   });
 
   const maxAgirlik = Math.max(1, ...ipler.map((d) => d.agirlik));
+
+  // HYDRATION: mount ÖNCESİ (SSR + ilk client render) motion içermeyen sade bir
+  // iskelet çiz — böylece framer-motion motion.line/rect'in SSR'de yazdığı
+  // pathLength/transform style'ları hiç oluşmaz, uyuşmazlık kesin engellenir.
+  // Mount SONRASI gerçek animasyonlu grafik (milisaniyeler; kullanıcı fark etmez).
+  if (!mounted) {
+    return (
+      <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-canvas/50 to-surface p-3">
+        <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-muted">
+          <Waypoints className="size-3.5 text-slate-faint" />
+          En büyük ağın topolojisi — IP'ler ortak ASN etrafında kümeleniyor
+        </div>
+        <div className="h-[210px] w-full" aria-hidden />
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-canvas/50 to-surface p-3">

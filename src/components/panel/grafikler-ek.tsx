@@ -6,6 +6,8 @@
  * ısı-matris, gauge. Hepsi elle SVG, krem tema, brand-600 vurgu, offline.
  */
 
+import { cn } from "@/lib/cn";
+
 const GRID = "#e6e1d5";
 
 /* ---------------------------------------------------- Histogram (dağılım) */
@@ -21,9 +23,31 @@ export function Histogram({
   renk?: string;
   ikinciRenk?: string;
 }) {
+  const toplam = kovalar.reduce((a, k) => a + Math.max(0, k.deger), 0);
   const max = Math.max(1, ...kovalar.map((k) => k.deger));
   const renkSec = (ton?: string) =>
     ton === "bot" ? "#dc2626" : ton === "insan" ? "#16a34a" : ikinciRenk ?? renk;
+
+  // BOŞ-DURUM: tüm kovalar 0 ise ince-görünmez barlar yerine dürüst bir mesaj
+  // göster (aksi halde grafik "kırık/boş kutu" gibi görünür — kullanıcı hatası sanır).
+  if (toplam <= 0) {
+    return (
+      <div>
+        <div
+          className="grid place-items-center rounded-xl border border-dashed border-line text-center"
+          style={{ height: yukseklik + 22 }}
+        >
+          <div className="px-3">
+            <p className="text-[12px] font-medium text-slate-muted">Henüz veri yok</p>
+            <p className="mt-0.5 text-[11px] text-slate-faint">
+              Trafik geldikçe dağılım burada oluşur.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-end gap-1" style={{ height: yukseklik }}>
@@ -32,9 +56,10 @@ export function Histogram({
             <div
               className="w-full rounded-t-md transition-all"
               style={{
-                height: `${Math.max(3, (k.deger / max) * 100)}%`,
+                // Sıfır kovada görünür bir taban (2px) bırak; dolu kovalar orantılı.
+                height: k.deger > 0 ? `${Math.max(6, (k.deger / max) * 100)}%` : "2px",
                 background: renkSec(k.ton),
-                opacity: 0.85,
+                opacity: k.deger > 0 ? 0.85 : 0.25,
               }}
               title={`${k.etiket}: ${k.deger}`}
             />
@@ -84,7 +109,7 @@ export function RadarGrafik({
       })
       .join(" ") + "Z";
   return (
-    <svg viewBox={`0 0 ${boyut} ${boyut}`} width={boyut} height={boyut} className="max-w-full">
+    <svg viewBox={`0 0 ${boyut} ${boyut}`} width={boyut} height={boyut} className="max-w-full overflow-visible">
       {halkalar.map((h, i) => (
         <polygon
           key={i}
@@ -120,19 +145,26 @@ export function RadarGrafik({
       })}
       {eksenler.map((e, i) => {
         const aci = (Math.PI * 2 * i) / n - Math.PI / 2;
-        const lx = merkez + Math.cos(aci) * (r + 14);
+        const cosA = Math.cos(aci);
+        const lx = merkez + cosA * (r + 14);
         const ly = merkez + Math.sin(aci) * (r + 14);
+        // Yatay hizayı açıya göre seç: sağdaki etiketler sola, soldakiler sağa
+        // yaslanır → uzun etiketler grafik dışına taşmadan okunur.
+        const anchor = cosA > 0.3 ? "start" : cosA < -0.3 ? "end" : "middle";
+        // Uzun etiketleri kısalt (radar dar; taşmayı önle).
+        const etiket = e.etiket.length > 12 ? e.etiket.slice(0, 11) + "…" : e.etiket;
         return (
           <text
             key={i}
             x={lx}
             y={ly}
             fontSize="9"
-            fill="#7a7568"
-            textAnchor="middle"
+            className="fill-slate-muted"
+            textAnchor={anchor}
             dominantBaseline="middle"
           >
-            {e.etiket}
+            <title>{e.etiket}</title>
+            {etiket}
           </text>
         );
       })}
@@ -171,14 +203,24 @@ export function IsiMatris({
             {sutunlar.map((_, j) => {
               const v = degerler[i]?.[j] ?? 0;
               const yog = v / max;
+              // TEMA: sıfır/açık hücreler için tema-duyarlı token kullan (koyu temada
+              // sabit "#f4f1ea" devasa beyaz kutular oluşturuyordu). Renk yoğunluğu
+              // markanın kırmızısıyla; boş hücre canvas/metin token'larına düşer.
               return (
                 <div
                   key={j}
-                  className="grid aspect-square place-items-center rounded-[4px] text-[9px] font-semibold tabular-nums"
-                  style={{
-                    background: yog === 0 ? "#f4f1ea" : `${renk}${Math.round(18 + yog * 82).toString(16).padStart(2, "0")}`,
-                    color: yog > 0.55 ? "#fff" : "#7a7568",
-                  }}
+                  className={cn(
+                    "grid aspect-square place-items-center rounded-[4px] text-[9px] font-semibold tabular-nums",
+                    yog === 0 && "bg-canvas text-slate-faint",
+                  )}
+                  style={
+                    yog === 0
+                      ? undefined
+                      : {
+                          background: `${renk}${Math.round(18 + yog * 82).toString(16).padStart(2, "0")}`,
+                          color: yog > 0.55 ? "#fff" : "var(--color-slate-muted)",
+                        }
+                  }
                   title={`${satir} · ${sutunlar[j]}: ${v}`}
                 >
                   {v > 0 ? v : ""}

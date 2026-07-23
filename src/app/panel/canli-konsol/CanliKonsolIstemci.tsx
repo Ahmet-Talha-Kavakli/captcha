@@ -331,7 +331,7 @@ export function CanliKonsolIstemci({ ilkOlaylar, dil }: { ilkOlaylar: KonsolOlay
       {/* Üst bilgi bandı */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-2xl bg-slate-ink text-emerald-400">
+          <span className="grid size-11 place-items-center rounded-2xl bg-slate-900 text-emerald-400">
             <Terminal className="size-5" />
           </span>
           <div>
@@ -512,7 +512,7 @@ export function CanliKonsolIstemci({ ilkOlaylar, dil }: { ilkOlaylar: KonsolOlay
       {/* Akış + detay */}
       <div className={cn("grid gap-5", secili ? "lg:grid-cols-[1fr_380px]" : "grid-cols-1")}>
         {/* Akış paneli (koyu) */}
-        <div className="overflow-hidden rounded-3xl border border-line bg-slate-ink text-white">
+        <div className="overflow-hidden rounded-3xl border border-line bg-slate-900 text-white">
           {/* Akış başlığı */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
             <div className="flex items-center gap-2.5">

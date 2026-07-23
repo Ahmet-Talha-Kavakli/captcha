@@ -359,7 +359,7 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
       </div>
 
       {/* canlı komuta bandı: tehdit seviyesi göstergesi + metrikler */}
-      <div className="overflow-hidden rounded-[28px] border border-line bg-slate-ink text-white">
+      <div className="overflow-hidden rounded-[28px] border border-line bg-slate-900 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="relative flex size-2.5">
@@ -383,7 +383,7 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
 
         <div className="grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
           {/* tehdit seviyesi göstergesi */}
-          <div className="bg-slate-ink px-6 py-5">
+          <div className="bg-slate-900 px-6 py-5">
             <div className="flex items-center gap-1.5 text-[12px] text-white/50"><Radar className="size-3.5" /> {t("aa.tehditSeviyesi")}</div>
             <div className="mt-1.5 flex items-center gap-2">
               <span className="text-[24px] font-bold leading-none" style={{ color: seviyeMeta.renk }}>{seviyeMeta.ad}</span>
@@ -398,7 +398,7 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
           </div>
 
           {/* olay/sn + spark */}
-          <div className="bg-slate-ink px-6 py-5">
+          <div className="bg-slate-900 px-6 py-5">
             <div className="flex items-center justify-between text-[12px] text-white/50">
               <span className="flex items-center gap-1.5"><Activity className="size-3.5" /> {t("aa.olayHizi")}</span>
               {sicrama && (
@@ -415,7 +415,7 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
           </div>
 
           {/* bot/sn */}
-          <div className="bg-slate-ink px-6 py-5">
+          <div className="bg-slate-900 px-6 py-5">
             <div className="flex items-center gap-1.5 text-[12px] text-white/50"><Ban className="size-3.5" /> {t("aa.botHizi")}</div>
             <div className="mt-1.5 flex items-baseline gap-1.5">
               <span className="num text-[28px] font-bold leading-none tabular-nums">{bps}</span>
@@ -428,7 +428,7 @@ export function AnomaliAkisIstemci({ dil, baslangicAnomaliler, baslangicBotOran,
           </div>
 
           {/* oturum sayaçları */}
-          <div className="bg-slate-ink px-6 py-5">
+          <div className="bg-slate-900 px-6 py-5">
             <div className="flex items-center gap-1.5 text-[12px] text-white/50"><TriangleAlert className="size-3.5" /> {t("aa.buOturum")}</div>
             <div className="mt-1.5 flex items-baseline gap-1.5">
               <span className="num text-[28px] font-bold leading-none tabular-nums">{oturumSayac.anomali}</span>

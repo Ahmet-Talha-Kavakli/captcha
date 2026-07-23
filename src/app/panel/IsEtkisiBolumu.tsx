@@ -131,18 +131,21 @@ function RoiGauge({ carpanDeger, ucretsiz, azHareket }: { carpanDeger: number; u
   const iyi = ucretsiz || carpanDeger >= 3;
   const orta = !iyi && carpanDeger >= 1;
   const renk = iyi ? "#16a34a" : orta ? "#2f6fed" : "#d97706";
-  // Yarım-daire yay: 180° (sol→sağ üstten). r=52, merkez (60,60).
-  const r = 52;
+  // Yarım-daire yay: 180° (sol→sağ üstten). r=46, merkez (60,58).
+  // viewBox 120×72; üstte etiket için 12px, altta iğne için pay bırakılır.
+  const r = 46;
   const cx = 60;
-  const cy = 60;
-  // Yay uzunluğu (yarım çevre).
+  const cy = 58;
   const yariCevre = Math.PI * r;
   const dolu = oran * yariCevre;
-  // Başabaş (1×) işareti açısı: 1/10 oranında.
+  // Başabaş (1×) işareti açısı: çarpan ekseninin 1/10'u (sol=π, sağ=0).
   const basabasOran = 0.1;
-  const basabasAci = Math.PI * (1 - basabasOran); // sol=π, sağ=0
-  const bx = cx + r * Math.cos(basabasAci);
-  const by = cy - r * Math.sin(basabasAci);
+  const basabasAci = Math.PI * (1 - basabasOran);
+  // Referans tık yayın hemen dışına, iç uç yayın hemen içine.
+  const disX = cx + (r + 8) * Math.cos(basabasAci);
+  const disY = cy - (r + 8) * Math.sin(basabasAci);
+  const icX = cx + (r - 8) * Math.cos(basabasAci);
+  const icY = cy - (r - 8) * Math.sin(basabasAci);
 
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-canvas/40 px-5 py-4">
@@ -150,7 +153,12 @@ function RoiGauge({ carpanDeger, ucretsiz, azHareket }: { carpanDeger: number; u
         <TrendingUp className="size-3.5" />
         ROI göstergesi
       </div>
-      <svg viewBox="0 0 120 74" className="w-full max-w-[220px]" role="img" aria-label={`ROI çarpanı ${ucretsiz ? "sonsuz" : carpan(carpanDeger)}`}>
+      <svg
+        viewBox="0 0 120 72"
+        className="w-full max-w-[220px] overflow-visible"
+        role="img"
+        aria-label={`ROI çarpanı ${ucretsiz ? "sonsuz" : carpan(carpanDeger)}`}
+      >
         {/* zemin yay */}
         <path
           d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
@@ -171,20 +179,19 @@ function RoiGauge({ carpanDeger, ucretsiz, azHareket }: { carpanDeger: number; u
           animate={{ strokeDashoffset: yariCevre - dolu }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         />
-        {/* başabaş (1×) referans tık */}
-        <line
-          x1={cx + (r - 7) * Math.cos(basabasAci)}
-          y1={cy - (r - 7) * Math.sin(basabasAci)}
-          x2={bx}
-          y2={by}
-          stroke="#9c9a90"
-          strokeWidth={1.5}
-        />
-        <text x={bx - 1} y={by - 3} textAnchor="middle" className="fill-slate-400 text-[6px] font-medium">
-          1× başabaş
+        {/* başabaş (1×) referans tık — yayı dik kesen kısa çizgi */}
+        <line x1={icX} y1={icY} x2={disX} y2={disY} stroke="#9c9a90" strokeWidth={1.5} strokeLinecap="round" />
+        {/* etiket: tık noktasının solunda, sola hizalı (kesilmez) */}
+        <text
+          x={disX + 2}
+          y={disY - 4}
+          textAnchor="start"
+          className="fill-slate-500 text-[7px] font-semibold"
+        >
+          başabaş
         </text>
       </svg>
-      <div className="-mt-3 flex flex-col items-center">
+      <div className="-mt-2 flex flex-col items-center">
         <span className="text-[30px] font-bold leading-none num" style={{ color: renk }}>
           {ucretsiz ? "∞" : carpan(carpanDeger)}
         </span>

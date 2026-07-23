@@ -354,7 +354,7 @@ export function KomutaMerkeziIstemci({
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-5 px-6 pt-6 pb-10 lg:px-10">
       {/* ===================== Üst komuta bandı (koyu) ===================== */}
-      <div className="overflow-hidden rounded-3xl border border-line bg-slate-ink text-white shadow-lift">
+      <div className="overflow-hidden rounded-3xl border border-line bg-slate-900 text-white shadow-lift">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-2xl bg-white/[0.06] text-red-300">
@@ -400,7 +400,7 @@ export function KomutaMerkeziIstemci({
           <PanoSayac ikon={<Zap className="size-4" />} etiket={t("km.pano.engellenenDk")} deger={engellenenDk} ton="warn" alt={t("km.pano.canliAkistan")} />
           <PanoSayac ikon={<Siren className="size-4" />} etiket={t("km.pano.acikOlay")} deger={acikOlaySayisi} ton={acikOlaySayisi > 0 ? "warn" : "ok"} />
           {/* DEFCON kartı */}
-          <div className="bg-slate-ink px-5 py-4">
+          <div className="bg-slate-900 px-5 py-4">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[11.5px] text-white/50"><Gauge className="size-4" /> {t("km.pano.savunmaSeviyesi")}</span>
             </div>
@@ -425,7 +425,7 @@ export function KomutaMerkeziIstemci({
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         {/* -------- Canlı saldırı akışı -------- */}
         <div className="flex flex-col gap-5">
-          <div className="overflow-hidden rounded-3xl border border-line bg-slate-ink text-white">
+          <div className="overflow-hidden rounded-3xl border border-line bg-slate-900 text-white">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-5 py-3">
               <span className="flex items-center gap-2 text-[14px] font-semibold">
                 <Activity className="size-4 text-red-300" /> {t("km.akis.baslik")}
@@ -685,7 +685,7 @@ function PanoSayac({
 }) {
   const renk = ton === "danger" ? "text-red-300" : ton === "warn" ? "text-amber-300" : "text-emerald-300";
   return (
-    <div className="bg-slate-ink px-5 py-4">
+    <div className="bg-slate-900 px-5 py-4">
       <span className="flex items-center gap-1.5 text-[11.5px] text-white/50">{ikon} {etiket}</span>
       <div className={cn("mt-1.5 text-[28px] font-bold leading-none tabular-nums num", renk)}>{deger.toLocaleString("tr-TR")}</div>
       {alt && <p className="mt-1 text-[11px] text-white/35">{alt}</p>}

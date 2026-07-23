@@ -343,7 +343,7 @@ function AdayKart({
             type="button"
             onClick={onUygula}
             disabled={durum === "calisiyor"}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-ink px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {durum === "calisiyor" ? (
               <Loader2 className="size-3.5 animate-spin" />

@@ -335,7 +335,7 @@ export function TehditIstemci({
                 onClick={() => setKat(k)}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-[13px] font-medium transition",
-                  kat === k ? "bg-slate-ink text-white" : "text-slate-muted hover:bg-canvas",
+                  kat === k ? "bg-slate-900 text-white" : "text-slate-muted hover:bg-canvas",
                 )}
               >
                 {k === "all" ? t("th.ip.filtre.all") : katEtiket(k, t)}

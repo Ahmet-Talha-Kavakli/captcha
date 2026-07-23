@@ -86,10 +86,21 @@ export function StatKart({
     tone === "danger" ? "text-danger2" : tone === "ok" ? "text-ok" : tone === "warn" ? "text-warn" : "text-slate-ink";
   const inner = (
     <>
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          {ikon && <span className="text-slate-faint">{ikon}</span>}
-          <span className={cn("text-[38px] font-bold leading-none num", toneColor)}>{sayi}</span>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          {ikon && <span className="shrink-0 text-slate-faint">{ikon}</span>}
+          {/* Uzun metin değerler (ör. URL yolu) 38px'te karttan taşar → uzunluğa
+              göre font küçült + truncate. Kısa sayılar (çoğunluk) etkilenmez. */}
+          <span
+            className={cn(
+              "min-w-0 truncate font-bold leading-none num",
+              typeof sayi === "string" && sayi.length > 14 ? "text-[20px]" : typeof sayi === "string" && sayi.length > 9 ? "text-[26px]" : "text-[38px]",
+              toneColor,
+            )}
+            title={typeof sayi === "string" ? sayi : undefined}
+          >
+            {sayi}
+          </span>
         </div>
         {href ? (
           <ChevronRight className="size-5 text-slate-faint transition group-hover:translate-x-0.5 group-hover:text-slate-muted" />

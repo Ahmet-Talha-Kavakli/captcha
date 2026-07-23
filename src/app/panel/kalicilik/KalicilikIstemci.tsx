@@ -166,11 +166,15 @@ function DagilimGrafigi({ saldirganlar, t }: { saldirganlar: KaliciSaldirgan[]; 
         {/* noktalar */}
         {saldirganlar.map((s) => {
           const r = 5 + (s.toplamIstek / maxIstek) * 14;
+          // Balon merkezini çizim alanı içinde tut (yarıçap kadar pay) →
+          // en büyük balon sağ/üst kenardan taşmaz.
+          const cx = Math.max(m.left + r, Math.min(W - m.right - r, px(s.oturumSayisi)));
+          const cy = Math.max(m.top + r, Math.min(H - m.bottom - r, py(s.aktifGunSayisi)));
           return (
             <circle
               key={s.ip}
-              cx={px(s.oturumSayisi)}
-              cy={py(s.aktifGunSayisi)}
+              cx={cx}
+              cy={cy}
               r={r}
               fill={TEHDIT_RENK[s.tehdit]}
               fillOpacity={0.28}
