@@ -37,6 +37,8 @@ import {
 } from "@/components/panel/grafikler";
 import { Gauge as GaugeGost, IsiMatris } from "@/components/panel/grafikler-ek";
 import type { Plan } from "@/lib/specter/plans";
+import type { Role } from "@/lib/db/schema";
+import { HesapYonetimModal } from "./HesapYonetimModal";
 import type { Dil } from "@/lib/i18n/panel";
 import { cn } from "@/lib/cn";
 import { adminCeviri } from "./admin.i18n";
@@ -61,6 +63,11 @@ export interface HesapSatir {
   durum: "aktif" | "bosta";
   olusturuldu: number;
   sonGorulme: number;
+  /* --- Platform yönetimi (gerçek işlemler için) --- */
+  rol: Role;
+  hesapDurumu: "active" | "suspended";
+  platformAdmin: boolean;
+  krediBakiye: number;
 }
 
 export interface AdminVeri {
@@ -186,6 +193,8 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
   const kTl = (n: number) => tl(n, loc);
 
   const [planFiltre, setPlanFiltre] = useState<"hepsi" | Plan>("hepsi");
+  // Seçili hesabın yönetim modalı (gerçek /api/admin işlemleri).
+  const [yonetilen, setYonetilen] = useState<HesapSatir | null>(null);
 
   // Özellik bayrakları durumu (localStorage senkron).
   const [bayraklar, setBayraklar] = useState<Record<string, boolean>>({});
@@ -311,6 +320,20 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
       baslik: t("hesap.kol.sonGorulme"),
       className: "text-right text-[12px] text-slate-faint",
       render: (h) => goreliZaman(h.sonGorulme, t),
+    },
+    {
+      baslik: "Yönet",
+      className: "text-right",
+      render: (h) => (
+        <button
+          type="button"
+          onClick={() => setYonetilen(h)}
+          className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] font-medium text-slate-ink transition hover:border-brand-300 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+        >
+          <ServerCog className="size-3.5" />
+          Yönet
+        </button>
+      ),
     },
   ];
 
@@ -733,11 +756,14 @@ export function AdminIstemci({ veri, dil }: { veri: AdminVeri; dil: Dil }) {
         </p>
       </Panel>
 
-      {/* --- dürüst rol-kapı notu --- */}
+      {/* --- rol-kapı notu --- */}
       <div className="flex items-start gap-2.5 rounded-2xl border border-line bg-canvas/40 px-5 py-4 text-[13px] text-slate-muted">
         <Lock className="mt-0.5 size-4 shrink-0 text-slate-faint" />
         <span dangerouslySetInnerHTML={{ __html: t("rolkapi.not") }} />
       </div>
+
+      {/* Gerçek hesap yönetim modalı — /api/admin işlemleri */}
+      {yonetilen && <HesapYonetimModal hesap={yonetilen} kapat={() => setYonetilen(null)} />}
     </div>
   );
 }

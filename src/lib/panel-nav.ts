@@ -21,6 +21,8 @@ export interface NavItem {
   key?: string;
   /** Bu modülü kullanmak için gereken yetenek (yoksa: görüntüleme, herkes). */
   capability?: TeamCapability;
+  /** Yalnızca platform admin (staff) görebilir — küresel operasyon konsolu. */
+  platformAdmin?: boolean;
 }
 
 export const panelNav: NavItem[] = [
@@ -145,13 +147,14 @@ export const panelNav: NavItem[] = [
   { key: "nav.promo", ad: "Promo Kodlar", href: "/panel/promo-kodlar", icon: "Ticket", capability: "billing.manage" },
   { key: "nav.costoptim", ad: "Maliyet Optimizasyonu", href: "/panel/maliyet-optim", icon: "PiggyBank", capability: "billing.manage" },
   { key: "nav.roi", ad: "ROI & Değer", href: "/panel/roi", icon: "TrendingUp" },
+  { key: "nav.referral", ad: "Davet Et & Kazan", href: "/panel/davet", icon: "Gift" },
   { key: "nav.boteconomy", ad: "Bot Ekonomisi", href: "/panel/bot-ekonomi", icon: "Coins" },
   { key: "nav.trustbadge", ad: "Güven Rozeti", href: "/panel/guven-rozeti", icon: "ShieldCheck" },
   { key: "nav.metering", ad: "Kullanım & SLA", href: "/panel/kullanim-olcum", icon: "Receipt" },
   { key: "nav.forecast", ad: "Kota Tahmini", href: "/panel/kota-tahmin", icon: "TrendingUp", capability: "billing.manage" },
   { key: "nav.attackforecast", ad: "Saldırı Tahmini", href: "/panel/saldiri-tahmin", icon: "Siren" },
   { key: "nav.ratelimit", ad: "Hız & Kota Politikası", href: "/panel/rate-politika", icon: "Gauge", capability: "billing.manage" },
-  { key: "nav.admin", ad: "Yönetici Konsolu", href: "/panel/admin", icon: "ServerCog", capability: "team.manage" },
+  { key: "nav.admin", ad: "Yönetici Konsolu", href: "/panel/admin", icon: "ServerCog", capability: "team.manage", platformAdmin: true },
   {
     key: "nav.settings",
     ad: "Ayarlar",

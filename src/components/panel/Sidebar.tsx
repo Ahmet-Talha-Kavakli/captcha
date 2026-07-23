@@ -27,7 +27,7 @@ function LucideIcon({ name, className }: { name: string; className?: string }) {
 
 /** Tavily-stil sol sidebar: krem zemin, workspace switcher pill, mavi aktif menü.
  *  Küçük mod (collapse): sadece ikonlar + hover tooltip. Scrollbar gizli. */
-export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: string; avatarColor: string; rol: Role; gercekRol: Role; krediBakiye?: number }; dil?: Dil }) {
+export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: string; avatarColor: string; rol: Role; gercekRol: Role; krediBakiye?: number; platformAdmin?: boolean }; dil?: Dil }) {
   const pathname = usePathname();
   const router = useRouter();
   const [wsAcik, setWsAcik] = useState(false);
@@ -68,8 +68,11 @@ export function Sidebar({ me, dil: baslangicDil }: { me: { name: string; email: 
   const drawerRef = useRef<HTMLElement>(null);
   useOdakTuzak(drawerRef, mobilAcik);
 
-  // RBAC: efektif role göre erişilebilir modülleri filtrele.
-  const gorunurNav = panelNav.filter((item) => yetkiliMi(me.rol, item.capability));
+  // RBAC: efektif role göre erişilebilir modülleri filtrele. Platform-admin'e
+  // özel modüller (Yönetici Konsolu) yalnızca staff'a gösterilir.
+  const gorunurNav = panelNav.filter(
+    (item) => yetkiliMi(me.rol, item.capability) && (!item.platformAdmin || me.platformAdmin),
+  );
 
   // Rol önizleme (sadece gerçek sahip/yönetici deneyebilir): cookie'yi ayarla.
   async function rolOnizle(rol: Role) {

@@ -17,13 +17,15 @@
  *
  * GÜVENLİK NOTU
  * -------------
- * Bu yüzey kavramsal olarak YALNIZCA Specter personeline (staff) açıktır;
- * production'da rol-kapılı olur. Burada demo amacıyla oturum-açmış kullanıcıya
- * gösterilir. Yıkıcı işlem YOKTUR (hesap silme vb. yapılmaz) — salt-okunur
- * operasyon görünümü + temsili operasyonel kontroller (özellik bayrakları).
+ * Bu yüzey YALNIZCA Specter personeline (platform admin/staff) açıktır ve
+ * `platformAdminMi()` kapısıyla korunur — admin olmayan kullanıcı `/panel`'e
+ * yönlendirilir (küresel e-posta/plan/MRR verisi sızmaz). Admin listesi
+ * VEYLIFY_ADMIN_EMAILS env'i ile veya User.platformAdmin bayrağıyla belirlenir.
  */
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
+import { platformAdminMi } from "@/lib/platform-admin";
 import { PanelUst } from "@/components/panel/PanelUst";
 import { panelDil } from "@/lib/i18n/sunucu";
 import { ceviri } from "@/lib/i18n/panel";
@@ -67,7 +69,10 @@ function sonGunler(n: number): string[] {
 
 export default async function AdminPage() {
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) redirect("/login");
+  // YETKİ KAPISI: yalnızca platform admin (staff) girebilir. Aksi halde bu
+  // küresel operasyon panosu (tüm kullanıcı e-postaları/planları) sızardı.
+  if (!platformAdminMi(user)) redirect("/panel");
   const dil = await panelDil();
 
   const tumKullanicilar = Users.all();
@@ -186,6 +191,11 @@ export default async function AdminPage() {
       durum: hesapOlay > 0 ? "aktif" : "bosta",
       olusturuldu: k.createdAt,
       sonGorulme: k.lastSeenAt,
+      // Platform yönetimi (gerçek işlemler için).
+      rol: k.role,
+      hesapDurumu: k.hesapDurumu === "suspended" ? "suspended" : "active",
+      platformAdmin: platformAdminMi(k),
+      krediBakiye: k.krediBakiye ?? 0,
     });
   }
 

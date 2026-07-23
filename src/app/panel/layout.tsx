@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { efektifRol } from "@/lib/rbac-server";
+import { platformAdminMi } from "@/lib/platform-admin";
 import { Sidebar } from "@/components/panel/Sidebar";
 import { RolGuard } from "@/components/panel/RolGuard";
 import { KomutPaleti } from "@/components/panel/KomutPaleti";
@@ -34,7 +35,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       {/* Masaüstünde viewport-kilit: sidebar TAM sabit kalır, yalnızca içerik
           alanı (main) kendi içinde dikey kayar. Mobilde normal sayfa akışı. */}
       <div className="flex bg-canvas lg:h-screen lg:overflow-hidden">
-        <Sidebar me={{ name: user.name, email: user.email, avatarColor: user.avatarColor, rol, gercekRol: user.role, krediBakiye: Users.krediBakiye(user.id) }} dil={dil} />
+        <Sidebar me={{ name: user.name, email: user.email, avatarColor: user.avatarColor, rol, gercekRol: user.role, krediBakiye: Users.krediBakiye(user.id), platformAdmin: platformAdminMi(user) }} dil={dil} />
         <main id="icerik" className="flex min-w-0 flex-1 flex-col overflow-x-clip lg:h-screen lg:overflow-y-auto">
           <RolGuard rol={rol}>{children}</RolGuard>
         </main>

@@ -20,7 +20,7 @@ import type { Dil } from "@/lib/i18n/panel";
 /** t yardımcısının tipi. */
 type Ceviri = (anahtar: string) => string;
 
-type Kategori = "auth" | "site" | "rule" | "team" | "ai-policy" | "billing" | "token" | "webhook";
+type Kategori = "auth" | "site" | "rule" | "team" | "ai-policy" | "billing" | "token" | "webhook" | "admin";
 
 interface Log {
   id: string;
@@ -49,6 +49,7 @@ const KAT_META: Record<Kategori, { renk: string; ton: "brand" | "gri" | "yesil" 
   billing: { renk: "#16a34a", ton: "yesil", ikon: CreditCard },
   token: { renk: "#db2777", ton: "kirmizi", ikon: KeyRound },
   webhook: { renk: "#0d9488", ton: "yesil", ikon: WebhookIcon },
+  admin: { renk: "#dc2626", ton: "kirmizi", ikon: Users2 },
 };
 
 /** Kategori enum değeri → çevrilebilir etiket anahtarı. Enum değeri asla çevrilmez. */
@@ -61,6 +62,7 @@ const KAT_ETIKET_ANAHTAR: Record<Kategori, string> = {
   billing: "dn.kat.billing",
   token: "dn.kat.token",
   webhook: "dn.kat.webhook",
+  admin: "dn.kat.admin",
 };
 /** Kategorinin çevrilmiş etiketi (enum → anahtar). */
 function katEtiket(t: Ceviri, k: Kategori): string {
