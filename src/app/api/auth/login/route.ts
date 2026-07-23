@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Users, verifyPassword } from "@/lib/db/db";
+import { Users, verifyPassword, blobHazirla } from "@/lib/db/db";
 import { startSession } from "@/lib/auth";
 import { totpDogrula } from "@/lib/specter/totp";
 
@@ -13,11 +13,24 @@ export async function POST(req: Request) {
     );
   }
 
+  // KRİTİK: Supabase blob'unu TAZE yükle (zorla) — aksi halde cache henüz
+  // yüklenmemişken geçici SEED'deki kullanıcıyı buluruz, session seed-id'sine
+  // bağlanır ve blob yüklenince (gerçek kullanıcı gelince) oturum 401 olur.
+  await blobHazirla(true);
+
   const user = Users.byEmail(email);
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return NextResponse.json(
       { error: "E-posta veya şifre hatalı." },
       { status: 401 },
+    );
+  }
+
+  // ASKIYA ALINMIŞ HESAP: platform yönetimi bu hesabı askıya aldıysa giriş yok.
+  if (user.hesapDurumu === "suspended") {
+    return NextResponse.json(
+      { error: user.askiNedeni || "Hesabınız askıya alınmış. Destek ile iletişime geçin." },
+      { status: 403 },
     );
   }
 

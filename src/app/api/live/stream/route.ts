@@ -19,7 +19,9 @@ const PUSH_ARALIK = 2000; // ms — yeni olay itme sıklığı
 const PING_ARALIK = 15000; // ms — keep-alive yorumu sıklığı
 
 export async function GET(req: Request) {
-  const user = await currentUser();
+  // EGRESS: uzun-yaşayan akış; blob'u her tick'te değil yalnız bağlantı
+  // açılışında (TTL'li) okumak yeter — kim olduğumuzu cookie söyler.
+  const user = await currentUser({ taze: false });
   if (!user) {
     return new Response("unauthorized", { status: 401 });
   }

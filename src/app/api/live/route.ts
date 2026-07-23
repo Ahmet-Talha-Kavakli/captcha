@@ -9,7 +9,10 @@ import { pumpLiveEvents } from "@/lib/db/live";
  * (canlı his), sonra `since`'den yeni olayları döner.
  */
 export async function GET(req: Request) {
-  const user = await currentUser();
+  // EGRESS: bu uç 3sn'de bir poll edilir. `taze:false` → Supabase blob'unu her
+  // poll'de yeniden İNDİRME (TTL'li hafif okuma yeter; kim olduğumuzu cookie
+  // zaten söyler). Aksi halde her poll ~1MB+ blob egress'i üretirdi.
+  const user = await currentUser({ taze: false });
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   pumpLiveEvents(user.id);

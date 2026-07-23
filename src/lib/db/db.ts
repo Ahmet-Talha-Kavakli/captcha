@@ -10,7 +10,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { SCHEMA_VERSION, type Database } from "./schema";
+import { SCHEMA_VERSION, type Database, type Role } from "./schema";
 import { supabaseAktif, blobYukle, blobKaydet } from "./supabase-blob";
 import type {
   User,
@@ -187,6 +187,32 @@ let writeSeq = 0;
 function persist(): void {
   flushNow();
   writeSeq++;
+}
+
+// EGRESS (YAZMA): Canlı-akış olayları (demo pump) saniyede ~1 olay üretir; her
+// olay tüm blob'u (~550 KB) Supabase'e UPSERT ederse yazma-egress patlar. Bu
+// yüzden akış olayları için persist'i DEBOUNCE ederiz: cache anında güncellenir
+// (senkron API tutarlı kalır), ama Supabase'e yazma en fazla ~30 sn'de bir olur.
+// Kritik yazmalar (session/plan/kural) düz `persist()` kullanmaya devam eder.
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let debounceKirli = false;
+const DEBOUNCE_MS = 30_000;
+
+function persistDebounced(): void {
+  writeSeq++;           // türetilmiş önbellek anında invalide olsun
+  cacheMtime = Date.now();
+  debounceKirli = true;
+  if (debounceTimer) return; // zaten bir flush planlı
+  debounceTimer = setTimeout(() => {
+    debounceTimer = null;
+    if (debounceKirli && cache) {
+      debounceKirli = false;
+      if (supabaseAktif) void blobKaydet(cache);
+      else flushNow();
+    }
+  }, DEBOUNCE_MS);
+  // Node'da timer process'i canlı tutmasın (test/CLI temiz kapansın).
+  (debounceTimer as unknown as { unref?: () => void })?.unref?.();
 }
 
 // --------------------------------------------------------------- Türetilmiş sorgu önbelleği
@@ -420,6 +446,60 @@ export const Users = {
     const u = Users.byId(uid);
     if (!u) return null;
     u.plan = plan;
+    persist();
+    return u;
+  },
+
+  /* ------------------------------------------------------- Platform yönetimi */
+  /** Rolü değiştir (owner/admin/analyst/viewer). */
+  setRole(uid: string, role: Role): User | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    u.role = role;
+    persist();
+    return u;
+  },
+  /** Hesabı askıya al veya yeniden aktifleştir. suspended → giriş/erişim engellenir. */
+  setHesapDurumu(uid: string, durum: "active" | "suspended", neden?: string): User | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    u.hesapDurumu = durum;
+    if (durum === "suspended") u.askiNedeni = neden || "Yönetici tarafından askıya alındı";
+    else delete u.askiNedeni;
+    // Askıya alınınca tüm oturumlarını sonlandır (anında etki).
+    if (durum === "suspended") {
+      const db = load();
+      for (const [tok, s] of Object.entries(db.sessions)) {
+        if (s.userId === uid) delete db.sessions[tok];
+      }
+    }
+    persist();
+    return u;
+  },
+  /** Platform admin (staff) bayrağını ata/kaldır. */
+  setPlatformAdmin(uid: string, deger: boolean): User | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    u.platformAdmin = deger;
+    persist();
+    return u;
+  },
+
+  /* ------------------------------------------------------------- Referral */
+  /** Davet edilen kullanıcıya, kendisini davet eden kişinin kodunu işaretle. */
+  davetEdeniAyarla(uid: string, davetEdenKod: string): User | null {
+    const u = Users.byId(uid);
+    if (!u || u.davetEdenKod) return null; // zaten işaretliyse dokunma
+    u.davetEdenKod = davetEdenKod;
+    persist();
+    return u;
+  },
+  /** Davet EDEN'in sayaç + kazancını artır. */
+  davetKazancEkle(uid: string, kredi: number): User | null {
+    const u = Users.byId(uid);
+    if (!u) return null;
+    u.davetSayisi = (u.davetSayisi ?? 0) + 1;
+    u.davetKazanci = (u.davetKazanci ?? 0) + kredi;
     persist();
     return u;
   },
@@ -728,7 +808,12 @@ export const Events = {
     }
     return ipler.size;
   },
-  add(ev: Omit<BotEvent, "id">): BotEvent {
+  /**
+   * @param akis true → canlı-akış (demo pump) olayı: yazma DEBOUNCE edilir
+   *   (Supabase'e her olayda değil ~30 sn'de bir yazılır → yazma-egress düşer).
+   *   Gerçek widget/challenge olayları (akis=false) anında persist edilir.
+   */
+  add(ev: Omit<BotEvent, "id">, akis = false): BotEvent {
     const db = load();
     const full: BotEvent = { ...ev, id: id("ev") };
     db.events.push(full);
@@ -746,9 +831,11 @@ export const Events = {
     // EGRESS: tüm state tek blob olarak Supabase'den indiriliyor; olaylar blob'un
     // ~%97'siydi (8000 olay ≈ 3.2 MB) ve her okuma bu boyutu ağdan çekiyordu →
     // Free plan egress kotası doldu, sorgular timeout'a düştü. Panel zaten son
-    // 30 günü gösteriyor; 2500 olay tüm görünümler için fazlasıyla yeterli.
-    if (db.events.length > 2500) db.events.splice(0, db.events.length - 2500);
-    persist();
+    // 30 günü/limitli gösteriyor; 1200 olay tüm görünümler için fazlasıyla yeter
+    // ve blob'u ~550 KB'ye indirir (2500 → 1200: egress ~2× azalır).
+    if (db.events.length > 1200) db.events.splice(0, db.events.length - 1200);
+    if (akis) persistDebounced();
+    else persist();
     return full;
   },
 };

@@ -34,12 +34,18 @@ export const supabaseAktif = Boolean(URL && KEY);
  * Kısa bir sınırla sayfa, veritabanı olmadan da (bellekteki cache/seed ile)
  * HIZLI açılır — kullanıcı bekletilmez.
  */
-const ISTEK_TIMEOUT_MS = 4000;
+// Okuma hızlı (~1 sn, ~0.5 MB blob), ama YAZMA (upsert) daha yavaştır ve 4 sn'de
+// timeout'a takılıp session yazmasını düşürüyordu (login sonrası 401). Yazmaya
+// daha geniş pay, okumaya sıkı sınır: sayfa okumada bekletilmez, kritik yazma tamamlanır.
+const OKUMA_TIMEOUT_MS = 4000;
+const YAZMA_TIMEOUT_MS = 9000;
 
-/** fetch'i AbortController ile süre sınırına bağlar. */
+/** fetch'i AbortController ile süre sınırına bağlar (yazma isteklerine geniş pay). */
 function zamanSinirliFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const kontrol = new AbortController();
-  const zamanlayici = setTimeout(() => kontrol.abort(), ISTEK_TIMEOUT_MS);
+  const yazmaMi = init?.method != null && init.method !== "GET" && init.method !== "HEAD";
+  const sinir = yazmaMi ? YAZMA_TIMEOUT_MS : OKUMA_TIMEOUT_MS;
+  const zamanlayici = setTimeout(() => kontrol.abort(), sinir);
   return fetch(input, { ...init, signal: kontrol.signal }).finally(() => clearTimeout(zamanlayici));
 }
 

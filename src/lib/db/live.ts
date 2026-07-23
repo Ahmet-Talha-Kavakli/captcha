@@ -39,8 +39,9 @@ function randIp(): string {
  * gerçek bir DB yazımıdır (davranış korunur); burada üretim mantığı aynen
  * bırakıldı, yalnızca girişteki site-çekimi artık ucuz.
  */
-/** Tek bir gerçekçi olayı verilen siteye ekler (ortak üretim çekirdeği). */
-function birOlayEkle(siteId: string): void {
+/** Tek bir gerçekçi olayı verilen siteye ekler (ortak üretim çekirdeği).
+ *  @param akis true → Supabase yazması debounce edilir (canlı akış; egress). */
+function birOlayEkle(siteId: string, akis = false): void {
   const roll = Math.random();
   const botClass: BotClass = roll < 0.55 ? "human" : roll < 0.65 ? "good_bot" : pick(CLASSES.slice(2));
   const isBot = botClass !== "human" && botClass !== "good_bot";
@@ -63,7 +64,7 @@ function birOlayEkle(siteId: string): void {
     fingerprint: Math.random().toString(16).slice(2, 10),
     method: Math.random() < 0.6 ? "POST" : "GET",
     latency: 8 + Math.floor(Math.random() * 90),
-  });
+  }, akis);
 }
 
 export function pumpLiveEvents(ownerId: string): void {
@@ -76,7 +77,8 @@ export function pumpLiveEvents(ownerId: string): void {
   const sites = Sites.forOwner(ownerId);
   if (!sites.length) return;
   const n = Math.floor(Math.random() * 3); // 0..2
-  for (let i = 0; i < n; i++) birOlayEkle(pick(sites).id);
+  // akis=true → yazma debounce edilir (saniyede yazma yerine ~30sn'de bir).
+  for (let i = 0; i < n; i++) birOlayEkle(pick(sites).id, true);
 }
 
 /**
