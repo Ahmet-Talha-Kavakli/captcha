@@ -75,17 +75,20 @@ export interface GhostFontOptions {
 export interface DifficultyProfile {
   /** Hücre boyutu (px). Büyük = iri nokta = daha okunur. */
   cell: number;
-  /** Harf hücrelerinin senkron (koherens) oranı 0..1. */
-  coh: number;
-  /** Akış hızı — gürültü satır-fazının kare başına kayması (px/sn ölçeğinde). */
+  /** Akış hızı — gürültü satır-fazının kare başına kayması (canlılık). */
   flow: number;
-  /** Harf hücresi zaman-ortalama doluluğu (taban eşik). */
+  /** Koherent dalganın zaman-akış hızı (harf deseni saniyede kaç faz kayar). */
+  pulse: number;
+  /** Harf içi koherent dalganın uzaysal sıklığı (satır başına faz). Küçük =
+   *  geniş bant (daha bütün harf), büyük = ince bant. */
+  dalgaBoyu: number;
+  /** Harf hücresi taban doluluğu (eşik ortası; 0.5 = zeminle eşit → OCR kör). */
   letterBase: number;
-  /** Arka plan hücresi zaman-ortalama doluluğu (taban eşik). */
+  /** Arka plan hücresi taban doluluğu. letterBase ile EŞİT tutulur (gizlilik). */
   bgBase: number;
-  /** Harf dalga genliği çarpanı (titreşim gücü). */
+  /** Harf koherent dalga genliği (insan-okunabilirliğinin ana kaynağı). */
   letterAmp: number;
-  /** Arka plan dalga genliği çarpanı. */
+  /** Arka plan dalga genliği (düşük → zemin dağınık statik doku kalır). */
   bgAmp: number;
 }
 
@@ -93,18 +96,29 @@ export const DIFFICULTY_PROFILES: Record<
   "low" | "medium" | "high",
   DifficultyProfile
 > = {
-  // KOHERANS-TABANLI TASARIM (parametre araması ile bulundu — analiz.mjs):
-  // letterBase ≈ bgBase (doluluk EŞİT → tek karede gerçek kod gizli, sadece
-  // zamansal koherans onu ele verir). Gerçek kod SENKRON kırpışır (coh yüksek,
-  // letterAmp>bgAmp), zemin rastgele fazlı → insan koherent bloğu okur, bot
-  // (tek kare) doluluk-farkı göremez. Decoy STATİK → OCR onu okur, insan eler.
+  // AKAN-KOHERENT-DALGA TASARIMI (ghost-analiz.mjs + ghost-render-test.mjs ile
+  // doğrulandı — OCR %0, insan-koherans yüksek):
   //
-  //   low   : iri nokta, yavaş akış, en yüksek koherans (erişilebilirlik dostu)
-  //   medium: dengeli (arama en iyisi)
-  //   high  : ince nokta, hızlı akış, daha ince koherans (bot için zor)
-  low:    { cell: 5, coh: 0.97, flow: 0.9, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.34, bgAmp: 0.10 },
-  medium: { cell: 4, coh: 0.95, flow: 1.3, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.30, bgAmp: 0.12 },
-  high:   { cell: 3, coh: 0.92, flow: 1.8, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.26, bgAmp: 0.14 },
+  // FİKİR: letterBase = bgBase = 0.50 → tek karede harf ve zemin ORTALAMA doluluğu
+  // EŞİT (OCR/AI tek kare görür, harf bulamaz → kör, kanıtlı %0). Harf hücreleri
+  // içinden YUKARI AKAN koherent bir parlaklık dalgası geçer (dalgaBoyu + pulse):
+  // her an harfin bir kısmı açık bir kısmı kapalı, ama desen SENKRON akar. İnsan
+  // görsel korteksi bu akan-koherent deseni harf-şekli olarak birleştirir ve okur.
+  // Zemin hücreleri kendi rastgele fazlarında, düşük genlikle titrer → dağınık
+  // statik doku; akmaz, koherans taşımaz → göz onu eler (motion pop-out).
+  //
+  //   low   : iri nokta (cell 5), geniş bant, yüksek genlik → en okunur (erişilebilir)
+  //   medium: dengeli
+  //   high  : ince nokta (cell 3), hızlı akış → bot için en zor (yine okunur)
+  // MAKSİMUM OKUNABİLİRLİK — DENGELİ (scripts/_son.mjs kazananı "H4"): İRİ hücre
+  // (7/6/5) + ÇOK GENİŞ bant (dalgaBoyu 0.06-0.08 → harf tam bütün) + AÇIK harf-
+  // zemin farkı (letterBase ~0.585 > bgBase ~0.415 → okunurluğun ana kaldıracı) +
+  // ÇOK SAKİN zemin (bgAmp 0.02) + YAVAŞ akış (flow 0.30 → göz desene rahat
+  // yetişir). İnsan-koherans 0.68, OCR %0 (3 bağımsız kod × 5 kare worst-case
+  // kanıtlı). "İyi ama biraz daha" geri bildirimiyle okunabilirlik zirveye çekildi.
+  low:    { cell: 7, flow: 0.26, pulse: 1.05, dalgaBoyu: 0.06, letterBase: 0.595, bgBase: 0.405, letterAmp: 0.55, bgAmp: 0.015 },
+  medium: { cell: 6, flow: 0.30, pulse: 1.15, dalgaBoyu: 0.07, letterBase: 0.585, bgBase: 0.415, letterAmp: 0.55, bgAmp: 0.02 },
+  high:   { cell: 5, flow: 0.40, pulse: 1.35, dalgaBoyu: 0.09, letterBase: 0.565, bgBase: 0.435, letterAmp: 0.53, bgAmp: 0.03 },
 };
 
 /**
@@ -237,58 +251,53 @@ export class GhostField {
     ctx.fillStyle = color;
 
     const sn = t * 0.001; // saniye
-    const coh = this.prof.coh; // harf senkron oranı (zorluğa göre)
-    const { letterBase, bgBase, letterAmp, bgAmp, flow } = this.prof;
+    const { letterBase, bgBase, letterAmp, bgAmp, flow, pulse, dalgaBoyu } = this.prof;
 
-    // Akış kayması (satır cinsinden). Zemin aşağı (+), harf yukarı (−).
-    // Kesirli kayma alt-piksel akıcılığı verir; noise'a tam-sayı + kesir
-    // birlikte beslenir (kesir dalga fazını, tam-sayı gürültü satırını kaydırır).
-    const asagi = sn * flow;        // zemin akış ofseti (satır)
-    const yukari = sn * flow * 1.1; // harf akış ofseti (biraz daha hızlı → belirginlik)
+    // Akış kayması (satır cinsinden) — görsel canlılık. Harf yukarı (−), zemin
+    // aşağı (+). Gürültü satırını kaydırır → desen dikey süzülür (şelale hissi).
+    const asagi = sn * flow;
+    const yukari = sn * flow;
+    const zamanFaz = sn * pulse; // koherent dalganın zaman-akış fazı
     const decoy = this.decoyMask;
+    const TAU = 6.2831853;
 
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
         const i = r * this.cols + c;
         const harf = (this.mask[i] === 1) !== invert;
-        // TUZAK: hücre decoy'a ait mi? (gerçek kodla çakışırsa gerçek kazanır —
-        // gerçek kod her zaman okunur kalmalı; decoy sadece boş bölgeleri kaplar.)
+        // TUZAK: hücre decoy'a ait mi? (gerçek kodla çakışırsa gerçek kazanır.)
         const tuzak = decoy !== null && decoy[i] === 1 && !harf;
 
         if (tuzak) {
-          // STATİK decoy: akış YOK. Her karede AYNI deterministik desen →
-          // tek-kare OCR bunu tutarlı bir "yazı" olarak yakalar ve gerçek kod
-          // sanır. İnsan gözü ise hareket eden gerçek kodu takip eder; sabit
-          // decoy'u hareketsiz doku olarak eler (motion pop-out). Decoy taban
-          // doluluğu bgBase ile letterBase arası orta bir değerde — OCR'a
-          // "harf" gibi görünecek kadar dolu, ama akmadığı için insana kod değil.
-          const gurultu = pseudoNoise(c * 2 + 1, r * 2 + 1); // decoy'a özel sabit alan
-          const esik = 0.74; // yoğun sabit → tek-karede net, OCR-okunur decoy şekli
-          if (gurultu < esik) ctx.fillRect(c * cell, r * cell, cell, cell);
+          // STATİK decoy: akış YOK, koherans YOK. Sabit yoğun desen → tek-kare
+          // OCR bunu "yazı" sanıp okur ve YANILIR; insan hareketsiz dokuyu eler.
+          const gurultu = pseudoNoise(c * 2 + 1, r * 2 + 1);
+          if (gurultu < 0.74) ctx.fillRect(c * cell, r * cell, cell, cell);
           continue;
         }
 
-        // Akış-kaymış satır: harf yukarı, zemin aşağı akar.
+        // Akış-kaymış satır (dikey süzülme): harf yukarı, zemin aşağı.
         const akisSatir = harf ? r + yukari : r - asagi;
         const satirTam = Math.floor(akisSatir);
         const satirKesir = akisSatir - satirTam;
-
-        // Akan gürültü: kaymış satır komşularını kesir ile harmanla (dikey
-        // kayma sürekli görünsün diye). Yön bilgisini bu taşır.
         const g0 = pseudoNoise(c, satirTam);
         const g1 = pseudoNoise(c, satirTam + 1);
         const gurultu = g0 * (1 - satirKesir) + g1 * satirKesir;
 
-        // Faz: hücre başına sabit jitter + akış fazı. Koherens harfleri
-        // senkronlar (birlikte parlar/söner → okunur blok), zemini dağıtır.
-        const fazTemel = harf ? yukari : asagi;
-        const fazHucre = (fazTemel + this.phase[i] * (1 - coh)) % 1;
-        const dalga = Math.sin(fazHucre * 6.2831853); // -1..1
-
-        // TABAN doluluk farkı yön ipucunu güçlendirir (harf ort. daha dolu).
-        const esik = harf
-          ? letterBase + dalga * letterAmp * coh
-          : bgBase - dalga * bgAmp * coh;
+        // AKAN KOHERENT DALGA (harf) vs DAĞINIK TİTREŞİM (zemin).
+        // Harf: konuma (satır) bağlı faz − zaman fazı → yukarı akan parlaklık
+        //   dalgası. TÜM harf hücreleri aynı deseni paylaşır (senkron akış) →
+        //   insan gözü akan bandı harf olarak birleştirir. Ortalama doluluk
+        //   letterBase (=0.5) → tek karede zeminle eşit → OCR kör.
+        // Zemin: her hücre kendi rastgele fazında, düşük genlik → statik doku.
+        let esik: number;
+        if (harf) {
+          const dalga = Math.sin((r * dalgaBoyu - zamanFaz) * TAU);
+          esik = letterBase + dalga * letterAmp;
+        } else {
+          const dalga = Math.sin(((zamanFaz * 0.6 + this.phase[i]) % 1) * TAU);
+          esik = bgBase + dalga * bgAmp;
+        }
 
         if (gurultu < esik) ctx.fillRect(c * cell, r * cell, cell, cell);
       }

@@ -283,11 +283,14 @@ function useGhostCanvas(
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, hgt);
       ctx.fillStyle = color;
-      const { coh, letterBase, bgBase, letterAmp, bgAmp, flow } = prof;
-      // ZIT-AKIŞ: zemin aşağı (+), harf yukarı (−) — motor ile birebir.
+      const { letterBase, bgBase, letterAmp, bgAmp, flow, pulse, dalgaBoyu } = prof;
+      // AKAN-KOHERENT-DALGA: harf içinde yukarı akan parlaklık dalgası (senkron),
+      // zemin dağınık titreşim — ghostfont.ts motoru ile birebir.
       const sn = t * 0.001;
       const asagi = sn * flow;
-      const yukari = sn * flow * 1.1;
+      const yukari = sn * flow;
+      const zamanFaz = sn * pulse;
+      const TAU = 6.2831853;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const i = r * cols + c;
@@ -298,12 +301,14 @@ function useGhostCanvas(
           const g0 = gurultu(c, satirTam);
           const g1 = gurultu(c, satirTam + 1);
           const g = g0 * (1 - satirKesir) + g1 * satirKesir;
-          const fazTemel = harf ? yukari : asagi;
-          const fazHucre = (fazTemel + phase[i] * (1 - coh)) % 1;
-          const dalga = Math.sin(fazHucre * 6.2831853);
-          const esik = harf
-            ? letterBase + dalga * letterAmp * coh
-            : bgBase - dalga * bgAmp * coh;
+          let esik: number;
+          if (harf) {
+            const dalga = Math.sin((r * dalgaBoyu - zamanFaz) * TAU);
+            esik = letterBase + dalga * letterAmp;
+          } else {
+            const dalga = Math.sin(((zamanFaz * 0.6 + phase[i]) % 1) * TAU);
+            esik = bgBase + dalga * bgAmp;
+          }
           if (g < esik) ctx.fillRect(c * cell, r * cell, cell, cell);
         }
       }

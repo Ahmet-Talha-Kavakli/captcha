@@ -77,9 +77,11 @@ export function ocrMetrikHesap(zorluk: Zorluk, prof: DifficultyProfile = DIFFICU
   const tekKareSN = gurultu > 0 ? Math.abs(tekKareFark) / gurultu : 0;
 
   // OCR direnç: tek-kare S/N düştükçe direnç artar. S/N=0 → %100 direnç.
-  // Koherens düşük olması da botun temporal-birleştirmesini zorlaştırır.
+  // Akan-koherent-dalga motorunda harf ort. doluluğu = zemin (letterBase=bgBase)
+  // olduğundan tek-kare S/N zaten çok düşük; dalga genliği (letterAmp) büyükse
+  // desen insana daha okunur ama tek-kare istatistiği yine harfi ele vermez.
   const snBazli = Math.max(0, 1 - Math.min(1, tekKareSN)); // 0..1
-  const ocrDirenc = Math.round((snBazli * 0.8 + (1 - prof.coh) * 0.2) * 100);
+  const ocrDirenc = Math.round(Math.min(1, snBazli * 0.85 + 0.15) * 100);
 
   return {
     zorluk,
@@ -90,7 +92,7 @@ export function ocrMetrikHesap(zorluk: Zorluk, prof: DifficultyProfile = DIFFICU
     tekKareSN: Math.round(tekKareSN * 100) / 100,
     ocrDirenc,
     okunabilir: zamanKontrast >= 25,
-    koherens: prof.coh,
+    koherens: prof.letterAmp, // dalga gücü (eski "coh" yerine okunabilirlik göstergesi)
   };
 }
 

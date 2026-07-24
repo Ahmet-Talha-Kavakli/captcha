@@ -54,10 +54,11 @@ function buildMask(ctx2, text, cols, rows, cell) {
 // Gerçek üretim profilleri — src/lib/specter/ghostfont.ts DIFFICULTY_PROFILES
 // ile BİREBİR aynı. Testin gerçek zorluk davranışını ölçmesi için buraya
 // yansıtıldı (low daha az agresif → OCR'a en "kolay" seviye; yine de körlemeli).
+// AKAN-KOHERENT-DALGA profilleri — ghostfont.ts DIFFICULTY_PROFILES ile BİREBİR.
 const PROFILLER = {
-  low:    { cell: 5, coh: 0.97, flow: 0.9, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.34, bgAmp: 0.10 },
-  medium: { cell: 4, coh: 0.95, flow: 1.3, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.30, bgAmp: 0.12 },
-  high:   { cell: 3, coh: 0.92, flow: 1.8, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.26, bgAmp: 0.14 },
+  low:    { cell: 7, flow: 0.26, pulse: 1.05, dalgaBoyu: 0.06, letterBase: 0.595, bgBase: 0.405, letterAmp: 0.55, bgAmp: 0.015 },
+  medium: { cell: 6, flow: 0.30, pulse: 1.15, dalgaBoyu: 0.07, letterBase: 0.585, bgBase: 0.415, letterAmp: 0.55, bgAmp: 0.02 },
+  high:   { cell: 5, flow: 0.40, pulse: 1.35, dalgaBoyu: 0.09, letterBase: 0.565, bgBase: 0.435, letterAmp: 0.53, bgAmp: 0.03 },
 };
 
 /**
@@ -82,7 +83,8 @@ function ghostFrame(text, seed, zorluk = "medium", decoyKullan = false, W = 400,
   for (let i = 0; i < phase.length; i++) { s = (s * 1103515245 + 12345) & 0x7fffffff; phase[i] = s / 0x7fffffff; }
   // Tek an (bir screenshot) — botun gördüğü kare. ghostfont.ts render(t) ile aynı eşik.
   const t = 1234, sn = t * 0.001;
-  const asagi = sn * p.flow, yukari = sn * p.flow * 1.1;
+  const asagi = sn * p.flow, yukari = sn * p.flow;
+  const zamanFaz = sn * p.pulse, TAU = 6.2831853;
   ctx.fillStyle = "#dfe6ea"; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = "#0b1120";
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
@@ -93,14 +95,21 @@ function ghostFrame(text, seed, zorluk = "medium", decoyKullan = false, W = 400,
       if (pseudoNoise(c * 2 + 1, r * 2 + 1, 0) < 0.74) ctx.fillRect(c * cell, r * cell, cell, cell);
       continue;
     }
+    // AKAN-KOHERENT-DALGA (ghostfont.ts ile birebir): harf içinden yukarı akan
+    // parlaklık dalgası (senkron), zemin dağınık titreşim. Tek karede harf ort.
+    // doluluğu = zemin → OCR harfi ayırt edemez.
     const akisSatir = harf ? r + yukari : r - asagi;
     const satirTam = Math.floor(akisSatir), satirKesir = akisSatir - satirTam;
     const g0 = pseudoNoise(c, satirTam, 0), g1 = pseudoNoise(c, satirTam + 1, 0);
     const gurultu = g0 * (1 - satirKesir) + g1 * satirKesir;
-    const fazTemel = harf ? yukari : asagi;
-    const fazHucre = (fazTemel + phase[i] * (1 - p.coh)) % 1;
-    const dalga = Math.sin(fazHucre * 6.2831853);
-    const esik = harf ? p.letterBase + dalga * p.letterAmp * p.coh : p.bgBase - dalga * p.bgAmp * p.coh;
+    let esik;
+    if (harf) {
+      const dalga = Math.sin((r * p.dalgaBoyu - zamanFaz) * TAU);
+      esik = p.letterBase + dalga * p.letterAmp;
+    } else {
+      const dalga = Math.sin(((zamanFaz * 0.6 + phase[i]) % 1) * TAU);
+      esik = p.bgBase + dalga * p.bgAmp;
+    }
     if (gurultu < esik) ctx.fillRect(c * cell, r * cell, cell, cell);
   }
   return canvas;

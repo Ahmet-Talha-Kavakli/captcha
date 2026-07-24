@@ -151,10 +151,13 @@
   // KOHERANS-TABANLI: letterBase≈bgBase (doluluk eşit → tek karede kod gizli),
   // ayrım sadece SENKRON kırpışmadan (coh + letterAmp>bgAmp). Decoy statik → OCR
   // tuzağı. ghostfont.ts DIFFICULTY_PROFILES ile BİREBİR aynı.
+  // AKAN-KOHERENT-DALGA (ghostfont.ts DIFFICULTY_PROFILES ile BİREBİR):
+  // letterBase=bgBase=0.5 → tek karede harf ort. doluluğu zeminle EŞİT (OCR kör).
+  // Harf içinden yukarı akan koherent dalga (dalgaBoyu+pulse) insana harfi gösterir.
   var DIFFICULTY_PROFILES = {
-    low:    { cell: 5, coh: 0.97, flow: 0.9, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.34, bgAmp: 0.10 },
-    medium: { cell: 4, coh: 0.95, flow: 1.3, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.30, bgAmp: 0.12 },
-    high:   { cell: 3, coh: 0.92, flow: 1.8, letterBase: 0.50, bgBase: 0.50, letterAmp: 0.26, bgAmp: 0.14 }
+    low:    { cell: 7, flow: 0.26, pulse: 1.05, dalgaBoyu: 0.06, letterBase: 0.595, bgBase: 0.405, letterAmp: 0.55, bgAmp: 0.015 },
+    medium: { cell: 6, flow: 0.30, pulse: 1.15, dalgaBoyu: 0.07, letterBase: 0.585, bgBase: 0.415, letterAmp: 0.55, bgAmp: 0.02 },
+    high:   { cell: 5, flow: 0.40, pulse: 1.35, dalgaBoyu: 0.09, letterBase: 0.565, bgBase: 0.435, letterAmp: 0.53, bgAmp: 0.03 }
   };
 
   function buildMask(text, cols, rows, cell) {
@@ -211,7 +214,6 @@
     // ve YANILIR. Statik çizilir → OCR yakalar, insan (koherans kanalı) eler.
     // Gerçek kod ise senkron kırpışmayla gizli; sadece hareketi gören okur.
     this.decoyMask = buildMask(decoyContent(seed), this.cols, this.rows, this.cell);
-    this.coh = this.prof.coh; // harf hücrelerinin senkron oranı (zorluğa göre)
     // Her hücreye sabit bir rastgele faz kayması (kırpışmayı doğallaştırır).
     this.jitter = new Float32Array(this.cols * this.rows);
     var s = (seed ^ 0x9e3779b9) >>> 0;
@@ -225,40 +227,38 @@
     ctx.fillStyle = "#0a1220"; ctx.fillRect(0, 0, this.w, this.h);
     ctx.fillStyle = "#d4ecf7";
     var prof = this.prof;
-    var coh = this.coh;
     var sn = t * 0.001; // saniye
-    // ZIT-AKIŞ: zemin aşağı (+), harf yukarı (−). Akış hücrenin gürültü
-    // satırını sürekli kaydırır → desen dikey akar; yön farkı harfi ele verir.
-    var asagi = sn * prof.flow;         // zemin akış ofseti (satır)
-    var yukari = sn * prof.flow * 1.1;  // harf akış ofseti (biraz daha hızlı)
+    // Akış (görsel canlılık): harf yukarı, zemin aşağı — desen dikey süzülür.
+    var asagi = sn * prof.flow;
+    var yukari = sn * prof.flow;
+    var zamanFaz = sn * prof.pulse; // koherent dalganın zaman-akış fazı
+    var TAU = 6.2831853;
     var decoy = this.decoyMask;
     for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
       var i = r * cols + c;
       var harf = this.mask[i];
-      // TUZAK: hücre decoy'a ait mi? (gerçek kod her zaman kazanır — okunur kalsın.)
+      // TUZAK: statik yoğun desen → tek-kare OCR "yazı" sanıp yanılır; insan eler.
       if (decoy[i] === 1 && !harf) {
-        // STATİK decoy: akış yok, her karede aynı desen → tek-kare OCR "yazı"
-        // olarak yakalar (gerçek kod sanır); insan hareketsiz doku olarak eler.
         if (pseudoNoise(c * 2 + 1, r * 2 + 1) < 0.74) ctx.fillRect(c * cell, r * cell, cell, cell);
         continue;
       }
-      // Akış-kaymış satır: harf yukarı, zemin aşağı akar.
+      // Akış-kaymış satır (dikey süzülme).
       var akisSatir = harf ? (r + yukari) : (r - asagi);
       var satirTam = Math.floor(akisSatir);
       var satirKesir = akisSatir - satirTam;
-      // Akan gürültü: kaymış satır komşularını kesir ile harmanla (sürekli akış).
       var g0 = pseudoNoise(c, satirTam);
       var g1 = pseudoNoise(c, satirTam + 1);
       var gurultu = g0 * (1 - satirKesir) + g1 * satirKesir;
-      // Faz: akış fazı + hücre jitter'ı. Koherens harfleri senkronlar.
-      var fazTemel = harf ? yukari : asagi;
-      var fazHucre = (fazTemel + this.jitter[i] * (1 - coh)) % 1;
-      var dalga = Math.sin(fazHucre * 6.2831853); // -1..1
-      var esik;
+      // AKAN KOHERENT DALGA (harf) vs DAĞINIK TİTREŞİM (zemin) — ghostfont.ts birebir.
+      var esik, dalga;
       if (harf) {
-        esik = prof.letterBase + dalga * prof.letterAmp * coh;
+        // Konuma bağlı faz − zaman → yukarı akan parlaklık dalgası (tüm harf senkron).
+        dalga = Math.sin((r * prof.dalgaBoyu - zamanFaz) * TAU);
+        esik = prof.letterBase + dalga * prof.letterAmp;
       } else {
-        esik = prof.bgBase - dalga * prof.bgAmp * coh;
+        // Zemin: her hücre kendi rastgele fazında, düşük genlik → dağınık doku.
+        dalga = Math.sin(((zamanFaz * 0.6 + this.jitter[i]) % 1) * TAU);
+        esik = prof.bgBase + dalga * prof.bgAmp;
       }
       if (gurultu < esik) ctx.fillRect(c * cell, r * cell, cell, cell);
     }
